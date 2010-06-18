@@ -1,0 +1,64 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jvnet.hudson.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>1.354</version><!-- which version of Hudson is this plugin built against? -->
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <groupId>com.sonyericsson.rebuild</groupId>
+    <artifactId>rebuild</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>hpi</packaging>
+
+  <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
+    <repositories>
+        <repository>
+            <id>m.g.o-public</id>
+            <url>http://maven.glassfish.org/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <comments>Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>ragesh_nair</id>
+            <name>Ragesh Nair</name>
+            <email>ragesh.x.nair@sonyericsson.com</email>
+            <organization>Sony Ericsson</organization>
+            <roles>
+                <role>developer</role>
+                <role>maintainer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>GLundh</id>
+            <name>Lundh Gustaf</name>
+            <email>gustaf.lundh@sonyericsson.com</email>
+            <organization>Sony Ericsson</organization>
+            <roles>
+                <role>developer</role>
+                <role>maintainer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>m.g.o-public</id>
+            <url>http://maven.glassfish.org/content/groups/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+    <name>rebuild - com.sonyericsson.rebuild:rebuild:hpi:1.0-SNAPSHOT (hpi)</name>
+</project>
