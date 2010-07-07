@@ -62,4 +62,10 @@
         </pluginRepository>
     </pluginRepositories>
     <name>rebuild - com.sonyericsson.rebuild:rebuild:hpi:1.0-SNAPSHOT (hpi)</name>
+
+  <scm>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/rebuild</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/rebuild</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/tags/rebuild</url>
+  </scm>
 </project>
