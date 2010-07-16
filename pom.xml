@@ -11,10 +11,11 @@
 
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version> 1.2</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
+    <name>Rebuilder</name>
 
-  <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
+    <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
     <repositories>
         <repository>
             <id>m.g.o-public</id>
@@ -42,17 +43,6 @@
             </roles>
             <timezone>+1</timezone>
         </developer>
-        <developer>
-            <id>GLundh</id>
-            <name>Lundh Gustaf</name>
-            <email>gustaf.lundh@sonyericsson.com</email>
-            <organization>Sony Ericsson</organization>
-            <roles>
-                <role>developer</role>
-                <role>maintainer</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
     </developers>
 
     <pluginRepositories>
@@ -61,11 +51,46 @@
             <url>http://maven.glassfish.org/content/groups/public/</url>
         </pluginRepository>
     </pluginRepositories>
-    <name>rebuild - com.sonyericsson.rebuild:rebuild:hpi:1.0-SNAPSHOT (hpi)</name>
 
-  <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/rebuild-1.2</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/rebuild-1.2</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/tags/rebuild-1.2</url>
-  </scm>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.5</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.sonyericsson.hudson.plugins.gerrit</groupId>
+                        <artifactId>build-config</artifactId>
+                        <version>1.0</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <configLocation>swe_checkstyle.xml</configLocation>
+                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <!--<failsOnError>true</failsOnError>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
