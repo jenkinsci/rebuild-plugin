@@ -1,7 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2010 Sony Ericsson Mobile Communications.
+ *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -25,24 +25,31 @@ package com.sonyericsson.rebuild;
 
 import hudson.EnvVars;
 import hudson.Extension;
-import hudson.model.Build;
+import hudson.model.AbstractBuild;
+import hudson.model.Hudson;
 import hudson.model.ParametersAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
-import hudson.tasks.Builder;
 
 @Extension
-public class ReBuilder extends RunListener<Run> {
+public class Rebuilder extends RunListener<Run> {
 
-    public ReBuilder() {
+    public Rebuilder() {
         super(Run.class);
     }
 
     @Override
     public void onCompleted(Run r, TaskListener listener) {
-        if (r instanceof Build) {
-            Build build = (Build) r;
+        if (r instanceof AbstractBuild) {
+            AbstractBuild build = (AbstractBuild) r;
+
+            for (RebuildValidator rebuildValidator : Hudson.getInstance().getExtensionList(RebuildValidator.class)) {
+                if (rebuildValidator.isApplicable(build)) {
+                    return;
+                }
+            }
+
             if (build.getAction(ParametersAction.class) != null) {
                 ParametersAction p = build.getAction(ParametersAction.class);
                 EnvVars env = new EnvVars();
