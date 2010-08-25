@@ -26,6 +26,7 @@ package com.sonyericsson.rebuild;
 import hudson.EnvVars;
 import hudson.model.Action;
 import java.util.Map;
+import java.net.URLEncoder;
 
 public class RebuildAction implements Action {
 
@@ -40,9 +41,14 @@ public class RebuildAction implements Action {
             if (url.length() > BASE.length()) {
                 url.append('&');
             }
-            url.append(e.getKey());
-            url.append('=');
-            url.append(e.getValue());
+            try {
+                url.append(URLEncoder.encode(e.getKey(), "UTF-8"));
+                url.append('=');
+                url.append(URLEncoder.encode(e.getValue(), "UTF-8"));
+            } catch (java.io.UnsupportedEncodingException err) {
+                System.out.println("Error :" + err.getMessage());
+            }
+
         }
         rebuildurl = url.toString();
     }
