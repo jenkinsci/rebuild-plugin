@@ -58,7 +58,7 @@ public class Rebuilder extends RunListener<Run> {
                     if (p.getParameters().get(i).toString().contains(".RunParameter")
                             || p.getParameters().get(i).toString().contains(".FileParameter")) {
                         rebuildStatus = false;
-i                       i = p.getParameters().size();
+                       i = p.getParameters().size();
                     }
                 }
                 if (rebuildStatus) {
