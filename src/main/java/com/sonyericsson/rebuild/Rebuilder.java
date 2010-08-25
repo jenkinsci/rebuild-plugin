@@ -43,19 +43,28 @@ public class Rebuilder extends RunListener<Run> {
     public void onCompleted(Run r, TaskListener listener) {
         if (r instanceof AbstractBuild) {
             AbstractBuild build = (AbstractBuild) r;
-
-            for (RebuildValidator rebuildValidator : Hudson.getInstance().getExtensionList(RebuildValidator.class)) {
+            for (RebuildValidator rebuildValidator : Hudson.getInstance().
+                    getExtensionList(RebuildValidator.class)) {
                 if (rebuildValidator.isApplicable(build)) {
                     return;
                 }
             }
-
             if (build.getAction(ParametersAction.class) != null) {
                 ParametersAction p = build.getAction(ParametersAction.class);
                 EnvVars env = new EnvVars();
                 p.buildEnvVars(build, env);
-                RebuildAction rebuildAction = new RebuildAction(env);
-                build.getActions().add(rebuildAction);
+                boolean rebuildStatus = true;
+                for (int i = 0; i < p.getParameters().size(); i++) {
+                    if (p.getParameters().get(i).toString().contains(".RunParameter")
+                            || p.getParameters().get(i).toString().contains(".FileParameter")) {
+                        rebuildStatus = false;
+                       i = p.getParameters().size();
+                    }
+                }
+                if (rebuildStatus) {
+                    RebuildAction rebuildAction = new RebuildAction(env);
+                    build.getActions().add(rebuildAction);
+                }
             }
         }
     }
