@@ -11,7 +11,7 @@
 
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version>1.4</version>
+    <version>1.2</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
 
@@ -93,9 +93,9 @@
             </plugin>
         </plugins>
     </reporting>
-  <scm>
-    <connection>scm:svn:https://ragesh_nair@svn.dev.java.net/svn/hudson/tags/1.2</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/1.2</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/tags/1.2</url>
+ <scm>
+    <connection>scm:svn:https://ragesh_nair@svn.dev.java.net/svn/hudson/tags/rebuild-1.2</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/rebuild-1.2</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/tags/rebuild-1.2</url>
   </scm>
 </project>
