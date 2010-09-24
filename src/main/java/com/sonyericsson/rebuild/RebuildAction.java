@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2010 Sony Ericsson Mobile Communications.
+ *  Copyright (c) 2010, Manufacture Francaise des Pneumatiques Michelin, Romain Seguy
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +28,20 @@ import hudson.EnvVars;
 import hudson.model.Action;
 import java.util.Map;
 import java.net.URLEncoder;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RebuildAction implements Action {
 
     private String rebuildurl;
-    public static final String BASE = new String("../buildWithParameters?");
+    public static final String BASE = "../buildWithParameters?";
+
+    public RebuildAction(EnvVars env) {
+        loadString(env);
+    }
 
     private void loadString(EnvVars env) {
-        StringBuffer url = new StringBuffer(BASE);
+        StringBuilder url = new StringBuilder(BASE);
 
         for (Map.Entry<String, String> e : env.entrySet()) {
             //& not required for first Parameters
@@ -46,19 +53,14 @@ public class RebuildAction implements Action {
                 url.append('=');
                 url.append(URLEncoder.encode(e.getValue(), "UTF-8"));
             } catch (java.io.UnsupportedEncodingException err) {
-                System.out.println("Error :" + err.getMessage());
+                LOGGER.log(Level.WARNING, "Error: {0}", err.getMessage());
             }
-
         }
         rebuildurl = url.toString();
     }
 
-    public RebuildAction(EnvVars env) {
-        loadString(env);
-    }
-
     public String getIconFileName() {
-        return "clock.gif";
+        return "/plugin/rebuild/images/clock-48x48.png";
     }
 
     public String getDisplayName() {
@@ -68,4 +70,8 @@ public class RebuildAction implements Action {
     public String getUrlName() {
         return rebuildurl;
     }
+
+    private final static String CLASS_NAME = RebuildAction.class.getName();
+    private final static Logger LOGGER = Logger.getLogger(RebuildAction.class.getName());
+
 }
