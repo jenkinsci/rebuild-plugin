@@ -43,6 +43,15 @@
             </roles>
             <timezone>+1</timezone>
         </developer>
+        <developer>
+            <id>rseguy</id>
+            <name>Romain Seguy</name>
+            <email>romain.seguy@gmail.com</email>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
     </developers>
 
     <pluginRepositories>
