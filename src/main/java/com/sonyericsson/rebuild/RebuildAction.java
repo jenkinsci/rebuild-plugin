@@ -24,37 +24,60 @@
 package com.sonyericsson.rebuild;
 
 import hudson.EnvVars;
+import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.RunParameterValue;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.net.URLEncoder;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RebuildAction implements Action {
 
     private String rebuildurl;
     public static final String BASE = new String("../buildWithParameters?");
+    private static final Logger logger = Logger.getLogger(RebuildAction.class.getName());
+    private static final String UTF_8 = "UTF-8";
 
-    private void loadString(EnvVars env) {
-        StringBuffer url = new StringBuffer(BASE);
+    private void loadString(AbstractBuild<?, ?> build, ParametersAction p) {
 
-        for (Map.Entry<String, String> e : env.entrySet()) {
-            //& not required for first Parameters
+        StringBuilder url = new StringBuilder(BASE);
+
+        List<ParameterValue> parameters = p.getParameters();
+        for (int i = 0; i < parameters.size(); i++) {
             if (url.length() > BASE.length()) {
                 url.append('&');
             }
-            try {
-                url.append(URLEncoder.encode(e.getKey(), "UTF-8"));
-                url.append('=');
-                url.append(URLEncoder.encode(e.getValue(), "UTF-8"));
-            } catch (java.io.UnsupportedEncodingException err) {
-                System.out.println("Error :" + err.getMessage());
+            if (parameters.get(i) instanceof RunParameterValue) {
+                RunParameterValue runparam = (RunParameterValue) parameters.get(i);
+                url = handleRunParameter(runparam, url);
+            } else {
+                ParameterValue paramvalue = parameters.get(i);
+                EnvVars env = new EnvVars();
+                paramvalue.buildEnvVars(build, env);
+                for (Map.Entry<String, String> e : env.entrySet()) {
+                    try {
+                        url.append(URLEncoder.encode(e.getKey(), UTF_8));
+                        url.append('=');
+                        url.append(URLEncoder.encode(e.getValue(), UTF_8));
+                    } catch (UnsupportedEncodingException ex) {
+                        logger.log(Level.SEVERE, "Parameter Encoding is not supported", ex);
+                    }
+
+                }
+
             }
 
         }
         rebuildurl = url.toString();
     }
 
-    public RebuildAction(EnvVars env) {
-        loadString(env);
+    public RebuildAction(AbstractBuild<?, ?> build, ParametersAction p) {
+        loadString(build, p);
     }
 
     public String getIconFileName() {
@@ -67,5 +90,26 @@ public class RebuildAction implements Action {
 
     public String getUrlName() {
         return rebuildurl;
+    }
+
+    /**
+     * Handle the run parameter value.
+     *
+     * During rebuild run parameter is handle by this function , the function
+     * will add the run parameter url part to rebuild url.
+     * @param runparam
+     *        runparam is an instance of RunParameter class.
+     * @param url
+     *        url for rebuild.
+     */
+    public StringBuilder handleRunParameter(RunParameterValue runparam, StringBuilder url) {
+        try {
+            url.append(URLEncoder.encode(runparam.getName(), UTF_8));
+            url.append('=');
+            url.append(URLEncoder.encode(runparam.getRunId(), UTF_8));
+        } catch (UnsupportedEncodingException ex) {
+            logger.log(Level.SEVERE, "Parameter Encoding is not supported", ex);
+        }
+        return url;
     }
 }

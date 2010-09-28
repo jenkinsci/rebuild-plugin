@@ -23,7 +23,6 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
@@ -49,22 +48,10 @@ public class Rebuilder extends RunListener<Run> {
                     return;
                 }
             }
-            if (build.getAction(ParametersAction.class) != null) {
-                ParametersAction p = build.getAction(ParametersAction.class);
-                EnvVars env = new EnvVars();
-                p.buildEnvVars(build, env);
-                boolean rebuildStatus = true;
-                for (int i = 0; i < p.getParameters().size(); i++) {
-                    if (p.getParameters().get(i).toString().contains(".RunParameter")
-                            || p.getParameters().get(i).toString().contains(".FileParameter")) {
-                        rebuildStatus = false;
-                       i = p.getParameters().size();
-                    }
-                }
-                if (rebuildStatus) {
-                    RebuildAction rebuildAction = new RebuildAction(env);
-                    build.getActions().add(rebuildAction);
-                }
+            ParametersAction p = build.getAction(ParametersAction.class);
+            if (p != null) {
+                RebuildAction rebuildAction = new RebuildAction(build, p);
+                build.getActions().add(rebuildAction);
             }
         }
     }
