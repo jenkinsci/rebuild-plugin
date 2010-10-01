@@ -64,8 +64,10 @@ public class Rebuilder extends RunListener<Run> {
             AbstractProject project = ((AbstractBuild) r).getProject();
             ParametersDefinitionProperty paramDefinitionProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
 
-            for (ParameterDefinition paramDefinition: paramDefinitionProperty.getParameterDefinitions()) {
-                buildParamDefinitionClasses.add(paramDefinition.getClass());
+            if(paramDefinitionProperty != null) {
+                for (ParameterDefinition paramDefinition: paramDefinitionProperty.getParameterDefinitions()) {
+                    buildParamDefinitionClasses.add(paramDefinition.getClass());
+                }
             }
         }
     }
