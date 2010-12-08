@@ -30,10 +30,18 @@ import hudson.model.ParametersAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
-
+/**
+ * Runtime Listner class which allows
+ * the user to rebuild the parameterized
+ * build.
+ * @author Shemeer S.
+ */
 @Extension
 public class Rebuilder extends RunListener<Run> {
 
+    /**
+     * Rebuilder class constructor.
+     */
     public Rebuilder() {
         super(Run.class);
     }
@@ -50,7 +58,7 @@ public class Rebuilder extends RunListener<Run> {
             }
             ParametersAction p = build.getAction(ParametersAction.class);
             if (p != null) {
-                RebuildAction rebuildAction = new RebuildAction(build, p);
+                RebuildAction rebuildAction = new RebuildAction();
                 build.getActions().add(rebuildAction);
             }
         }

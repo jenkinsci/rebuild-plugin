@@ -23,93 +23,82 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.EnvVars;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import hudson.model.Cause;
+import hudson.model.CauseAction;
+import hudson.model.Hudson;
+import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
-import hudson.model.RunParameterValue;
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
-import java.net.URLEncoder;
+import hudson.model.ParametersDefinitionProperty;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.servlet.ServletException;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
+/**
+ * Rebuild RootAction implementation class.
+ * This class will basically reschedule the build with
+ * existing parameters.
+ *
+ * @author Shemeer S;
+ */
 public class RebuildAction implements Action {
 
-    private String rebuildurl;
-    public static final String BASE = new String("../buildWithParameters?");
-    private static final Logger logger = Logger.getLogger(RebuildAction.class.getName());
-    private static final String UTF_8 = "UTF-8";
-
-    private void loadString(AbstractBuild<?, ?> build, ParametersAction p) {
-
-        StringBuilder url = new StringBuilder(BASE);
-
-        List<ParameterValue> parameters = p.getParameters();
-        for (int i = 0; i < parameters.size(); i++) {
-            if (url.length() > BASE.length()) {
-                url.append('&');
-            }
-            if (parameters.get(i) instanceof RunParameterValue) {
-                RunParameterValue runparam = (RunParameterValue) parameters.get(i);
-                url = handleRunParameter(runparam, url);
-            } else {
-                ParameterValue paramvalue = parameters.get(i);
-                EnvVars env = new EnvVars();
-                paramvalue.buildEnvVars(build, env);
-                for (Map.Entry<String, String> e : env.entrySet()) {
-                    try {
-                        url.append(URLEncoder.encode(e.getKey(), UTF_8));
-                        url.append('=');
-                        url.append(URLEncoder.encode(e.getValue(), UTF_8));
-                    } catch (UnsupportedEncodingException ex) {
-                        logger.log(Level.SEVERE, "Parameter Encoding is not supported", ex);
-                    }
-
-                }
-
-            }
-
-        }
-        rebuildurl = url.toString();
-    }
-
-    public RebuildAction(AbstractBuild<?, ?> build, ParametersAction p) {
-        loadString(build, p);
-    }
-
+    @Override
     public String getIconFileName() {
         return "clock.gif";
     }
 
+    @Override
     public String getDisplayName() {
         return "Rebuild";
     }
 
+    @Override
     public String getUrlName() {
-        return rebuildurl;
+        return "rebuild";
     }
 
     /**
-     * Handle the run parameter value.
-     *
-     * During rebuild run parameter is handle by this function , the function
-     * will add the run parameter url part to rebuild url.
-     * @param runparam
-     *        runparam is an instance of RunParameter class.
-     * @param url
-     *        url for rebuild.
+     * Saves the form to the configuration and disk.
+     * @param req StaplerRequest
+     * @param rsp StaplerResponse
+     * @throws ServletException if something unfortunate happens.
+     * @throws IOException if something unfortunate happens.
+     * @throws InterruptedException if something unfortunate happens.
      */
-    public StringBuilder handleRunParameter(RunParameterValue runparam, StringBuilder url) {
-        try {
-            url.append(URLEncoder.encode(runparam.getName(), UTF_8));
-            url.append('=');
-            url.append(URLEncoder.encode(runparam.getRunId(), UTF_8));
-        } catch (UnsupportedEncodingException ex) {
-            logger.log(Level.SEVERE, "Parameter Encoding is not supported", ex);
+    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp)
+            throws ServletException, IOException,
+            InterruptedException {
+        if (!req.getMethod().equals("POST")) {
+            // show the parameter entry form.
+            req.getView(this, "index.jelly").forward(req, rsp);
+            return;
         }
-        return url;
+        AbstractBuild<?, ?> build = req.findAncestorObject(AbstractBuild.class);
+        ParametersDefinitionProperty pdp = build.getProject().
+                getProperty(ParametersDefinitionProperty.class);
+        List<ParameterValue> values = new ArrayList<ParameterValue>();
+        JSONObject formData = req.getSubmittedForm();
+        JSONArray a = JSONArray.fromObject(formData.get("parameter"));
+        for (Object o : a) {
+            JSONObject jo = (JSONObject) o;
+            String name = jo.getString("name");
+            ParameterDefinition d = pdp.getParameterDefinition(name);
+            if (d == null) {
+                throw new IllegalArgumentException("No such parameter definition: " + name);
+            }
+            ParameterValue parameterValue = d.createValue(req, jo);
+            values.add(parameterValue);
+        }
+        Hudson.getInstance().getQueue().schedule(
+                pdp.getOwner(), 0, new ParametersAction(values), new CauseAction(new Cause.UserCause()));
+        rsp.sendRedirect("../../");
     }
 }
