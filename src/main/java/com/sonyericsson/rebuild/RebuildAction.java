@@ -2,7 +2,6 @@
  *  The MIT License
  *
  *  Copyright 2010 Sony Ericsson Mobile Communications.
- *  Copyright (c) 2010, Manufacture Francaise des Pneumatiques Michelin, Romain Seguy
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -24,54 +23,82 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.EnvVars;
+import hudson.model.AbstractBuild;
 import hudson.model.Action;
-import java.util.Map;
-import java.net.URLEncoder;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import hudson.model.Cause;
+import hudson.model.CauseAction;
+import hudson.model.Hudson;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.servlet.ServletException;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
+/**
+ * Rebuild RootAction implementation class.
+ * This class will basically reschedule the build with
+ * existing parameters.
+ *
+ * @author Shemeer S;
+ */
 public class RebuildAction implements Action {
 
-    private String rebuildurl;
-    public static final String BASE = "../buildWithParameters?";
-
-    public RebuildAction(EnvVars env) {
-        loadString(env);
-    }
-
-    private void loadString(EnvVars env) {
-        StringBuilder url = new StringBuilder(BASE);
-
-        for (Map.Entry<String, String> e : env.entrySet()) {
-            //& not required for first Parameters
-            if (url.length() > BASE.length()) {
-                url.append('&');
-            }
-            try {
-                url.append(URLEncoder.encode(e.getKey(), "UTF-8"));
-                url.append('=');
-                url.append(URLEncoder.encode(e.getValue(), "UTF-8"));
-            } catch (java.io.UnsupportedEncodingException err) {
-                LOGGER.log(Level.WARNING, "Error: {0}", err.getMessage());
-            }
-        }
-        rebuildurl = url.toString();
-    }
-
+    @Override
     public String getIconFileName() {
-        return "/plugin/rebuild/images/clock-48x48.png";
+        return "clock.gif";
     }
 
+    @Override
     public String getDisplayName() {
         return "Rebuild";
     }
 
+    @Override
     public String getUrlName() {
-        return rebuildurl;
+        return "rebuild";
     }
 
-    private final static String CLASS_NAME = RebuildAction.class.getName();
-    private final static Logger LOGGER = Logger.getLogger(RebuildAction.class.getName());
-
+    /**
+     * Saves the form to the configuration and disk.
+     * @param req StaplerRequest
+     * @param rsp StaplerResponse
+     * @throws ServletException if something unfortunate happens.
+     * @throws IOException if something unfortunate happens.
+     * @throws InterruptedException if something unfortunate happens.
+     */
+    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp)
+            throws ServletException, IOException,
+            InterruptedException {
+        if (!req.getMethod().equals("POST")) {
+            // show the parameter entry form.
+            req.getView(this, "index.jelly").forward(req, rsp);
+            return;
+        }
+        AbstractBuild<?, ?> build = req.findAncestorObject(AbstractBuild.class);
+        ParametersDefinitionProperty pdp = build.getProject().
+                getProperty(ParametersDefinitionProperty.class);
+        List<ParameterValue> values = new ArrayList<ParameterValue>();
+        JSONObject formData = req.getSubmittedForm();
+        JSONArray a = JSONArray.fromObject(formData.get("parameter"));
+        for (Object o : a) {
+            JSONObject jo = (JSONObject) o;
+            String name = jo.getString("name");
+            ParameterDefinition d = pdp.getParameterDefinition(name);
+            if (d == null) {
+                throw new IllegalArgumentException("No such parameter definition: " + name);
+            }
+            ParameterValue parameterValue = d.createValue(req, jo);
+            values.add(parameterValue);
+        }
+        Hudson.getInstance().getQueue().schedule(
+                pdp.getOwner(), 0, new ParametersAction(values), new CauseAction(new Cause.UserCause()));
+        rsp.sendRedirect("../../");
+    }
 }

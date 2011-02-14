@@ -2,7 +2,6 @@
  *  The MIT License
  *
  *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.
- *  Copyright (c) 2010, Manufacture Francaise des Pneumatiques Michelin, Romain Seguy
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +33,6 @@ import java.io.Serializable;
  * other plug-ins provides similar functionality.
  *
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
- * @deprecated Consider using run-time configuration (cf. Manage > Configure Rebuild plugin)
  */
 public abstract class RebuildValidator implements Serializable, ExtensionPoint {
     /**

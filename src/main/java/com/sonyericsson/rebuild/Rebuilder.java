@@ -2,7 +2,6 @@
  *  The MIT License
  *
  *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.
- *  Copyright (c) 2010, Manufacture Francaise des Pneumatiques Michelin, Romain Seguy
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -24,72 +23,44 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.ParameterDefinition;
+import hudson.model.Hudson;
 import hudson.model.ParametersAction;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
+/**
+ * Runtime Listner class which allows
+ * the user to rebuild the parameterized
+ * build.
+ * @author Shemeer S.
+ */
 @Extension
 public class Rebuilder extends RunListener<Run> {
 
     /**
-     * Contains the set of {@link ParameterDefinition} classes that are used by
-     * the build.
+     * Rebuilder class constructor.
      */
-    private Set<Class> buildParamDefinitionClasses;
-
     public Rebuilder() {
         super(Run.class);
-        buildParamDefinitionClasses = new LinkedHashSet<Class>();
-    }
-
-    /**
-     * As there is no way in the Hudson API to link back a {@link ParameterValue}
-     * to the {@link ParameterDefinition} which it was created from, we need to
-     * analyze the build parameters when the build starts for use in the
-     * {@code onCompleted()} method.
-     */
-    @Override
-    public void onStarted(Run r, TaskListener listener) {
-        if (r instanceof AbstractBuild) {
-            AbstractProject project = ((AbstractBuild) r).getProject();
-            ParametersDefinitionProperty paramDefinitionProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
-
-            if(paramDefinitionProperty != null) {
-                for (ParameterDefinition paramDefinition: paramDefinitionProperty.getParameterDefinitions()) {
-                    buildParamDefinitionClasses.add(paramDefinition.getClass());
-                }
-            }
-        }
     }
 
     @Override
     public void onCompleted(Run r, TaskListener listener) {
         if (r instanceof AbstractBuild) {
             AbstractBuild build = (AbstractBuild) r;
-            if (build.getAction(ParametersAction.class) != null) {
-                for (Class buildParamDefinitionClass: buildParamDefinitionClasses) {
-                    if(RebuildConfig.getInstance().isBlocking(buildParamDefinitionClass.getName())) {
-                        return;
-                    }
+            for (RebuildValidator rebuildValidator : Hudson.getInstance().
+                    getExtensionList(RebuildValidator.class)) {
+                if (rebuildValidator.isApplicable(build)) {
+                    return;
                 }
-
-                ParametersAction p = build.getAction(ParametersAction.class);
-                EnvVars env = new EnvVars();
-                p.buildEnvVars(build, env);
-                RebuildAction rebuildAction = new RebuildAction(env);
+            }
+            ParametersAction p = build.getAction(ParametersAction.class);
+            if (p != null) {
+                RebuildAction rebuildAction = new RebuildAction();
                 build.getActions().add(rebuildAction);
             }
         }
     }
-
 }
