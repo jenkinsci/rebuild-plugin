@@ -51,7 +51,7 @@ THE SOFTWARE.
                 <j:forEach var="parameterValue" items="${paramAction.parameters}">
                    <j:set var="valuePage" value="${parameterValue.class.simpleName}" />
                     <st:include it="${parameterValue}"
-                    page="/com/sonyericsson/rebuild/RebuildAction/${valuePage}.jelly" />
+                    from="${it}"  page="${valuePage}.jelly" />
                 </j:forEach>
                 <br/>
                 <br/>
