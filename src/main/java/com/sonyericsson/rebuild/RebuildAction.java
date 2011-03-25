@@ -24,11 +24,9 @@
 package com.sonyericsson.rebuild;
 
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
-import hudson.model.Cause.UpstreamCause;
 import hudson.model.CauseAction;
 import hudson.model.FileParameterValue;
 import hudson.model.Hudson;
