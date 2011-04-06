@@ -49,6 +49,51 @@ import org.kohsuke.stapler.StaplerResponse;
  * @author Shemeer S;
  */
 public class RebuildAction implements Action {
+    /*
+     * All the below transient variables
+     * are declared only for backward
+     * compatibility of the rebuild plugin.
+     * */
+    private transient String rebuildurl = "rebuild";
+    private transient String parameters = "rebuildParam";
+    private transient String p = "parameter";
+    private transient AbstractBuild<?, ?> build;
+    private transient ParametersDefinitionProperty pdp;
+     /**
+     * Getter method for pdp.
+     * @return pdp.
+     */
+    public ParametersDefinitionProperty getPdp() {
+        return pdp;
+    }
+    /**
+     * Getter method for build.
+     * @return build.
+     */
+    public AbstractBuild<?, ?> getBuild() {
+        return build;
+    }
+    /**
+     * Getter method for p.
+     * @return p.
+     */
+    public String getP() {
+        return p;
+    }
+    /**
+     * Getter method for parameters.
+     * @return parameters.
+     */
+    public String getParameters() {
+        return parameters;
+    }
+    /**
+     * Getter method for rebuildurl.
+     * @return rebuildurl.
+     */
+    public String getRebuildurl() {
+        return rebuildurl;
+    }
 
     @Override
     public String getIconFileName() {
@@ -81,8 +126,8 @@ public class RebuildAction implements Action {
             req.getView(this, "index.jelly").forward(req, rsp);
             return;
         }
-        AbstractBuild<?, ?> build = req.findAncestorObject(AbstractBuild.class);
-        ParametersDefinitionProperty pdp = build.getProject().
+        AbstractBuild<?, ?> abstractBuild = req.findAncestorObject(AbstractBuild.class);
+        ParametersDefinitionProperty paramDefprop = abstractBuild.getProject().
                 getProperty(ParametersDefinitionProperty.class);
         List<ParameterValue> values = new ArrayList<ParameterValue>();
         JSONObject formData = req.getSubmittedForm();
@@ -90,7 +135,7 @@ public class RebuildAction implements Action {
         for (Object o : a) {
             JSONObject jo = (JSONObject) o;
             String name = jo.getString("name");
-            ParameterDefinition d = pdp.getParameterDefinition(name);
+            ParameterDefinition d = paramDefprop.getParameterDefinition(name);
             if (d == null) {
                 throw new IllegalArgumentException("No such parameter definition: " + name);
             }
@@ -98,7 +143,8 @@ public class RebuildAction implements Action {
             values.add(parameterValue);
         }
         Hudson.getInstance().getQueue().schedule(
-                pdp.getOwner(), 0, new ParametersAction(values), new CauseAction(new Cause.UserCause()));
+          paramDefprop.getOwner(), 0, new ParametersAction(values),
+          new CauseAction(new Cause.UserCause()));
         rsp.sendRedirect("../../");
     }
 }
