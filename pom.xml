@@ -3,9 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Rebuild+Plugin</url>
     <parent>
-        <groupId>org.jvnet.hudson.plugins</groupId>
+        <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>1.358</version><!-- which version of Hudson is this plugin built against? -->
+        <version>1.400</version><!-- which version of Hudson is this plugin built against? -->
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -18,8 +18,8 @@
     <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
     <repositories>
         <repository>
-            <id>m.g.o-public</id>
-            <url>http://maven.glassfish.org/content/groups/public/</url>
+            <id>maven.jenkins-ci.org</id>
+            <url>http://maven.jenkins-ci.org/content/groups/public/</url>
         </repository>
     </repositories>
 
@@ -59,8 +59,8 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>m.g.o-public</id>
-            <url>http://maven.glassfish.org/content/groups/public/</url>
+            <id>maven.jenkins-ci.org</id>
+            <url>http://maven.jenkins-ci.org/content/repositories/releases</url>
         </pluginRepository>
     </pluginRepositories>
     <build>
@@ -103,6 +103,12 @@
             </extension>
         </extensions>
     </build>
+    <distributionManagement>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>http://maven.jenkins-ci.org:8081/content/repositories/releases</url>
+        </repository>
+    </distributionManagement>
     <reporting>
         <plugins>
             <plugin>
@@ -137,8 +143,8 @@
     
 
     <scm>
-        <connection>scm:git:git://github.com/jenkinsci/rebuild-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/rebuild-plugin.git</developerConnection>
+        <connection>scm:git:ssh://github.com/jenkinsci/rebuild-plugin.git</connection>
+        <developerConnection>scm:git:ssh@github.com:jenkinsci/rebuild-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/rebuild-plugin</url>
     </scm>
 </project>
