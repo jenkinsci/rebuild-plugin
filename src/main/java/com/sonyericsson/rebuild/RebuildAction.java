@@ -25,13 +25,18 @@ package com.sonyericsson.rebuild;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
+import hudson.model.FileParameterValue;
 import hudson.model.Hudson;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
+import hudson.model.PasswordParameterValue;
+import hudson.model.RunParameterValue;
+import hudson.model.StringParameterValue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,25 +131,51 @@ public class RebuildAction implements Action {
             req.getView(this, "index.jelly").forward(req, rsp);
             return;
         }
-        AbstractBuild<?, ?> abstractBuild = req.findAncestorObject(AbstractBuild.class);
-        ParametersDefinitionProperty paramDefprop = abstractBuild.getProject().
+        build = req.findAncestorObject(AbstractBuild.class);
+        pdp = build.getProject().
                 getProperty(ParametersDefinitionProperty.class);
+        ParametersAction paramAction = build.getAction(ParametersAction.class);
         List<ParameterValue> values = new ArrayList<ParameterValue>();
         JSONObject formData = req.getSubmittedForm();
         JSONArray a = JSONArray.fromObject(formData.get("parameter"));
         for (Object o : a) {
             JSONObject jo = (JSONObject) o;
             String name = jo.getString("name");
-            ParameterDefinition d = paramDefprop.getParameterDefinition(name);
-            if (d == null) {
-                throw new IllegalArgumentException("No such parameter definition: " + name);
+            String value = jo.getString("value");
+            ParameterValue originalValue = paramAction.getParameter(name);
+            ParameterValue parameterValue = null;
+
+            // we special-case file parameters because they can not be passed build-to-build.
+            if (originalValue instanceof FileParameterValue) {
+                if (pdp != null) {
+                    ParameterDefinition d = pdp.getParameterDefinition(name);
+                    if (d == null) {
+                        throw new IllegalArgumentException("No such parameter definition: " + name);
+                    }
+                    parameterValue = d.createValue(req, jo);
+                }
+            } else {
+                parameterValue = cloneParameter(originalValue, value);
             }
-            ParameterValue parameterValue = d.createValue(req, jo);
-            values.add(parameterValue);
+            if (parameterValue != null) {
+                values.add(parameterValue);
+            }
         }
         Hudson.getInstance().getQueue().schedule(
-          paramDefprop.getOwner(), 0, new ParametersAction(values),
-          new CauseAction(new Cause.UserCause()));
+                build.getProject(), 0, new ParametersAction(values), new CauseAction(new Cause.UserCause()));
         rsp.sendRedirect("../../");
+    }
+
+    private ParameterValue cloneParameter(ParameterValue oldValue, String newValue) {
+        if (oldValue instanceof StringParameterValue) {
+            return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
+        } else if (oldValue instanceof BooleanParameterValue) {
+            return new BooleanParameterValue(oldValue.getName(), Boolean.valueOf(newValue), oldValue.getDescription());
+        } else if (oldValue instanceof RunParameterValue) {
+            return new RunParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
+        } else if (oldValue instanceof PasswordParameterValue) {
+            return new PasswordParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
+        }
+        throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
 }
