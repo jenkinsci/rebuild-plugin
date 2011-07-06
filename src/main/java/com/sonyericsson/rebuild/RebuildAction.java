@@ -24,6 +24,7 @@
 package com.sonyericsson.rebuild;
 
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
@@ -38,6 +39,7 @@ import java.util.List;
 import javax.servlet.ServletException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -54,18 +56,21 @@ public class RebuildAction implements Action {
      * are declared only for backward
      * compatibility of the rebuild plugin.
      * */
+
     private transient String rebuildurl = "rebuild";
     private transient String parameters = "rebuildParam";
     private transient String p = "parameter";
     private transient AbstractBuild<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
-     /**
+
+    /**
      * Getter method for pdp.
      * @return pdp.
      */
     public ParametersDefinitionProperty getPdp() {
         return pdp;
     }
+
     /**
      * Getter method for build.
      * @return build.
@@ -73,6 +78,7 @@ public class RebuildAction implements Action {
     public AbstractBuild<?, ?> getBuild() {
         return build;
     }
+
     /**
      * Getter method for p.
      * @return p.
@@ -80,6 +86,7 @@ public class RebuildAction implements Action {
     public String getP() {
         return p;
     }
+
     /**
      * Getter method for parameters.
      * @return parameters.
@@ -87,6 +94,7 @@ public class RebuildAction implements Action {
     public String getParameters() {
         return parameters;
     }
+
     /**
      * Getter method for rebuildurl.
      * @return rebuildurl.
@@ -95,19 +103,50 @@ public class RebuildAction implements Action {
         return rebuildurl;
     }
 
+    /**
+     * Method will return current project.
+     * @return currentProject.
+     */
+    public AbstractProject getProject() {
+        AbstractProject currentProject = null;
+        StaplerRequest request = Stapler.getCurrentRequest();
+        if (request != null) {
+            currentProject = request.findAncestorObject(AbstractProject.class);
+        }
+        if (currentProject == null) {
+            throw new NullPointerException("Current Project is null");
+        }
+        return currentProject;
+    }
+
     @Override
     public String getIconFileName() {
-        return "clock.gif";
+        if (getProject().hasPermission(AbstractProject.BUILD)
+                    && getProject().isBuildable() && !(getProject().isDisabled())) {
+            return "clock.gif";
+        } else {
+            return null;
+        }
     }
 
     @Override
     public String getDisplayName() {
-        return "Rebuild";
+        if (getProject().hasPermission(AbstractProject.BUILD)
+                    && getProject().isBuildable() && !(getProject().isDisabled())) {
+            return "Rebuild";
+        } else {
+            return null;
+        }
     }
 
     @Override
     public String getUrlName() {
-        return "rebuild";
+       if (getProject().hasPermission(AbstractProject.BUILD)
+                    && getProject().isBuildable() && !(getProject().isDisabled())) {
+            return "rebuild";
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -121,30 +160,33 @@ public class RebuildAction implements Action {
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp)
             throws ServletException, IOException,
             InterruptedException {
-        if (!req.getMethod().equals("POST")) {
-            // show the parameter entry form.
-            req.getView(this, "index.jelly").forward(req, rsp);
-            return;
-        }
-        AbstractBuild<?, ?> abstractBuild = req.findAncestorObject(AbstractBuild.class);
-        ParametersDefinitionProperty paramDefprop = abstractBuild.getProject().
-                getProperty(ParametersDefinitionProperty.class);
-        List<ParameterValue> values = new ArrayList<ParameterValue>();
-        JSONObject formData = req.getSubmittedForm();
-        JSONArray a = JSONArray.fromObject(formData.get("parameter"));
-        for (Object o : a) {
-            JSONObject jo = (JSONObject) o;
-            String name = jo.getString("name");
-            ParameterDefinition d = paramDefprop.getParameterDefinition(name);
-            if (d == null) {
-                throw new IllegalArgumentException("No such parameter definition: " + name);
+        getProject().checkPermission(AbstractProject.BUILD);
+        if (getProject().isBuildable() && !(getProject().isDisabled())) {
+            if (!req.getMethod().equals("POST")) {
+                // show the parameter entry form.
+                req.getView(this, "index.jelly").forward(req, rsp);
+                return;
             }
-            ParameterValue parameterValue = d.createValue(req, jo);
-            values.add(parameterValue);
+            AbstractBuild<?, ?> abstractBuild = req.findAncestorObject(AbstractBuild.class);
+            ParametersDefinitionProperty paramDefprop = abstractBuild.getProject().
+                    getProperty(ParametersDefinitionProperty.class);
+            List<ParameterValue> values = new ArrayList<ParameterValue>();
+            JSONObject formData = req.getSubmittedForm();
+            JSONArray a = JSONArray.fromObject(formData.get("parameter"));
+            for (Object o : a) {
+                JSONObject jo = (JSONObject) o;
+                String name = jo.getString("name");
+                ParameterDefinition d = paramDefprop.getParameterDefinition(name);
+                if (d == null) {
+                    throw new IllegalArgumentException("No such parameter definition: " + name);
+                }
+                ParameterValue parameterValue = d.createValue(req, jo);
+                values.add(parameterValue);
+            }
+            Hudson.getInstance().getQueue().schedule(
+                    paramDefprop.getOwner(), 0, new ParametersAction(values),
+                    new CauseAction(new Cause.UserCause()));
+            rsp.sendRedirect("../../");
         }
-        Hudson.getInstance().getQueue().schedule(
-          paramDefprop.getOwner(), 0, new ParametersAction(values),
-          new CauseAction(new Cause.UserCause()));
-        rsp.sendRedirect("../../");
     }
 }
