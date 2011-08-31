@@ -141,7 +141,11 @@ public class RebuildAction implements Action {
         for (Object o : a) {
             JSONObject jo = (JSONObject) o;
             String name = jo.getString("name");
-            String value = jo.getString("value");
+            final String value;
+            if (jo.containsKey("runId"))
+                value = jo.getString("runId");
+            else
+                value = jo.getString("value");
             ParameterValue originalValue = paramAction.getParameter(name);
             ParameterValue parameterValue = null;
 
