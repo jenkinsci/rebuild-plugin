@@ -49,7 +49,7 @@ public class Rebuilder extends RunListener<Run> {
     @Override
     public void onCompleted(Run r, TaskListener listener) {
         if (r instanceof AbstractBuild) {
-            AbstractBuild build = (AbstractBuild) r;
+            AbstractBuild build = (AbstractBuild)r;
             for (RebuildValidator rebuildValidator : Hudson.getInstance().
                     getExtensionList(RebuildValidator.class)) {
                 if (rebuildValidator.isApplicable(build)) {
