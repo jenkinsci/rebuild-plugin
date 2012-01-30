@@ -13,14 +13,14 @@
 
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version>1.10</version>
+    <version>1.11-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
 
     <repositories>
         <repository>
-            <id>maven.jenkins-ci.org</id>
-            <url>http://maven.jenkins-ci.org/content/repositories/releases/</url>
+            <id>repo.jenkins-ci.org</id>
+            <url>http://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
 
