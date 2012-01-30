@@ -50,7 +50,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
     public void testNoRebuildValidatorExtension()
             throws IOException, InterruptedException, ExecutionException {
         Project projectA = createFreeStyleProject("testFreeStyleA");
-        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserCause(),
+        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserCause(),
                 new ParametersAction(new StringParameterValue("party", "megaparty"))).get();
         assertNotNull(buildA.getAction(RebuildAction.class));
     }
@@ -66,7 +66,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
             throws IOException, InterruptedException, ExecutionException {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorAlwaysApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleB");
-        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserCause(),
+        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserCause(),
                 new ParametersAction(new StringParameterValue("party", "megaparty"))).get();
         assertNull(buildA.getAction(RebuildAction.class));
     }
@@ -82,7 +82,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
             throws IOException, InterruptedException, ExecutionException {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorNeverApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserCause(),
+        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserCause(),
                 new ParametersAction(new StringParameterValue("party", "megaparty"))).get();
         assertNotNull(buildA.getAction(RebuildAction.class));
     }
@@ -99,7 +99,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorAlwaysApplicable());
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorNeverApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserCause(),
+        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserCause(),
                 new ParametersAction(new StringParameterValue("party", "megaparty"))).get();
         assertNull(buildA.getAction(RebuildAction.class));
     }

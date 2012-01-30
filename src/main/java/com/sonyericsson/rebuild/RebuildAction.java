@@ -162,31 +162,37 @@ public class RebuildAction implements Action {
             InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
         if (getProject().isBuildable() && !(getProject().isDisabled())) {
-            if (!req.getMethod().equals("POST")) {
-                // show the parameter entry form.
-                req.getView(this, "index.jelly").forward(req, rsp);
-                return;
-            }
-            AbstractBuild<?, ?> abstractBuild = req.findAncestorObject(AbstractBuild.class);
-            ParametersDefinitionProperty paramDefprop = abstractBuild.getProject().
-                    getProperty(ParametersDefinitionProperty.class);
-            List<ParameterValue> values = new ArrayList<ParameterValue>();
-            JSONObject formData = req.getSubmittedForm();
-            JSONArray a = JSONArray.fromObject(formData.get("parameter"));
-            for (Object o : a) {
-                JSONObject jo = (JSONObject) o;
-                String name = jo.getString("name");
-                ParameterDefinition d = paramDefprop.getParameterDefinition(name);
-                if (d == null) {
-                    throw new IllegalArgumentException("No such parameter definition: " + name);
+        if (!req.getMethod().equals("POST")) {
+            // show the parameter entry form.
+            req.getView(this, "index.jelly").forward(req, rsp);
+            return;
+        }
+        build = req.findAncestorObject(AbstractBuild.class);
+        ParametersDefinitionProperty paramDefProp = build.getProject().
+                getProperty(ParametersDefinitionProperty.class);
+       List<ParameterValue> values = new ArrayList<ParameterValue>();
+        JSONObject formData = req.getSubmittedForm();
+        JSONArray a = JSONArray.fromObject(formData.get("parameter"));
+        for (Object o : a) {
+            JSONObject jo = (JSONObject)o;
+            String name = jo.getString("name");
+            ParameterValue parameterValue = null;
+                if (paramDefProp != null) {
+                    ParameterDefinition d = paramDefProp.getParameterDefinition(name);
+                    if (d == null) {
+                        throw new IllegalArgumentException("No such parameter"
+                                + " definition: " + name);
+                    }
+                    parameterValue = d.createValue(req, jo);
                 }
-                ParameterValue parameterValue = d.createValue(req, jo);
+            if (parameterValue != null) {
                 values.add(parameterValue);
             }
-            Hudson.getInstance().getQueue().schedule(
-                    paramDefprop.getOwner(), 0, new ParametersAction(values),
-                    new CauseAction(new Cause.UserCause()));
-            rsp.sendRedirect("../../");
+        }
+        Hudson.getInstance().getQueue().schedule(
+                build.getProject(), 0, new ParametersAction(values),
+                new CauseAction(new Cause.UserCause()));
+        rsp.sendRedirect("../../");
         }
     }
 }

@@ -5,7 +5,9 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>1.400</version><!-- which version of Jenkins is this plugin built against? -->
+       <!-- Since rebuild plugin is using some functions available in
+        Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
+        <version>1.405</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

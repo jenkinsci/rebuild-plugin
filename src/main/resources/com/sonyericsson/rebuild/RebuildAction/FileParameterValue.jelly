@@ -24,15 +24,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+<?jelly escape-by-default='true'?>
+ <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
 	xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
-    <f:entry title="${it.name}">
-        <j:if test="${it.originalFileName != null}">
-            <j:invokeStatic var="encodedName" className="hudson.Util" method="rawEncode">
-                <j:arg value="${it.name}" />
-            </j:invokeStatic>
-            <a href="parameter/${encodedName}/${it.originalFileName}">${it.originalFileName}</a>
-        </j:if>
-    </f:entry>
-</j:jelly>
+        <f:entry title="${it.name}" description="${it.description}">
+            <div name="parameter">
+                <input type="hidden" name="name" value="${it.name}" />
+                <input name="file" type="file" jsonAware="true" />
+            </div>
+        </f:entry>
+ </j:jelly>
