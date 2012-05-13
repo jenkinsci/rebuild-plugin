@@ -23,25 +23,17 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.servlet.ServletException;
+import hudson.model.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Rebuild RootAction implementation class.
@@ -60,11 +52,13 @@ public class RebuildAction implements Action {
     private transient String rebuildurl = "rebuild";
     private transient String parameters = "rebuildParam";
     private transient String p = "parameter";
-    private transient AbstractBuild<?, ?> build;
+    private AbstractBuild<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
+
 
     /**
      * Getter method for pdp.
+     *
      * @return pdp.
      */
     public ParametersDefinitionProperty getPdp() {
@@ -73,6 +67,7 @@ public class RebuildAction implements Action {
 
     /**
      * Getter method for build.
+     *
      * @return build.
      */
     public AbstractBuild<?, ?> getBuild() {
@@ -81,6 +76,7 @@ public class RebuildAction implements Action {
 
     /**
      * Getter method for p.
+     *
      * @return p.
      */
     public String getP() {
@@ -89,6 +85,7 @@ public class RebuildAction implements Action {
 
     /**
      * Getter method for parameters.
+     *
      * @return parameters.
      */
     public String getParameters() {
@@ -97,6 +94,7 @@ public class RebuildAction implements Action {
 
     /**
      * Getter method for rebuildurl.
+     *
      * @return rebuildurl.
      */
     public String getRebuildurl() {
@@ -105,9 +103,15 @@ public class RebuildAction implements Action {
 
     /**
      * Method will return current project.
+     *
      * @return currentProject.
      */
     public AbstractProject getProject() {
+
+        if (build != null) {
+            return build.getProject();
+        }
+
         AbstractProject currentProject = null;
         StaplerRequest request = Stapler.getCurrentRequest();
         if (request != null) {
@@ -122,7 +126,7 @@ public class RebuildAction implements Action {
     @Override
     public String getIconFileName() {
         if (getProject().hasPermission(AbstractProject.BUILD)
-                    && getProject().isBuildable() && !(getProject().isDisabled())) {
+                && getProject().isBuildable() && !(getProject().isDisabled())) {
             return "clock.gif";
         } else {
             return null;
@@ -131,30 +135,41 @@ public class RebuildAction implements Action {
 
     @Override
     public String getDisplayName() {
-        if (getProject().hasPermission(AbstractProject.BUILD)
-                    && getProject().isBuildable() && !(getProject().isDisabled())) {
-            return "Rebuild";
-        } else {
+        AbstractProject project = getProject();
+        if (project == null) {
             return null;
         }
+
+        if (project.hasPermission(AbstractProject.BUILD)
+                && project.isBuildable() && !(project.isDisabled())) {
+            return "Rebuild";
+        }
+
+        return null;
     }
 
     @Override
     public String getUrlName() {
-       if (getProject().hasPermission(AbstractProject.BUILD)
-                    && getProject().isBuildable() && !(getProject().isDisabled())) {
-            return "rebuild";
-        } else {
+        AbstractProject project = getProject();
+        if (project == null) {
             return null;
         }
+
+        if (project.hasPermission(AbstractProject.BUILD)
+                && project.isBuildable() && !(project.isDisabled())) {
+            return "rebuild";
+        }
+
+        return null;
     }
 
     /**
      * Saves the form to the configuration and disk.
+     *
      * @param req StaplerRequest
      * @param rsp StaplerResponse
-     * @throws ServletException if something unfortunate happens.
-     * @throws IOException if something unfortunate happens.
+     * @throws ServletException     if something unfortunate happens.
+     * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp)
@@ -162,21 +177,21 @@ public class RebuildAction implements Action {
             InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
         if (getProject().isBuildable() && !(getProject().isDisabled())) {
-        if (!req.getMethod().equals("POST")) {
-            // show the parameter entry form.
-            req.getView(this, "index.jelly").forward(req, rsp);
-            return;
-        }
-        build = req.findAncestorObject(AbstractBuild.class);
-        ParametersDefinitionProperty paramDefProp = build.getProject().
-                getProperty(ParametersDefinitionProperty.class);
-       List<ParameterValue> values = new ArrayList<ParameterValue>();
-        JSONObject formData = req.getSubmittedForm();
-        JSONArray a = JSONArray.fromObject(formData.get("parameter"));
-        for (Object o : a) {
-            JSONObject jo = (JSONObject)o;
-            String name = jo.getString("name");
-            ParameterValue parameterValue = null;
+            if (!req.getMethod().equals("POST")) {
+                // show the parameter entry form.
+                req.getView(this, "index.jelly").forward(req, rsp);
+                return;
+            }
+            build = req.findAncestorObject(AbstractBuild.class);
+            ParametersDefinitionProperty paramDefProp = build.getProject().
+                    getProperty(ParametersDefinitionProperty.class);
+            List<ParameterValue> values = new ArrayList<ParameterValue>();
+            JSONObject formData = req.getSubmittedForm();
+            JSONArray a = JSONArray.fromObject(formData.get("parameter"));
+            for (Object o : a) {
+                JSONObject jo = (JSONObject) o;
+                String name = jo.getString("name");
+                ParameterValue parameterValue = null;
                 if (paramDefProp != null) {
                     ParameterDefinition d = paramDefProp.getParameterDefinition(name);
                     if (d == null) {
@@ -185,14 +200,14 @@ public class RebuildAction implements Action {
                     }
                     parameterValue = d.createValue(req, jo);
                 }
-            if (parameterValue != null) {
-                values.add(parameterValue);
+                if (parameterValue != null) {
+                    values.add(parameterValue);
+                }
             }
-        }
-        Hudson.getInstance().getQueue().schedule(
-                build.getProject(), 0, new ParametersAction(values),
-                new CauseAction(new Cause.UserCause()));
-        rsp.sendRedirect("../../");
+            Hudson.getInstance().getQueue().schedule(
+                    build.getProject(), 0, new ParametersAction(values),
+                    new CauseAction(new Cause.UserCause()));
+            rsp.sendRedirect("../../");
         }
     }
 }
