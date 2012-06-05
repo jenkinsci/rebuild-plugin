@@ -150,7 +150,17 @@ public class RebuildAction implements Action {
 
     @Override
     public String getUrlName() {
-        AbstractProject project = getProject();
+
+        AbstractProject project = null;
+        if (build != null) {
+            project = build.getProject();
+        } else {
+            StaplerRequest request = Stapler.getCurrentRequest();
+            if (request != null) {
+                project = request.findAncestorObject(AbstractProject.class);
+            }
+        }
+
         if (project == null) {
             return null;
         }
