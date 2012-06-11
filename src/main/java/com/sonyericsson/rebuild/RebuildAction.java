@@ -1,7 +1,8 @@
 /*
  *  The MIT License
  *
- *  Copyright 2010 Sony Ericsson Mobile Communications.
+ *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reservered.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reservered.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,38 +24,47 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.model.*;
+import hudson.matrix.MatrixRun;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.BooleanParameterValue;
+import hudson.model.Cause;
+import hudson.model.CauseAction;
+import hudson.model.Hudson;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.PasswordParameterValue;
+import hudson.model.RunParameterValue;
+import hudson.model.StringParameterValue;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.servlet.ServletException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Rebuild RootAction implementation class.
- * This class will basically reschedule the build with
- * existing parameters.
+ * Rebuild RootAction implementation class. This class will basically reschedule
+ * the build with existing parameters.
  *
  * @author Shemeer S;
  */
 public class RebuildAction implements Action {
     /*
-     * All the below transient variables
-     * are declared only for backward
+     * All the below transient variables are declared only for backward
      * compatibility of the rebuild plugin.
-     * */
-
+     */
     private transient String rebuildurl = "rebuild";
     private transient String parameters = "rebuildParam";
     private transient String p = "parameter";
-    private AbstractBuild<?, ?> build;
+    private transient AbstractBuild<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
-
 
     /**
      * Getter method for pdp.
@@ -107,11 +117,9 @@ public class RebuildAction implements Action {
      * @return currentProject.
      */
     public AbstractProject getProject() {
-
         if (build != null) {
             return build.getProject();
         }
-
         AbstractProject currentProject = null;
         StaplerRequest request = Stapler.getCurrentRequest();
         if (request != null) {
@@ -125,8 +133,7 @@ public class RebuildAction implements Action {
 
     @Override
     public String getIconFileName() {
-        if (getProject().hasPermission(AbstractProject.BUILD)
-                && getProject().isBuildable() && !(getProject().isDisabled())) {
+        if (isRebuildAvailable()) {
             return "clock.gif";
         } else {
             return null;
@@ -135,42 +142,20 @@ public class RebuildAction implements Action {
 
     @Override
     public String getDisplayName() {
-        AbstractProject project = getProject();
-        if (project == null) {
+        if (isRebuildAvailable()) {
+            return "Rebuild";
+        } else {
             return null;
         }
-
-        if (project.hasPermission(AbstractProject.BUILD)
-                && project.isBuildable() && !(project.isDisabled())) {
-            return "Rebuild";
-        }
-
-        return null;
     }
 
     @Override
     public String getUrlName() {
-
-        AbstractProject project = null;
-        if (build != null) {
-            project = build.getProject();
+        if (isRebuildAvailable()) {
+            return "rebuild";
         } else {
-            StaplerRequest request = Stapler.getCurrentRequest();
-            if (request != null) {
-                project = request.findAncestorObject(AbstractProject.class);
-            }
-        }
-
-        if (project == null) {
             return null;
         }
-
-        if (project.hasPermission(AbstractProject.BUILD)
-                && project.isBuildable() && !(project.isDisabled())) {
-            return "rebuild";
-        }
-
-        return null;
     }
 
     /**
@@ -178,46 +163,126 @@ public class RebuildAction implements Action {
      *
      * @param req StaplerRequest
      * @param rsp StaplerResponse
-     * @throws ServletException     if something unfortunate happens.
-     * @throws IOException          if something unfortunate happens.
+     * @throws ServletException if something unfortunate happens.
+     * @throws IOException if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp)
-            throws ServletException, IOException,
-            InterruptedException {
+    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
+            IOException, InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
-        if (getProject().isBuildable() && !(getProject().isDisabled())) {
+        if (isRebuildAvailable()) {
             if (!req.getMethod().equals("POST")) {
                 // show the parameter entry form.
                 req.getView(this, "index.jelly").forward(req, rsp);
                 return;
             }
             build = req.findAncestorObject(AbstractBuild.class);
-            ParametersDefinitionProperty paramDefProp = build.getProject().
-                    getProperty(ParametersDefinitionProperty.class);
+            ParametersDefinitionProperty paramDefProp = build.getProject().getProperty(
+                    ParametersDefinitionProperty.class);
             List<ParameterValue> values = new ArrayList<ParameterValue>();
+            ParametersAction paramAction = build.getAction(ParametersAction.class);
             JSONObject formData = req.getSubmittedForm();
-            JSONArray a = JSONArray.fromObject(formData.get("parameter"));
-            for (Object o : a) {
-                JSONObject jo = (JSONObject) o;
-                String name = jo.getString("name");
-                ParameterValue parameterValue = null;
-                if (paramDefProp != null) {
-                    ParameterDefinition d = paramDefProp.getParameterDefinition(name);
-                    if (d == null) {
-                        throw new IllegalArgumentException("No such parameter"
-                                + " definition: " + name);
+            if (!formData.isEmpty()) {
+                JSONArray a = JSONArray.fromObject(formData.get("parameter"));
+                for (Object o : a) {
+                    JSONObject jo = (JSONObject)o;
+                    String name = jo.getString("name");
+                    ParameterValue parameterValue = null;
+                    parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
+                    if (parameterValue != null) {
+                        values.add(parameterValue);
                     }
-                    parameterValue = d.createValue(req, jo);
-                }
-                if (parameterValue != null) {
-                    values.add(parameterValue);
                 }
             }
-            Hudson.getInstance().getQueue().schedule(
-                    build.getProject(), 0, new ParametersAction(values),
+            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values),
                     new CauseAction(new Cause.UserCause()));
             rsp.sendRedirect("../../");
         }
+    }
+
+    /**
+     * Method for checking whether current build is sub job(MatrixRun) of Matrix
+     * build.
+     *
+     * @return boolean
+     */
+    public boolean isMatrixRun() {
+        StaplerRequest request = Stapler.getCurrentRequest();
+        if (request != null) {
+            build = request.findAncestorObject(AbstractBuild.class);
+            if (build != null && build instanceof MatrixRun) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Method for checking,whether the rebuild functionality would be available
+     * for build.
+     *
+     * @return boolean
+     */
+    public boolean isRebuildAvailable() {
+        if (getProject() != null && getProject().hasPermission(AbstractProject.BUILD)
+                && getProject().isBuildable() && !(getProject().isDisabled()) && !isMatrixRun()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Method for getting the ParameterValue instance from ParameterDefinition
+     * or ParamterAction.
+     *
+     * @param paramDefProp ParametersDefinitionProperty
+     * @param parameterName Name of the Parameter.
+     * @param paramAction ParametersAction
+     * @param req StaplerRequest
+     * @param jo JSONObject
+     * @return ParameterValue instance of subclass of ParameterValue
+     */
+    public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
+            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
+        ParameterDefinition paramDef = null;
+            // this is normal case when user try to rebuild a parameterized job.
+                if (paramDefProp != null) {
+                    paramDef = paramDefProp.getParameterDefinition(parameterName);
+                    if (paramDef != null) {
+                        return paramDef.createValue(req, jo);
+                    }
+                }
+            /*
+             * when user try to rebuild a build that was invoked by
+             * parameterized trigger plugin in that case ParameterDefinition
+             * is null for that parametername that is paased by parameterize
+             * trigger plugin,so for handling that scenario, we need to
+             * create an instance of that specific ParameterValue with
+             * passed parameter value by form.
+             */
+                return cloneParameter(paramAction.getParameter(parameterName),
+                        jo.getString("value"));
+    }
+
+    /**
+     * Method for replacing the old parametervalue with new parameter value
+     *
+     * @param oldValue ParameterValue
+     * @param newValue The value that is submitted by user using form.
+     * @return ParameterValue
+     */
+    private ParameterValue cloneParameter(ParameterValue oldValue, String newValue) {
+        if (oldValue instanceof StringParameterValue) {
+            return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
+        } else if (oldValue instanceof BooleanParameterValue) {
+            return new BooleanParameterValue(oldValue.getName(), Boolean.valueOf(newValue),
+                    oldValue.getDescription());
+        } else if (oldValue instanceof RunParameterValue) {
+            return new RunParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
+        } else if (oldValue instanceof PasswordParameterValue) {
+            return new PasswordParameterValue(oldValue.getName(), newValue,
+                    oldValue.getDescription());
+        }
+        throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
 }
