@@ -34,9 +34,23 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import hudson.matrix.MatrixRun;
-import hudson.model.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.BooleanParameterValue;
+import hudson.model.Cause;
+import hudson.model.CauseAction;
+import hudson.model.Hudson;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.PasswordParameterValue;
+import hudson.model.RunParameterValue;
+import hudson.model.StringParameterValue;
+
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -250,8 +264,11 @@ public class RebuildAction implements Action {
          *
          * In contrast to all other parameterActions, ListSubversionTagsParameterValue uses "tag" instead of "value"
          */
-        String value = jo.containsKey("value") ? jo.getString("value") : jo.getString("tag");
-        return cloneParameter(paramAction.getParameter(parameterName), value);
+        if (jo.containsKey("value")) {
+        return cloneParameter(paramAction.getParameter(parameterName),  jo.getString("value"));
+        } else {
+          return cloneParameter(paramAction.getParameter(parameterName), jo.getString("tag"));
+        }
     }
 
     /**
