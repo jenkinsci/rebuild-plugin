@@ -5,9 +5,9 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-       <!-- Since rebuild plugin is using some functions available in
+        <!-- Since rebuild plugin is using some functions available in
         Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
-        <version>1.405</version>
+        <version>1.481</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -133,8 +133,14 @@
             </plugin>
         </plugins>
     </reporting>
-
-
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>12.0-rc1</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
     <scm>
         <connection>scm:git:ssh://github.com/jenkinsci/rebuild-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rebuild-plugin.git</developerConnection>

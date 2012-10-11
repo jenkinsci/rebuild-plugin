@@ -24,30 +24,19 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.matrix.MatrixRun;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BooleanParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.PasswordParameterValue;
-import hudson.model.RunParameterValue;
-import hudson.model.StringParameterValue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.ServletException;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+
+import hudson.matrix.MatrixRun;
+import hudson.model.*;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -56,10 +45,12 @@ import org.kohsuke.stapler.StaplerResponse;
  * @author Shemeer S;
  */
 public class RebuildAction implements Action {
+
+    private static final String SVN_TAG_PARAM_CLASS = "hudson.scm.listtagsparameter.ListSubversionTagsParameterValue";
     /*
-     * All the below transient variables are declared only for backward
-     * compatibility of the rebuild plugin.
-     */
+    * All the below transient variables are declared only for backward
+    * compatibility of the rebuild plugin.
+    */
     private transient String rebuildurl = "rebuild";
     private transient String parameters = "rebuildParam";
     private transient String p = "parameter";
@@ -187,7 +178,7 @@ public class RebuildAction implements Action {
                 for (Object o : a) {
                     JSONObject jo = (JSONObject)o;
                     String name = jo.getString("name");
-                    ParameterValue parameterValue = null;
+                    ParameterValue parameterValue;
                     parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
                     if (parameterValue != null) {
                         values.add(parameterValue);
@@ -195,7 +186,7 @@ public class RebuildAction implements Action {
                 }
             }
             Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values),
-                    new CauseAction(new Cause.UserCause()));
+                    new CauseAction(new Cause.UserIdCause()));
             rsp.sendRedirect("../../");
         }
     }
@@ -224,11 +215,8 @@ public class RebuildAction implements Action {
      * @return boolean
      */
     public boolean isRebuildAvailable() {
-        if (getProject() != null && getProject().hasPermission(AbstractProject.BUILD)
-                && getProject().isBuildable() && !(getProject().isDisabled()) && !isMatrixRun()) {
-            return true;
-        }
-        return false;
+        return getProject() != null && getProject().hasPermission(AbstractProject.BUILD)
+                && getProject().isBuildable() && !(getProject().isDisabled()) && !isMatrixRun();
     }
 
     /**
@@ -244,24 +232,26 @@ public class RebuildAction implements Action {
      */
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
             String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
-        ParameterDefinition paramDef = null;
-            // this is normal case when user try to rebuild a parameterized job.
-                if (paramDefProp != null) {
-                    paramDef = paramDefProp.getParameterDefinition(parameterName);
-                    if (paramDef != null) {
-                        return paramDef.createValue(req, jo);
-                    }
+        ParameterDefinition paramDef;
+        // this is normal case when user try to rebuild a parameterized job.
+            if (paramDefProp != null) {
+                paramDef = paramDefProp.getParameterDefinition(parameterName);
+                if (paramDef != null) {
+                    return paramDef.createValue(req, jo);
                 }
-            /*
-             * when user try to rebuild a build that was invoked by
-             * parameterized trigger plugin in that case ParameterDefinition
-             * is null for that parametername that is paased by parameterize
-             * trigger plugin,so for handling that scenario, we need to
-             * create an instance of that specific ParameterValue with
-             * passed parameter value by form.
-             */
-                return cloneParameter(paramAction.getParameter(parameterName),
-                        jo.getString("value"));
+            }
+        /*
+         * when user try to rebuild a build that was invoked by
+         * parameterized trigger plugin in that case ParameterDefinition
+         * is null for that parametername that is paased by parameterize
+         * trigger plugin,so for handling that scenario, we need to
+         * create an instance of that specific ParameterValue with
+         * passed parameter value by form.
+         *
+         * In contrast to all other parameterActions, ListSubversionTagsParameterValue uses "tag" instead of "value"
+         */
+        String value = jo.containsKey("value") ? jo.getString("value") : jo.getString("tag");
+        return cloneParameter(paramAction.getParameter(parameterName), value);
     }
 
     /**
@@ -282,6 +272,11 @@ public class RebuildAction implements Action {
         } else if (oldValue instanceof PasswordParameterValue) {
             return new PasswordParameterValue(oldValue.getName(), newValue,
                     oldValue.getDescription());
+        } else if (oldValue.getClass().getName().equals(SVN_TAG_PARAM_CLASS)) {
+            /**
+             * getClass().getName() to avoid dependency on svn plugin.
+             */
+            return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
