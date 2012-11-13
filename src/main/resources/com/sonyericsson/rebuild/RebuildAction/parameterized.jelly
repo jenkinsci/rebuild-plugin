@@ -4,6 +4,7 @@ The MIT License
 Copyright (c) 2004-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Tom Huybrechts
 
 Copyright 2010 Sony Ericsson Mobile Communications.All rights reserved.
+Copyright 2012 Sony Mobile Communications AB. All rights reservered.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,9 +50,9 @@ THE SOFTWARE.
             <j:set var="paramAction" value="${build.getAction(parmactionClass)}" />
             <f:form method="post" action="configSubmit" name="config">
                 <j:forEach var="parameterValue" items="${paramAction.parameters}">
-                   <j:set var="valuePage" value="${parameterValue.class.simpleName}" />
+                    <j:set var="valuePage" value="${parameterValue.class.simpleName}" />
                     <st:include it="${parameterValue}"
-                    from="${it}"  page="${valuePage}.jelly" />
+                                from="${it}"  page="${valuePage}.jelly" />
                 </j:forEach>
                 <br/>
                 <br/>

@@ -70,6 +70,7 @@ public class RebuildAction implements Action {
     private transient String p = "parameter";
     private transient AbstractBuild<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
+    private static final String PARAMETERIZED_URL = "parameterized";
 
     /**
      * Getter method for pdp.
@@ -163,6 +164,46 @@ public class RebuildAction implements Action {
         }
     }
 
+     /**
+     * Handles the rebuild request and redirects to parameterized
+     * and non parameterized build when needed.
+     * @param request StaplerRequest the request.
+     * @param response StaplerResponse the response handler.
+     * @throws IOException in case of Stapler issues
+     * @throws ServletException if something unfortunate happens.
+     * @throws InterruptedException if something unfortunate happens.
+     */
+    public void doIndex(StaplerRequest request, StaplerResponse response) throws
+            IOException, ServletException, InterruptedException {
+        AbstractBuild currentBuild = request.findAncestorObject(AbstractBuild.class);
+        if (currentBuild != null) {
+            ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
+            if (paramAction != null) {
+                response.sendRedirect(PARAMETERIZED_URL);
+            } else {
+                nonParameterizedRebuild(currentBuild, response);
+            }
+        }
+    }
+
+    /**
+     * Call this method while rebuilding
+     * non parameterized build.     .
+     *
+     * @param currentBuild current build.
+     * @param response current response object.
+     * @throws ServletException if something unfortunate happens.
+     * @throws IOException if something unfortunate happens.
+     * @throws InterruptedException if something unfortunate happens.
+     */
+    public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
+          response) throws ServletException, IOException, InterruptedException {
+        getProject().checkPermission(AbstractProject.BUILD);
+        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null,
+                new CauseAction(new Cause.UserIdCause()));
+        response.sendRedirect("../../");
+   }
+
     /**
      * Saves the form to the configuration and disk.
      *
@@ -172,8 +213,8 @@ public class RebuildAction implements Action {
      * @throws IOException if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException,
-            IOException, InterruptedException {
+    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws
+            ServletException, IOException, InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
         if (isRebuildAvailable()) {
             if (!req.getMethod().equals("POST")) {
