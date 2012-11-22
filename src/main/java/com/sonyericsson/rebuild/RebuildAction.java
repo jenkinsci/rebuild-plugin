@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.ServletException;
 
+import hudson.model.*;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -36,20 +37,6 @@ import org.kohsuke.stapler.StaplerResponse;
 import hudson.matrix.MatrixRun;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BooleanParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.PasswordParameterValue;
-import hudson.model.RunParameterValue;
-import hudson.model.StringParameterValue;
 
 
 /**
@@ -185,6 +172,8 @@ public class RebuildAction implements Action {
             ParametersDefinitionProperty paramDefProp = build.getProject().getProperty(
                     ParametersDefinitionProperty.class);
             List<ParameterValue> values = new ArrayList<ParameterValue>();
+            Boolean keepAutoFingerprints = false;
+            Boolean keepCauses = false;
             ParametersAction paramAction = build.getAction(ParametersAction.class);
             JSONObject formData = req.getSubmittedForm();
             if (!formData.isEmpty()) {
@@ -198,12 +187,26 @@ public class RebuildAction implements Action {
                         values.add(parameterValue);
                     }
                 }
+                keepAutoFingerprints = formData.getBoolean("keepAutomaticFingerprints");
+                keepCauses = formData.getBoolean("keepCauses");
             }
-            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values),
-                    new CauseAction(new Cause.UserIdCause()));
+            ArrayList<Action> buildActions = new ArrayList<Action>();
+            buildActions.add(new ParametersAction(values));
+            CauseAction causeAction = new CauseAction(new RebuildCause(build));
+            if(keepCauses){
+                causeAction.getCauses().addAll(build.getCauses());
+            }
+            buildActions.add(causeAction);
+            if(keepAutoFingerprints){
+                buildActions.addAll(build.getActions(
+                        org.jenkinsci.plugins.buildschainfingerprinter.BuildsDependencyFingerprinter.class));
+            }
+
+            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, buildActions);
             rsp.sendRedirect("../../");
         }
     }
+
 
     /**
      * Method for checking whether current build is sub job(MatrixRun) of Matrix
