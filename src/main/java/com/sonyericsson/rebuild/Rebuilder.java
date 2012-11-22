@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reservered.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +27,10 @@ package com.sonyericsson.rebuild;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
-import hudson.model.ParametersAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
+
 /**
  * Runtime Listner class which allows
  * the user to rebuild the parameterized
@@ -56,11 +57,8 @@ public class Rebuilder extends RunListener<Run> {
                     return;
                 }
             }
-            ParametersAction p = build.getAction(ParametersAction.class);
-            if (p != null) {
-                RebuildAction rebuildAction = new RebuildAction();
-                build.getActions().add(rebuildAction);
-            }
+            RebuildAction rebuildAction = new RebuildAction();
+            build.getActions().add(rebuildAction);
         }
     }
 }
