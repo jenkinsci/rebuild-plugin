@@ -57,6 +57,17 @@ THE SOFTWARE.
                 <br/>
                 <br/>
                 <f:block>
+                    <j:if test="${app.getPlugin('builds-chain-fingerprinter') != null}">
+                        <j:invoke var="autoFingerprintActionClass" on="${app.getPlugin('builds-chain-fingerprinter').getWrapper().classLoader}" method="loadClass">
+                            <j:arg value="org.jenkinsci.plugins.buildschainfingerprinter.BuildsDependencyFingerprinter" />
+                        </j:invoke>
+                        <j:if test="${build.getAction(autoFingerprintActionClass) != null}">
+                            <f:checkbox name="keepAutomaticFingerprints" checked="${true}" title="Keep automatic fingerprints" />
+                        </j:if>
+                    </j:if>
+                    <br/>
+                    <f:checkbox name="keepCauses" checked="${true}" title="Keep original build Causes" />
+                    <br/>
                     <f:submit value="${%Rebuild}"/>
                 </f:block>
             </f:form>
