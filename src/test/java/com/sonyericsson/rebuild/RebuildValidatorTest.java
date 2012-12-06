@@ -23,16 +23,16 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.model.AbstractBuild;
-import hudson.model.Build;
-import hudson.model.Cause;
-import hudson.model.ParametersAction;
-import hudson.model.Project;
-import hudson.model.StringParameterValue;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+
 import org.jvnet.hudson.test.HudsonTestCase;
-import static org.junit.Assert.*;
+import org.xml.sax.SAXException;
+import com.gargoylesoftware.htmlunit.WebAssert;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+
+import hudson.model.*;
 
 /**
  * For testing the extension point.
@@ -40,68 +40,107 @@ import static org.junit.Assert.*;
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
 public class RebuildValidatorTest extends HudsonTestCase {
+
     /**
      * Tests with no extensions.
      *
-     * @throws IOException IOException
+     * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
-     * @throws ExecutionException ExecutionException
+     * @throws ExecutionException   ExecutionException
      */
     public void testNoRebuildValidatorExtension()
             throws IOException, InterruptedException, ExecutionException {
         Project projectA = createFreeStyleProject("testFreeStyleA");
-        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserCause(),
-                new ParametersAction(new StringParameterValue("party", "megaparty"))).get();
+        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserIdCause(),
+                                                       new ParametersAction(new StringParameterValue("party",
+                                                                                                     "megaparty")))
+                .get();
         assertNotNull(buildA.getAction(RebuildAction.class));
     }
 
     /**
      * Tests with an extension returning isApplicable true.
      *
-     * @throws IOException IOException
+     * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
-     * @throws ExecutionException ExecutionException
+     * @throws ExecutionException   ExecutionException
      */
     public void testRebuildValidatorExtensionIsApplicableTrue()
             throws IOException, InterruptedException, ExecutionException {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorAlwaysApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleB");
-        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserCause(),
-                new ParametersAction(new StringParameterValue("party", "megaparty"))).get();
+        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserIdCause(),
+                                                       new ParametersAction(new StringParameterValue("party",
+                                                                                                     "megaparty")))
+                .get();
         assertNull(buildA.getAction(RebuildAction.class));
     }
 
     /**
      * Tests with an extension returning isApplicable false.
      *
-     * @throws IOException IOException
+     * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
-     * @throws ExecutionException ExecutionException
+     * @throws ExecutionException   ExecutionException
      */
     public void testRebuildValidatorExtensionIsApplicableFalse()
             throws IOException, InterruptedException, ExecutionException {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorNeverApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserCause(),
-                new ParametersAction(new StringParameterValue("party", "megaparty"))).get();
+        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserIdCause(),
+                                                       new ParametersAction(new StringParameterValue("party",
+                                                                                                     "megaparty")))
+                .get();
         assertNotNull(buildA.getAction(RebuildAction.class));
     }
 
-     /**
+    /**
      * Tests with two extensions returning isApplicable true AND false.
      *
-     * @throws IOException IOException
+     * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
-     * @throws ExecutionException ExecutionException
+     * @throws ExecutionException   ExecutionException
      */
     public void testRebuildValidatorExtensionIsApplicableTrueFalse()
             throws IOException, InterruptedException, ExecutionException {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorAlwaysApplicable());
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorNeverApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserCause(),
-                new ParametersAction(new StringParameterValue("party", "megaparty"))).get();
+        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserIdCause(),
+                                                       new ParametersAction(new StringParameterValue("party",
+                                                                                                     "megaparty")))
+                .get();
         assertNull(buildA.getAction(RebuildAction.class));
+    }
+
+    public void test_WhenProjectWithoutParams_ThenRebuildProjectAvailable()
+            throws IOException, InterruptedException, ExecutionException {
+        FreeStyleProject project = createFreeStyleProject();
+
+        FreeStyleBuild build = project.scheduleBuild2(0).get();
+
+        RebuildLastCompletedBuildAction action = build.getProject().getAction(RebuildLastCompletedBuildAction.class);
+        assertNotNull(action);
+    }
+
+    public void test_WhenProjectWithParams_ThenRebuildProjectExecutesRebuildOfLastBuild()
+            throws Exception, SAXException {
+        FreeStyleProject project = createFreeStyleProject();
+
+        // Build (#1)
+        project.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(
+                new StringParameterValue("name", "test"))).get();
+        HtmlPage rebuildConfigPage = createWebClient().getPage(project, "1/rebuild");
+        // Rebuild (#2)
+        submit(rebuildConfigPage.getFormByName("config"));
+
+        HtmlPage projectPage = createWebClient().getPage(project);
+        HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
+
+        WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
+        assertEquals("Rebuild Last should point to the second build",
+                     rebuildHref.getHrefAttribute(),
+                     "/" + project.getUrl() + "2/rebuild");
     }
 
     /**

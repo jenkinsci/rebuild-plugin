@@ -72,6 +72,9 @@ public class RebuildAction implements Action {
     private transient ParametersDefinitionProperty pdp;
     private static final String PARAMETERIZED_URL = "parameterized";
 
+    public RebuildAction() {
+    }
+
     /**
      * Getter method for pdp.
      *

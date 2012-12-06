@@ -24,17 +24,14 @@
  */
 package com.sonyericsson.rebuild;
 
+
 import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.Hudson;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.model.listeners.RunListener;
 
 /**
- * Runtime Listner class which allows
- * the user to rebuild the parameterized
- * build.
+ * Runtime Listner class which allows the user to rebuild the parameterized build.
+ *
  * @author Shemeer S.
  */
 @Extension
@@ -50,7 +47,7 @@ public class Rebuilder extends RunListener<Run> {
     @Override
     public void onCompleted(Run r, TaskListener listener) {
         if (r instanceof AbstractBuild) {
-            AbstractBuild build = (AbstractBuild)r;
+            AbstractBuild build = (AbstractBuild) r;
             for (RebuildValidator rebuildValidator : Hudson.getInstance().
                     getExtensionList(RebuildValidator.class)) {
                 if (rebuildValidator.isApplicable(build)) {
@@ -61,4 +58,5 @@ public class Rebuilder extends RunListener<Run> {
             build.getActions().add(rebuildAction);
         }
     }
+
 }
