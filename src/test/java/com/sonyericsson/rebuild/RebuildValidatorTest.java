@@ -23,16 +23,21 @@
  */
 package com.sonyericsson.rebuild;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-
-import org.jvnet.hudson.test.HudsonTestCase;
-import org.xml.sax.SAXException;
 import com.gargoylesoftware.htmlunit.WebAssert;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import hudson.model.AbstractBuild;
+import hudson.model.Build;
+import hudson.model.Cause;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
+import hudson.model.ParametersAction;
+import hudson.model.Project;
+import hudson.model.StringParameterValue;
+import org.jvnet.hudson.test.HudsonTestCase;
 
-import hudson.model.*;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * For testing the extension point.
@@ -113,8 +118,13 @@ public class RebuildValidatorTest extends HudsonTestCase {
         assertNull(buildA.getAction(RebuildAction.class));
     }
 
-    public void test_WhenProjectWithoutParams_ThenRebuildProjectAvailable()
-            throws IOException, InterruptedException, ExecutionException {
+    /**
+     * Creates a new freestyle project and checks if the rebuild action is available on the project level.
+     *
+     * @throws Exception   Exception
+     */
+    public void testWhenProjectWithoutParamsThenRebuildProjectAvailable()
+            throws Exception {
         FreeStyleProject project = createFreeStyleProject();
 
         FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -123,8 +133,15 @@ public class RebuildValidatorTest extends HudsonTestCase {
         assertNotNull(action);
     }
 
-    public void test_WhenProjectWithParams_ThenRebuildProjectExecutesRebuildOfLastBuild()
-            throws Exception, SAXException {
+    /**
+     * Creates a new freestyle project and builds the project with a string parameter.
+     * If the build is succesful, a rebuild of the last build is done.
+     * The rebuild on the project level should point to the last build
+     *
+     * @throws Exception   Exception
+     */
+    public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
+            throws Exception {
         FreeStyleProject project = createFreeStyleProject();
 
         // Build (#1)
@@ -139,8 +156,8 @@ public class RebuildValidatorTest extends HudsonTestCase {
 
         WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
         assertEquals("Rebuild Last should point to the second build",
-                     rebuildHref.getHrefAttribute(),
-                     "/" + project.getUrl() + "2/rebuild");
+                rebuildHref.getHrefAttribute(),
+                "/" + project.getUrl() + "2/rebuild");
     }
 
     /**

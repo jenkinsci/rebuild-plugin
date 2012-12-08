@@ -26,7 +26,10 @@ package com.sonyericsson.rebuild;
 
 
 import hudson.Extension;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.Hudson;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
 
 /**

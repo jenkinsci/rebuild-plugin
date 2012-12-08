@@ -1,12 +1,16 @@
 package com.sonyericsson.rebuild;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
+import hudson.Extension;
+import hudson.model.AbstractBuild;
+import hudson.model.Action;
+import hudson.model.Hudson;
+import hudson.model.Run;
+import hudson.model.TransientBuildActionFactory;
 
 import java.util.Collection;
 
-import hudson.Extension;
-import hudson.model.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 
 /**
  * Enables rebuild for builds that ran before installing the rebuild plugin.
