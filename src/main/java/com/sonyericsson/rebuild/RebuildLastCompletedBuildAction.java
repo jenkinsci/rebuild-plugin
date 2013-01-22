@@ -1,8 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.
- *  Copyright 2012 Sony Mobile Communications AB. All rights reservered.
+ *  Copyright 2012 Rino Kadijk.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -24,42 +23,29 @@
  */
 package com.sonyericsson.rebuild;
 
-
-import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.Hudson;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.model.listeners.RunListener;
-
 /**
- * Runtime Listner class which allows the user to rebuild the parameterized build.
- *
- * @author Shemeer S.
+ * Reschedules last completed build for the project if available.
+ * Otherwise it behaves as if the user clicked on the build now button.
  */
-@Extension
-public class Rebuilder extends RunListener<Run> {
-
-    /**
-     * Rebuilder class constructor.
-     */
-    public Rebuilder() {
-        super(Run.class);
-    }
+public class RebuildLastCompletedBuildAction extends RebuildAction {
 
     @Override
-    public void onCompleted(Run r, TaskListener listener) {
-        if (r instanceof AbstractBuild) {
-            AbstractBuild build = (AbstractBuild) r;
-            for (RebuildValidator rebuildValidator : Hudson.getInstance().
-                    getExtensionList(RebuildValidator.class)) {
-                if (rebuildValidator.isApplicable(build)) {
-                    return;
-                }
+    public String getUrlName() {
+        boolean isBuildable = getProject() != null && getProject().isBuildable();
+        boolean hasCompletedBuild = getProject().getLastCompletedBuild() != null;
+        if (isBuildable) {
+            if (hasCompletedBuild) {
+                return getProject().getLastCompletedBuild().getNumber() + "/rebuild";
+            } else {
+                return "build?delay=0sec";
             }
-            RebuildAction rebuildAction = new RebuildAction();
-            build.getActions().add(rebuildAction);
+        } else {
+            return null;
         }
     }
 
+    @Override
+    public String getDisplayName() {
+        return "Rebuild Last";
+    }
 }
