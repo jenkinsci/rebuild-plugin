@@ -295,6 +295,8 @@ public class RebuildAction implements Action {
         if (paramDefProp != null) {
             paramDef = paramDefProp.getParameterDefinition(parameterName);
             if (paramDef != null) {
+                // The copy artifact plugin throws an exception when using createValue(req, jo)
+                // If the parameter comes from the copy artifact plugin, then use the single argument createValue
                 if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")){
                     SimpleParameterDefinition parameterDefinition = (SimpleParameterDefinition) paramDefProp.getParameterDefinition(parameterName);
                     return parameterDefinition.createValue(jo.getString("value"));
