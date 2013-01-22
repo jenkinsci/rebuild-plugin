@@ -1,6 +1,8 @@
 /*
  *  The MIT License
  *
+ *  Copyright 2012 Rino Kadijk.
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
@@ -23,16 +25,22 @@ package com.sonyericsson.rebuild;
 
 /**
  * Reschedules last completed build for the project if available.
- * Otherwise it behaves as if the user click on the build now button.
+ * Otherwise it behaves as if the user clicked on the build now button.
  */
 public class RebuildLastCompletedBuildAction extends RebuildAction {
 
     @Override
     public String getUrlName() {
-        if (getProject() != null && getProject().getLastCompletedBuild() != null && getProject().isBuildable()) {
-            return getProject().getLastCompletedBuild().getNumber() + "/rebuild";
+        boolean isBuildable = getProject() != null && getProject().isBuildable();
+        boolean hasCompletedBuild = getProject().getLastCompletedBuild() != null;
+        if (isBuildable) {
+            if (hasCompletedBuild) {
+                return getProject().getLastCompletedBuild().getNumber() + "/rebuild";
+            } else {
+                return "build?delay=0sec";
+            }
         } else {
-            return "build?delay=0sec";
+            return null;
         }
     }
 
