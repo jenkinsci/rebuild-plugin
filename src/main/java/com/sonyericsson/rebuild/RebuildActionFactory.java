@@ -1,8 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.
- *  Copyright 2012 Sony Mobile Communications AB. All rights reservered.
+ *  Copyright 2012 Rino Kadijk.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -24,42 +23,37 @@
  */
 package com.sonyericsson.rebuild;
 
-
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.model.Action;
 import hudson.model.Hudson;
 import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.model.listeners.RunListener;
+import hudson.model.TransientBuildActionFactory;
+
+import java.util.Collection;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 
 /**
- * Runtime Listner class which allows the user to rebuild the parameterized build.
- *
- * @author Shemeer S.
+ * Enables rebuild for builds that ran before installing the rebuild plugin.
  */
 @Extension
-public class Rebuilder extends RunListener<Run> {
-
-    /**
-     * Rebuilder class constructor.
-     */
-    public Rebuilder() {
-        super(Run.class);
-    }
+public class RebuildActionFactory extends TransientBuildActionFactory {
 
     @Override
-    public void onCompleted(Run r, TaskListener listener) {
-        if (r instanceof AbstractBuild) {
-            AbstractBuild build = (AbstractBuild) r;
-            for (RebuildValidator rebuildValidator : Hudson.getInstance().
-                    getExtensionList(RebuildValidator.class)) {
-                if (rebuildValidator.isApplicable(build)) {
-                    return;
-                }
-            }
-            RebuildAction rebuildAction = new RebuildAction();
-            build.getActions().add(rebuildAction);
+    public Collection<? extends Action> createFor(Run target) {
+        AbstractBuild build = (AbstractBuild) target;
+        boolean hasRebuildAction = target.getAction(RebuildAction.class) != null;
+        if (hasRebuildAction) {
+            return emptyList();
         }
+        for (RebuildValidator rebuildValidator : Hudson.getInstance().
+                getExtensionList(RebuildValidator.class)) {
+            if (rebuildValidator.isApplicable(build)) {
+                return emptyList();
+            }
+        }
+        return singleton(new RebuildAction());
     }
-
 }

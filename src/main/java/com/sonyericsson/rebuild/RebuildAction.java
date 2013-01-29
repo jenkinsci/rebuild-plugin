@@ -50,7 +50,7 @@ import hudson.model.ParametersDefinitionProperty;
 import hudson.model.PasswordParameterValue;
 import hudson.model.RunParameterValue;
 import hudson.model.StringParameterValue;
-
+import hudson.model.SimpleParameterDefinition;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -71,6 +71,9 @@ public class RebuildAction implements Action {
     private transient AbstractBuild<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
     private static final String PARAMETERIZED_URL = "parameterized";
+
+    public RebuildAction() {
+    }
 
     /**
      * Getter method for pdp.
@@ -164,13 +167,14 @@ public class RebuildAction implements Action {
         }
     }
 
-     /**
+    /**
      * Handles the rebuild request and redirects to parameterized
      * and non parameterized build when needed.
-     * @param request StaplerRequest the request.
+     *
+     * @param request  StaplerRequest the request.
      * @param response StaplerResponse the response handler.
-     * @throws IOException in case of Stapler issues
-     * @throws ServletException if something unfortunate happens.
+     * @throws IOException          in case of Stapler issues
+     * @throws ServletException     if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
     public void doIndex(StaplerRequest request, StaplerResponse response) throws
@@ -191,26 +195,26 @@ public class RebuildAction implements Action {
      * non parameterized build.     .
      *
      * @param currentBuild current build.
-     * @param response current response object.
-     * @throws ServletException if something unfortunate happens.
-     * @throws IOException if something unfortunate happens.
+     * @param response     current response object.
+     * @throws ServletException     if something unfortunate happens.
+     * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
     public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
-          response) throws ServletException, IOException, InterruptedException {
+            response) throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
         Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null,
                 new CauseAction(new Cause.UserIdCause()));
         response.sendRedirect("../../");
-   }
+    }
 
     /**
      * Saves the form to the configuration and disk.
      *
      * @param req StaplerRequest
      * @param rsp StaplerResponse
-     * @throws ServletException if something unfortunate happens.
-     * @throws IOException if something unfortunate happens.
+     * @throws ServletException     if something unfortunate happens.
+     * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws
@@ -231,10 +235,9 @@ public class RebuildAction implements Action {
             if (!formData.isEmpty()) {
                 JSONArray a = JSONArray.fromObject(formData.get("parameter"));
                 for (Object o : a) {
-                    JSONObject jo = (JSONObject)o;
+                    JSONObject jo = (JSONObject) o;
                     String name = jo.getString("name");
-                    ParameterValue parameterValue;
-                    parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
+                    ParameterValue parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
                     if (parameterValue != null) {
                         values.add(parameterValue);
                     }
@@ -278,23 +281,29 @@ public class RebuildAction implements Action {
      * Method for getting the ParameterValue instance from ParameterDefinition
      * or ParamterAction.
      *
-     * @param paramDefProp ParametersDefinitionProperty
+     * @param paramDefProp  ParametersDefinitionProperty
      * @param parameterName Name of the Parameter.
-     * @param paramAction ParametersAction
-     * @param req StaplerRequest
-     * @param jo JSONObject
+     * @param paramAction   ParametersAction
+     * @param req           StaplerRequest
+     * @param jo            JSONObject
      * @return ParameterValue instance of subclass of ParameterValue
      */
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
-            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
+                                            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
         ParameterDefinition paramDef;
         // this is normal case when user try to rebuild a parameterized job.
-            if (paramDefProp != null) {
-                paramDef = paramDefProp.getParameterDefinition(parameterName);
-                if (paramDef != null) {
-                    return paramDef.createValue(req, jo);
+        if (paramDefProp != null) {
+            paramDef = paramDefProp.getParameterDefinition(parameterName);
+            if (paramDef != null) {
+                // The copy artifact plugin throws an exception when using createValue(req, jo)
+                // If the parameter comes from the copy artifact plugin, then use the single argument createValue
+                if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")){
+                    SimpleParameterDefinition parameterDefinition = (SimpleParameterDefinition) paramDefProp.getParameterDefinition(parameterName);
+                    return parameterDefinition.createValue(jo.getString("value"));
                 }
+                return paramDef.createValue(req, jo);
             }
+        }
         /*
          * when user try to rebuild a build that was invoked by
          * parameterized trigger plugin in that case ParameterDefinition
@@ -306,9 +315,9 @@ public class RebuildAction implements Action {
          * In contrast to all other parameterActions, ListSubversionTagsParameterValue uses "tag" instead of "value"
          */
         if (jo.containsKey("value")) {
-        return cloneParameter(paramAction.getParameter(parameterName),  jo.getString("value"));
+            return cloneParameter(paramAction.getParameter(parameterName), jo.getString("value"));
         } else {
-          return cloneParameter(paramAction.getParameter(parameterName), jo.getString("tag"));
+            return cloneParameter(paramAction.getParameter(parameterName), jo.getString("tag"));
         }
     }
 
