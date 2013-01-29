@@ -24,18 +24,7 @@
  */
 package com.sonyericsson.rebuild;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.servlet.ServletException;
-
-import org.kohsuke.stapler.Stapler;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-
 import hudson.matrix.MatrixRun;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -49,8 +38,18 @@ import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.PasswordParameterValue;
 import hudson.model.RunParameterValue;
-import hudson.model.StringParameterValue;
 import hudson.model.SimpleParameterDefinition;
+import hudson.model.StringParameterValue;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.Stapler;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -203,8 +202,10 @@ public class RebuildAction implements Action {
     public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
             response) throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
-        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null,
-                new CauseAction(new Cause.UserIdCause()));
+
+        List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
+
+        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, actions);
         response.sendRedirect("../../");
     }
 
@@ -243,10 +244,31 @@ public class RebuildAction implements Action {
                     }
                 }
             }
-            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values),
-                    new CauseAction(new Cause.UserIdCause()));
+
+            List<Action> actions = copyBuildCausesAndAddUserCause(build);
+            actions.add(new ParametersAction(values));
+
+            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, actions);
             rsp.sendRedirect("../../");
         }
+    }
+
+    /**
+     * Extracts the build causes and adds a {@link hudson.model.Cause.UserIdCause}. The result is a list of
+     * all build causes from the original build (might be an empty list), plus a
+     *
+     * @param fromBuild the build to copy the causes from.
+     * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
+     */
+    private List<Action> copyBuildCausesAndAddUserCause(AbstractBuild<?, ?> fromBuild) {
+        List currentBuildCauses = fromBuild.getCauses();
+
+        List<Action> actions = new ArrayList<Action>(currentBuildCauses.size());
+        for (Object buildCause : currentBuildCauses) {
+            actions.add(new CauseAction((Cause) buildCause));
+        }
+        actions.add(new CauseAction(new Cause.UserIdCause()));
+        return actions;
     }
 
     /**
@@ -297,7 +319,7 @@ public class RebuildAction implements Action {
             if (paramDef != null) {
                 // The copy artifact plugin throws an exception when using createValue(req, jo)
                 // If the parameter comes from the copy artifact plugin, then use the single argument createValue
-                if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")){
+                if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")) {
                     SimpleParameterDefinition parameterDefinition = (SimpleParameterDefinition) paramDefProp.getParameterDefinition(parameterName);
                     return parameterDefinition.createValue(jo.getString("value"));
                 }
