@@ -29,28 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.ServletException;
 
-import org.kohsuke.stapler.Stapler;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import hudson.model.*;
+import org.kohsuke.stapler.*;
+import net.sf.json.*;
 
 import hudson.matrix.MatrixRun;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BooleanParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.PasswordParameterValue;
-import hudson.model.RunParameterValue;
-import hudson.model.StringParameterValue;
-import hudson.model.SimpleParameterDefinition;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -203,12 +186,13 @@ public class RebuildAction implements Action {
     public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
             response) throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
-        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null,
-                new CauseAction(new Cause.UserIdCause()));
+
+		CauseAction cause = new CauseAction(new RebuildCause(currentBuild));
+		Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null, cause);
         response.sendRedirect("../../");
     }
 
-    /**
+	/**
      * Saves the form to the configuration and disk.
      *
      * @param req StaplerRequest
@@ -243,8 +227,9 @@ public class RebuildAction implements Action {
                     }
                 }
             }
-            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values),
-                    new CauseAction(new Cause.UserIdCause()));
+
+			CauseAction cause = new CauseAction(new RebuildCause(build));
+			Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values), cause);
             rsp.sendRedirect("../../");
         }
     }
