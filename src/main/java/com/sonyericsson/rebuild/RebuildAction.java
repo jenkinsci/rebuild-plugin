@@ -24,33 +24,18 @@
  */
 package com.sonyericsson.rebuild;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.servlet.ServletException;
-
+import hudson.matrix.MatrixRun;
+import hudson.model.*;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import hudson.matrix.MatrixRun;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BooleanParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.PasswordParameterValue;
-import hudson.model.RunParameterValue;
-import hudson.model.StringParameterValue;
-import hudson.model.SimpleParameterDefinition;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -126,17 +111,17 @@ public class RebuildAction implements Action {
      * @return currentProject.
      */
     public AbstractProject getProject() {
+
         if (build != null) {
             return build.getProject();
         }
+
         AbstractProject currentProject = null;
         StaplerRequest request = Stapler.getCurrentRequest();
         if (request != null) {
             currentProject = request.findAncestorObject(AbstractProject.class);
         }
-        if (currentProject == null) {
-            throw new NullPointerException("Current Project is null");
-        }
+
         return currentProject;
     }
 
@@ -202,7 +187,7 @@ public class RebuildAction implements Action {
      */
     public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
             response) throws ServletException, IOException, InterruptedException {
-        getProject().checkPermission(AbstractProject.BUILD);
+        currentBuild.getProject().checkPermission(AbstractProject.BUILD);
         Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null,
                 new CauseAction(new Cause.UserIdCause()));
         response.sendRedirect("../../");
@@ -219,7 +204,11 @@ public class RebuildAction implements Action {
      */
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws
             ServletException, IOException, InterruptedException {
-        getProject().checkPermission(AbstractProject.BUILD);
+        AbstractProject project = getProject();
+        if (project == null) {
+            return;
+        }
+        project.checkPermission(AbstractProject.BUILD);
         if (isRebuildAvailable()) {
             if (!req.getMethod().equals("POST")) {
                 // show the parameter entry form.
@@ -273,8 +262,14 @@ public class RebuildAction implements Action {
      * @return boolean
      */
     public boolean isRebuildAvailable() {
-        return getProject() != null && getProject().hasPermission(AbstractProject.BUILD)
-                && getProject().isBuildable() && !(getProject().isDisabled()) && !isMatrixRun();
+
+        AbstractProject project = getProject();
+        if (project == null) {
+            return false;
+        }
+
+        return project.hasPermission(AbstractProject.BUILD)
+                && project.isBuildable() && !(project.isDisabled()) && !isMatrixRun();
     }
 
     /**
@@ -297,7 +292,7 @@ public class RebuildAction implements Action {
             if (paramDef != null) {
                 // The copy artifact plugin throws an exception when using createValue(req, jo)
                 // If the parameter comes from the copy artifact plugin, then use the single argument createValue
-                if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")){
+                if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")) {
                     SimpleParameterDefinition parameterDefinition = (SimpleParameterDefinition) paramDefProp.getParameterDefinition(parameterName);
                     return parameterDefinition.createValue(jo.getString("value"));
                 }

@@ -23,6 +23,8 @@
  */
 package com.sonyericsson.rebuild;
 
+import hudson.model.AbstractProject;
+
 /**
  * Reschedules last completed build for the project if available.
  * Otherwise it behaves as if the user clicked on the build now button.
@@ -31,11 +33,16 @@ public class RebuildLastCompletedBuildAction extends RebuildAction {
 
     @Override
     public String getUrlName() {
-        boolean isBuildable = getProject() != null && getProject().isBuildable();
-        boolean hasCompletedBuild = getProject().getLastCompletedBuild() != null;
+        AbstractProject project = getProject();
+        if (project == null) {
+            return null;
+        }
+
+        boolean isBuildable = project.isBuildable();
+        boolean hasCompletedBuild = project.getLastCompletedBuild() != null;
         if (isBuildable) {
             if (hasCompletedBuild) {
-                return getProject().getLastCompletedBuild().getNumber() + "/rebuild";
+                return project.getLastCompletedBuild().getNumber() + "/rebuild";
             } else {
                 return "build?delay=0sec";
             }
