@@ -2,7 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reservered.
- *  Copyright 2012 Sony Mobile Communications AB. All rights reservered.
+ *  Copyright 2013 Sony Mobile Communications AB. All rights reservered.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -254,8 +254,9 @@ public class RebuildAction implements Action {
     }
 
     /**
-     * Extracts the build causes and adds a {@link hudson.model.Cause.UserIdCause}. The result is a list of
-     * all build causes from the original build (might be an empty list), plus a
+     * Extracts the build causes and adds or replaces the {@link hudson.model.Cause.UserIdCause}. The result is a
+     * list of all build causes from the original build (might be an empty list), plus a
+     * {@link hudson.model.Cause.UserIdCause} for the user who started the rebuild.
      *
      * @param fromBuild the build to copy the causes from.
      * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
@@ -264,10 +265,19 @@ public class RebuildAction implements Action {
         List currentBuildCauses = fromBuild.getCauses();
 
         List<Action> actions = new ArrayList<Action>(currentBuildCauses.size());
+        boolean hasUserCause = false;
         for (Object buildCause : currentBuildCauses) {
-            actions.add(new CauseAction((Cause) buildCause));
+            if (buildCause instanceof Cause.UserIdCause) {
+                hasUserCause = true;
+                actions.add(new CauseAction(new Cause.UserIdCause()));
+            } else {
+                actions.add(new CauseAction((Cause) buildCause));
+            }
         }
-        actions.add(new CauseAction(new Cause.UserIdCause()));
+        if (!hasUserCause) {
+            actions.add(new CauseAction(new Cause.UserIdCause()));
+        }
+
         return actions;
     }
 
