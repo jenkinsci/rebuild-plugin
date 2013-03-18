@@ -2,7 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reservered.
- *  Copyright 2013 Sony Mobile Communications AB. All rights reservered.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reservered.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -25,21 +25,7 @@
 package com.sonyericsson.rebuild;
 
 import hudson.matrix.MatrixRun;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BooleanParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.PasswordParameterValue;
-import hudson.model.RunParameterValue;
-import hudson.model.SimpleParameterDefinition;
-import hudson.model.StringParameterValue;
+import hudson.model.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
@@ -125,17 +111,17 @@ public class RebuildAction implements Action {
      * @return currentProject.
      */
     public AbstractProject getProject() {
+
         if (build != null) {
             return build.getProject();
         }
+
         AbstractProject currentProject = null;
         StaplerRequest request = Stapler.getCurrentRequest();
         if (request != null) {
             currentProject = request.findAncestorObject(AbstractProject.class);
         }
-        if (currentProject == null) {
-            throw new NullPointerException("Current Project is null");
-        }
+
         return currentProject;
     }
 
@@ -202,9 +188,7 @@ public class RebuildAction implements Action {
     public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
             response) throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
-
         List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
-
         Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, actions);
         response.sendRedirect("../../");
     }
@@ -220,7 +204,11 @@ public class RebuildAction implements Action {
      */
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws
             ServletException, IOException, InterruptedException {
-        getProject().checkPermission(AbstractProject.BUILD);
+        AbstractProject project = getProject();
+        if (project == null) {
+            return;
+        }
+        project.checkPermission(AbstractProject.BUILD);
         if (isRebuildAvailable()) {
             if (!req.getMethod().equals("POST")) {
                 // show the parameter entry form.
@@ -305,8 +293,13 @@ public class RebuildAction implements Action {
      * @return boolean
      */
     public boolean isRebuildAvailable() {
-        return getProject() != null && getProject().hasPermission(AbstractProject.BUILD)
-                && getProject().isBuildable() && !(getProject().isDisabled()) && !isMatrixRun();
+
+        AbstractProject project = getProject();
+        return project != null && 
+                project.hasPermission(AbstractProject.BUILD) && 
+                project.isBuildable() && !(project.isDisabled()) && 
+                !isMatrixRun();
+
     }
 
     /**

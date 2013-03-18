@@ -25,6 +25,7 @@ package com.sonyericsson.rebuild;
 
 import hudson.ExtensionPoint;
 import hudson.model.AbstractBuild;
+
 import java.io.Serializable;
 
 /**

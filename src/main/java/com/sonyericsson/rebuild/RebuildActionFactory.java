@@ -24,11 +24,7 @@
 package com.sonyericsson.rebuild;
 
 import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.Action;
-import hudson.model.Hudson;
-import hudson.model.Run;
-import hudson.model.TransientBuildActionFactory;
+import hudson.model.*;
 
 import java.util.Collection;
 
