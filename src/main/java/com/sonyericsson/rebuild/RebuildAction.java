@@ -187,9 +187,9 @@ public class RebuildAction implements Action {
      */
     public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
             response) throws ServletException, IOException, InterruptedException {
-        currentBuild.getProject().checkPermission(AbstractProject.BUILD);
-        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null,
-                new CauseAction(new Cause.UserIdCause()));
+        getProject().checkPermission(AbstractProject.BUILD);
+        List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
+        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, actions);
         response.sendRedirect("../../");
     }
 
@@ -232,10 +232,41 @@ public class RebuildAction implements Action {
                     }
                 }
             }
-            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values),
-                    new CauseAction(new Cause.UserIdCause()));
+
+            List<Action> actions = copyBuildCausesAndAddUserCause(build);
+            actions.add(new ParametersAction(values));
+
+            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, actions);
             rsp.sendRedirect("../../");
         }
+    }
+
+    /**
+     * Extracts the build causes and adds or replaces the {@link hudson.model.Cause.UserIdCause}. The result is a
+     * list of all build causes from the original build (might be an empty list), plus a
+     * {@link hudson.model.Cause.UserIdCause} for the user who started the rebuild.
+     *
+     * @param fromBuild the build to copy the causes from.
+     * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
+     */
+    private List<Action> copyBuildCausesAndAddUserCause(AbstractBuild<?, ?> fromBuild) {
+        List currentBuildCauses = fromBuild.getCauses();
+
+        List<Action> actions = new ArrayList<Action>(currentBuildCauses.size());
+        boolean hasUserCause = false;
+        for (Object buildCause : currentBuildCauses) {
+            if (buildCause instanceof Cause.UserIdCause) {
+                hasUserCause = true;
+                actions.add(new CauseAction(new Cause.UserIdCause()));
+            } else {
+                actions.add(new CauseAction((Cause) buildCause));
+            }
+        }
+        if (!hasUserCause) {
+            actions.add(new CauseAction(new Cause.UserIdCause()));
+        }
+
+        return actions;
     }
 
     /**
@@ -264,12 +295,11 @@ public class RebuildAction implements Action {
     public boolean isRebuildAvailable() {
 
         AbstractProject project = getProject();
-        if (project == null) {
-            return false;
-        }
+        return project != null && 
+                project.hasPermission(AbstractProject.BUILD) && 
+                project.isBuildable() && !(project.isDisabled()) && 
+                !isMatrixRun();
 
-        return project.hasPermission(AbstractProject.BUILD)
-                && project.isBuildable() && !(project.isDisabled()) && !isMatrixRun();
     }
 
     /**
