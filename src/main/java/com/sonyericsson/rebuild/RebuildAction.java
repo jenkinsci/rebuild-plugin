@@ -24,8 +24,13 @@
  */
 package com.sonyericsson.rebuild;
 
+import hudson.Extension;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Notifier;
+import hudson.tasks.Publisher;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
@@ -43,7 +48,7 @@ import java.util.List;
  *
  * @author Shemeer S;
  */
-public class RebuildAction implements Action {
+public class RebuildAction extends Notifier implements Action {
 
     private static final String SVN_TAG_PARAM_CLASS = "hudson.scm.listtagsparameter.ListSubversionTagsParameterValue";
     /*
@@ -55,6 +60,7 @@ public class RebuildAction implements Action {
     private transient String p = "parameter";
     private transient AbstractBuild<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
+
     private static final String PARAMETERIZED_URL = "parameterized";
 
     public RebuildAction() {
@@ -111,7 +117,6 @@ public class RebuildAction implements Action {
      * @return currentProject.
      */
     public AbstractProject getProject() {
-
         if (build != null) {
             return build.getProject();
         }
@@ -293,7 +298,6 @@ public class RebuildAction implements Action {
      * @return boolean
      */
     public boolean isRebuildAvailable() {
-
         AbstractProject project = getProject();
         return project != null && 
                 project.hasPermission(AbstractProject.BUILD) && 
@@ -371,5 +375,55 @@ public class RebuildAction implements Action {
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
+    }
+
+    @Override
+    public BuildStepMonitor getRequiredMonitorService() {
+        return BuildStepMonitor.NONE;
+    }
+
+    @Override
+    public BuildStepDescriptor getDescriptor() {
+        return super.getDescriptor();
+    }
+
+    @Extension
+    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+        private final RebuildConfiguration rebuildConfiguration = new RebuildConfiguration(Boolean.TRUE);
+
+        public DescriptorImpl() {
+            super(RebuildAction.class);
+            load();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Rebuild";
+        }
+
+        @Override
+        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+            return true;
+        }
+
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
+            this.rebuildConfiguration.rememberPassword = Boolean.valueOf(formData.getString("rememberPassword"));
+            save();
+            return true;
+        }
+
+        @Override
+        public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            return new RebuildAction();
+        }
+
+        public RebuildConfiguration getRebuildConfiguration() {
+            return rebuildConfiguration;
+        }
+
+        public boolean getRememberPassword() {
+            return rebuildConfiguration.getRememberPassword();
+        }
     }
 }
