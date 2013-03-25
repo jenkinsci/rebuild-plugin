@@ -5,7 +5,7 @@
         <f:entry title="Rebuild Configuration">
                 <table width="100%">
                     <f:entry title="Remember Password" field="rememberPassword">
-                        <f:checkbox/>
+                        <f:checkbox default="true"/>
                     </f:entry>
                 </table>
         </f:entry>
