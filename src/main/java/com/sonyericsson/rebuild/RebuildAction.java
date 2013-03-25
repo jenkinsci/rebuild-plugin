@@ -391,6 +391,9 @@ public class RebuildAction extends Notifier implements Action {
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         private final RebuildConfiguration rebuildConfiguration = new RebuildConfiguration(Boolean.TRUE);
 
+        /**
+         * Constructs a new Descriptor implementation.
+         */
         public DescriptorImpl() {
             super(RebuildAction.class);
             load();
@@ -418,10 +421,20 @@ public class RebuildAction extends Notifier implements Action {
             return new RebuildAction();
         }
 
+        /**
+         * Gets the configuration object.
+         *
+         * @return the configuration object.
+         */
         public RebuildConfiguration getRebuildConfiguration() {
             return rebuildConfiguration;
         }
 
+        /**
+         * Gets the remember password option from the configuration object.
+         *
+         * @return true if the password field should be pre-filled.
+         */
         public boolean getRememberPassword() {
             return rebuildConfiguration.getRememberPassword();
         }

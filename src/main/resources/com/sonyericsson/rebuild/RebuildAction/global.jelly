@@ -4,8 +4,8 @@
     <f:section title="Rebuild">
         <f:entry title="Rebuild Configuration">
                 <table width="100%">
-                    <f:entry title="Remember Password">
-                        <f:checkbox field="rememberPassword"/>
+                    <f:entry title="Remember Password" field="rememberPassword">
+                        <f:checkbox/>
                     </f:entry>
                 </table>
         </f:entry>
