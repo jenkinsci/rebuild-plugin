@@ -46,7 +46,7 @@ THE SOFTWARE.
 
             <j:set var="instance" value="${it}"/>
             <j:set var="descriptor" value="${it.descriptor}"/>
-            <j:set var="rememberPassword" value="${it.descriptor.rebuildConfiguration.rememberPassword}" scope="parent"/>
+            <j:set var="rememberPasswordEnabled" value="${it.DESCRIPTOR.rebuildConfiguration.rememberPasswordEnabled}" scope="parent"/>
             <j:set var="build" value="${request.findAncestorObject(buildClass)}" />
             <j:set var="paramAction" value="${build.getAction(parmactionClass)}" />
             <f:form method="post" action="configSubmit" name="config">

@@ -33,17 +33,24 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class RebuildConfiguration implements Describable {
 
-    public boolean rememberPassword;
+    public boolean rememberPasswordEnabled;
 
     /**
      * Constructs a new configuration object.
      *
-     * @param rememberPassword indicates whether the password field should be pre-filled or empty when rebuilding
+     * @param rememberPasswordEnabled indicates whether the password field should be pre-filled or empty when rebuilding
      *                         a job with a password parameter.
      */
     @DataBoundConstructor
-    public RebuildConfiguration(boolean rememberPassword) {
-        this.rememberPassword = rememberPassword;
+    public RebuildConfiguration(boolean rememberPasswordEnabled) {
+        this.rememberPasswordEnabled = rememberPasswordEnabled;
+    }
+
+    @Override
+    public String toString() {
+        return "RebuildConfiguration{" +
+                "rememberPasswordEnabled=" + rememberPasswordEnabled +
+                '}';
     }
 
     @Override
@@ -56,14 +63,7 @@ public class RebuildConfiguration implements Describable {
      *
      * @return true if the password field should be pre-filled.
      */
-    public boolean getRememberPassword() {
-        return rememberPassword;
-    }
-
-    @Override
-    public String toString() {
-        return "RebuildConfiguration{" +
-                "rememberPassword=" + rememberPassword +
-                '}';
+    public boolean getRememberPasswordEnabled() {
+        return rememberPasswordEnabled;
     }
 }
