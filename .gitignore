@@ -3,3 +3,8 @@ work
 .classpath
 .project
 .settings
+### IntelliJ ###
+*.iml
+*.ipr
+*.iws
+.idea/
