@@ -23,6 +23,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -30,7 +31,9 @@ import hudson.model.TransientProjectActionFactory;
 
 import java.util.Collection;
 
+import java.util.Collections;
 import static java.util.Collections.singleton;
+import static java.util.Collections.emptyList;
 
 /**
  * Makes the rebuild button available on the project level.
@@ -41,6 +44,8 @@ public class RebuildProjectActionFactory extends TransientProjectActionFactory {
 
     @Override
     public Collection<? extends Action> createFor(AbstractProject abstractProject) {
+        if(abstractProject instanceof MatrixConfiguration)
+            return emptyList();
         return singleton(new RebuildLastCompletedBuildAction());
     }
 }
