@@ -24,6 +24,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import hudson.Extension;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import net.sf.json.JSONArray;
@@ -55,7 +56,11 @@ public class RebuildAction implements Action {
     private transient String p = "parameter";
     private transient AbstractBuild<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
+
     private static final String PARAMETERIZED_URL = "parameterized";
+
+    @Extension
+    public static final RebuildDescriptor DESCRIPTOR = new RebuildDescriptor();
 
     public RebuildAction() {
     }
@@ -106,12 +111,20 @@ public class RebuildAction implements Action {
     }
 
     /**
+     * True if the password fields should be pre-filled.
+     *
+     * @return True if the password fields should be pre-filled.
+     */
+    public boolean isRememberPasswordEnabled() {
+        return DESCRIPTOR.getRebuildConfiguration().rememberPasswordEnabled;
+    }
+
+    /**
      * Method will return current project.
      *
      * @return currentProject.
      */
     public AbstractProject getProject() {
-
         if (build != null) {
             return build.getProject();
         }
@@ -293,7 +306,6 @@ public class RebuildAction implements Action {
      * @return boolean
      */
     public boolean isRebuildAvailable() {
-
         AbstractProject project = getProject();
         return project != null && 
                 project.hasPermission(AbstractProject.BUILD) && 
