@@ -181,13 +181,35 @@ public class RebuildAction implements Action {
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
-                response.sendRedirect(PARAMETERIZED_URL);
+                RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+                
+                if(settings.getAuto_rebuild()) {
+                    parameterizedRebuild(currentBuild, response);
+                } else {
+                    response.sendRedirect(PARAMETERIZED_URL);
+                }
             } else {
                 nonParameterizedRebuild(currentBuild, response);
             }
         }
     }
 
+    public void parameterizedRebuild(AbstractBuild currentBuild, StaplerResponse response) throws IOException {
+        AbstractProject project = getProject();
+        if (project == null) {
+            return;
+        }
+        project.checkPermission(AbstractProject.BUILD);
+        if (isRebuildAvailable()) {
+
+            List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
+            ParametersAction action = currentBuild.getAction(ParametersAction.class);
+            actions.add(action);
+
+            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, actions);
+            response.sendRedirect("../../");
+        }
+    }
     /**
      * Call this method while rebuilding
      * non parameterized build.     .
