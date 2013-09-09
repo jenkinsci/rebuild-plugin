@@ -203,12 +203,12 @@ public class RebuildAction implements Action {
             response) throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
 
-        CauseAction cause = new CauseAction(new RebuildCause(currentBuild));
-        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null, cause);
+        List<Action> actions = constructRebuildCause(build, null);
+        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, actions);
         response.sendRedirect("../../");
     }
 
-	/**
+    /**
      * Saves the form to the configuration and disk.
      *
      * @param req StaplerRequest
@@ -248,8 +248,8 @@ public class RebuildAction implements Action {
                 }
             }
 
-            CauseAction cause = new CauseAction(new RebuildCause(build));
-            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values), cause);
+            List<Action> actions = constructRebuildCause(build, new ParametersAction(values));
+            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, actions);
 
             rsp.sendRedirect("../../");
         }
@@ -384,5 +384,14 @@ public class RebuildAction implements Action {
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
+    }
+    
+    private List<Action> constructRebuildCause(AbstractBuild up, ParametersAction paramAction) {
+        List<Action> actions = copyBuildCausesAndAddUserCause(up);
+        actions.add(new CauseAction(new RebuildCause(up)));
+        if (paramAction != null) {
+            actions.add(paramAction);
+        }
+        return actions;
     }
 }

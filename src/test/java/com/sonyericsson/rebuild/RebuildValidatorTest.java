@@ -163,7 +163,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
     }
 
     /**
-     * Creates a new freestyle project and rebuild. Check that the causes of the original build are copied
+     * Creates a new freestyle project and rebuild. Check that the RebuildCause has been set
      * to the new build. Check also that a UserIdCause is added.
      *
      * @throws Exception Exception
@@ -185,20 +185,24 @@ public class RebuildValidatorTest extends HudsonTestCase {
             Thread.sleep(100);
         }
         List<Action> actions = project.getLastCompletedBuild().getActions();
-        boolean hasUserCause = false;
+        boolean hasRebuildCause = false;
         boolean hasRemoteCause = false;
+        boolean hasUserIdCause = false;
         for (Action action : actions) {
             if (action instanceof CauseAction) {
                 CauseAction causeAction = (CauseAction) action;
-                if (causeAction.getCauses().get(0).getClass().equals(Cause.UserIdCause.class)) {
-                    hasUserCause = true;
+                if (causeAction.getCauses().get(0).getClass().equals(RebuildCause.class)) {
+                    hasRebuildCause = true;
                 }
                 if (causeAction.getCauses().get(0).getClass().equals(Cause.RemoteCause.class)) {
                     hasRemoteCause = true;
                 }
+                if (causeAction.getCauses().get(0).getClass().equals(Cause.UserIdCause.class)) {
+                    hasUserIdCause = true;
+                }
             }
         }
-        assertTrue("Build should have user cause and remote cause", hasUserCause && hasRemoteCause);
+        assertTrue("Build should have user, remote and rebuild causes", hasRebuildCause && hasRemoteCause && hasUserIdCause);
     }
 
     /**
