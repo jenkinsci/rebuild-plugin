@@ -29,14 +29,15 @@ import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.Stapler;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import hudson.model.*;
+import org.kohsuke.stapler.*;
+import net.sf.json.*;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import hudson.matrix.MatrixRun;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -201,12 +202,13 @@ public class RebuildAction implements Action {
     public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
             response) throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(AbstractProject.BUILD);
-        List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
-        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, actions);
+
+        CauseAction cause = new CauseAction(new RebuildCause(currentBuild));
+        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, null, cause);
         response.sendRedirect("../../");
     }
 
-    /**
+	/**
      * Saves the form to the configuration and disk.
      *
      * @param req StaplerRequest
@@ -246,10 +248,9 @@ public class RebuildAction implements Action {
                 }
             }
 
-            List<Action> actions = copyBuildCausesAndAddUserCause(build);
-            actions.add(new ParametersAction(values));
+            CauseAction cause = new CauseAction(new RebuildCause(build));
+            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, new ParametersAction(values), cause);
 
-            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, actions);
             rsp.sendRedirect("../../");
         }
     }
