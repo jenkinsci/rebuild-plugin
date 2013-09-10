@@ -1,7 +1,7 @@
 /*
  *  The MIT License
  *
- *  Copyright 2013 Joel Johnson and contributors.
+ *  Copyright 2013 Joel Johnson, Oleg Nenashev and contributors.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,10 @@
  */
 package com.sonyericsson.rebuild;
 
+import hudson.console.ModelHyperlinkNote;
 import hudson.model.Cause;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 
 /**
  * A cause specifying that the build was a rebuild of another build. Extends
@@ -32,10 +34,37 @@ import hudson.model.Run;
  * builds is inherited (linking, etc).
  *
  * @author Joel Johnson
+ * @author Oleg Nenashev
  */
 public class RebuildCause extends Cause.UpstreamCause {
 
     public RebuildCause(Run<?, ?> up) {
         super(up);
+    }
+
+    @Override
+    public String getShortDescription() {
+        return Messages.Cause_RebuildCause_ShortDescription(getUpstreamBuild());
+    }
+    
+    public String getShortDescritptionHTML() {
+        return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(), '/' + getUpstreamUrl() + getUpstreamBuild());
+    }
+
+    private void indent(TaskListener listener, int depth) {
+            for (int i = 0; i < depth; i++) {
+                listener.getLogger().print(' ');
+            }
+        }
+
+    @Override
+    public void print(TaskListener listener) {
+        print (listener, 0);
+    }
+      
+    private void print(TaskListener listener, int depth) {
+        indent(listener, depth);
+        listener.getLogger().println(Messages.Cause_RebuildCause_ShortDescription(
+               ModelHyperlinkNote.encodeTo('/' + getUpstreamUrl() + getUpstreamBuild(), Integer.toString(getUpstreamBuild()))));
     }
 }
