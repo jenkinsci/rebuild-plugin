@@ -24,7 +24,8 @@ public final class RebuildDescriptor extends GlobalConfiguration {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-        this.rebuildConfiguration.rememberPasswordEnabled = Boolean.valueOf(formData.getString("rememberPasswordEnabled"));
+        this.rebuildConfiguration.setRememberPasswordEnabled(
+                Boolean.valueOf(formData.getString("rememberPasswordEnabled")));
         save();
         return true;
     }

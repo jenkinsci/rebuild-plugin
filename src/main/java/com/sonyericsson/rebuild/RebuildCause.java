@@ -37,7 +37,10 @@ import hudson.model.TaskListener;
  * @author Oleg Nenashev
  */
 public class RebuildCause extends Cause.UpstreamCause {
-
+    /**
+     * RebuildCause constructor.
+     * @param  up Run.
+     */
     public RebuildCause(Run<?, ?> up) {
         super(up);
     }
@@ -46,11 +49,21 @@ public class RebuildCause extends Cause.UpstreamCause {
     public String getShortDescription() {
         return Messages.Cause_RebuildCause_ShortDescription(getUpstreamBuild());
     }
-    
+    /**
+     * Method returns ShortDescriptionHTML.
+     *
+     * @return String description.
+     */
     public String getShortDescritptionHTML() {
-        return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(), '/' + getUpstreamUrl() + getUpstreamBuild());
+        return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(), '/'
+                + getUpstreamUrl() + getUpstreamBuild());
     }
-
+    /**
+     * Method calculate the indent.
+     *
+     * @param listener TaskListener.
+     * @param depth int.
+     */
     private void indent(TaskListener listener, int depth) {
             for (int i = 0; i < depth; i++) {
                 listener.getLogger().print(' ');
@@ -59,12 +72,18 @@ public class RebuildCause extends Cause.UpstreamCause {
 
     @Override
     public void print(TaskListener listener) {
-        print (listener, 0);
+        print(listener, 0);
     }
-      
+    /**
+     * Method will print the log.
+     *
+     * @param listener TaskListener.
+     * @param depth int.
+     */
     private void print(TaskListener listener, int depth) {
         indent(listener, depth);
         listener.getLogger().println(Messages.Cause_RebuildCause_ShortDescription(
-               ModelHyperlinkNote.encodeTo('/' + getUpstreamUrl() + getUpstreamBuild(), Integer.toString(getUpstreamBuild()))));
+               ModelHyperlinkNote.encodeTo('/' + getUpstreamUrl()
+               + getUpstreamBuild(), Integer.toString(getUpstreamBuild()))));
     }
 }

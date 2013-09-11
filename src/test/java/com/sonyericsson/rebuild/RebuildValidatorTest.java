@@ -48,7 +48,10 @@ import java.util.concurrent.ExecutionException;
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
 public class RebuildValidatorTest extends HudsonTestCase {
-
+   /**
+    * Sleep delay value.
+    */
+    public static final int DELAY = 100;
     /**
      * Tests with no extensions.
      *
@@ -59,7 +62,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
     public void testNoRebuildValidatorExtension()
             throws IOException, InterruptedException, ExecutionException {
         Project projectA = createFreeStyleProject("testFreeStyleA");
-        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserIdCause(),
+        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
                         "megaparty")))
                 .get();
@@ -77,7 +80,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
             throws IOException, InterruptedException, ExecutionException {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorAlwaysApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleB");
-        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserIdCause(),
+        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
                         "megaparty")))
                 .get();
@@ -95,7 +98,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
             throws IOException, InterruptedException, ExecutionException {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorNeverApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserIdCause(),
+        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
                         "megaparty")))
                 .get();
@@ -114,7 +117,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorAlwaysApplicable());
         hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorNeverApplicable());
         Project projectA = createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build) projectA.scheduleBuild2(0, new Cause.UserIdCause(),
+        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
                         "megaparty")))
                 .get();
@@ -182,7 +185,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
         createWebClient().getPage(project).getAnchorByText("Rebuild Last").click();
 
         while (project.isBuilding()) {
-            Thread.sleep(100);
+            Thread.sleep(DELAY);
         }
         List<Action> actions = project.getLastCompletedBuild().getActions();
         boolean hasRebuildCause = false;
@@ -190,7 +193,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
         boolean hasUserIdCause = false;
         for (Action action : actions) {
             if (action instanceof CauseAction) {
-                CauseAction causeAction = (CauseAction) action;
+                CauseAction causeAction = (CauseAction)action;
                 if (causeAction.getCauses().get(0).getClass().equals(RebuildCause.class)) {
                     hasRebuildCause = true;
                 }
@@ -202,7 +205,8 @@ public class RebuildValidatorTest extends HudsonTestCase {
                 }
             }
         }
-        assertTrue("Build should have user, remote and rebuild causes", hasRebuildCause && hasRemoteCause && hasUserIdCause);
+        assertTrue("Build should have user, remote and rebuild causes", hasRebuildCause
+                && hasRemoteCause && hasUserIdCause);
     }
 
     /**

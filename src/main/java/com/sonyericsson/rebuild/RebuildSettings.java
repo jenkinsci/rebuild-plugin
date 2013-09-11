@@ -35,35 +35,48 @@ import org.kohsuke.stapler.StaplerRequest;
  *
  * @author gardnerj
  */
-public class RebuildSettings extends JobProperty<Job<?,?>> {
-    
-    public boolean auto_rebuild;
-    
+public class RebuildSettings extends JobProperty<Job<?, ?>> {
+    /**
+     * boolean auto rebuild variable.
+     */
+    private boolean autoRebuild;
+    /**
+     * RebuildSettings constructor.
+     *
+     * @param autoRebuild boolean.
+     */
     @DataBoundConstructor
-    public RebuildSettings(boolean auto_rebuild) {
-        this.auto_rebuild = auto_rebuild;
+    public RebuildSettings(boolean autoRebuild) {
+        this.autoRebuild = autoRebuild;
     }
-    
-    public boolean getAuto_rebuild() {
-        return auto_rebuild;
+    /**
+     * Method returns autoRebuild.
+     *
+     * @return autoRebuild boolean.
+     */
+    public boolean getAutoRebuild() {
+        return autoRebuild;
     }
-    
+   /**
+    * DescriptorImpl class of JobPropertyDescriptor.
+    */
     @Extension
-    public final static class DescriptorImpl extends JobPropertyDescriptor {
+    public static final class DescriptorImpl extends JobPropertyDescriptor {
+
         @Override
         public String getDisplayName() {
             return "Rebuild Settings";
         }
-        
+
         @Override
         public boolean isApplicable(Class<? extends Job> jobType) {
             return true;
         }
-        
+
         @Override
-        public JobProperty<?> newInstance(StaplerRequest req, JSONObject formdata ) {
+        public JobProperty<?> newInstance(StaplerRequest req, JSONObject formdata) {
             RebuildSettings prop = req.bindJSON(RebuildSettings.class, formdata);
             return prop;
-        }              
+        }
     }
 }

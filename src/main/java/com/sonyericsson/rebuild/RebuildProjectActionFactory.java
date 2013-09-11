@@ -31,7 +31,6 @@ import hudson.model.TransientProjectActionFactory;
 
 import java.util.Collection;
 
-import java.util.Collections;
 import static java.util.Collections.singleton;
 import static java.util.Collections.emptyList;
 
@@ -44,8 +43,9 @@ public class RebuildProjectActionFactory extends TransientProjectActionFactory {
 
     @Override
     public Collection<? extends Action> createFor(AbstractProject abstractProject) {
-        if(abstractProject instanceof MatrixConfiguration)
+        if (abstractProject instanceof MatrixConfiguration) {
             return emptyList();
+        }
         return singleton(new RebuildLastCompletedBuildAction());
     }
 }

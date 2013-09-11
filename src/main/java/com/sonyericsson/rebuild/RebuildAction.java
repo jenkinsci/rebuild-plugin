@@ -25,19 +25,33 @@
 package com.sonyericsson.rebuild;
 
 import hudson.Extension;
-import hudson.matrix.MatrixRun;
-import hudson.model.*;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import hudson.model.*;
-import org.kohsuke.stapler.*;
-import net.sf.json.*;
+import hudson.model.Action;
+
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import hudson.matrix.MatrixRun;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.BooleanParameterValue;
+import hudson.model.Cause;
+import hudson.model.CauseAction;
+import hudson.model.Hudson;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.SimpleParameterDefinition;
+import hudson.model.ParameterDefinition;
+import hudson.model.PasswordParameterValue;
+import hudson.model.RunParameterValue;
+import hudson.model.StringParameterValue;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.Stapler;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -57,12 +71,15 @@ public class RebuildAction implements Action {
     private transient String p = "parameter";
     private transient AbstractBuild<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
-
     private static final String PARAMETERIZED_URL = "parameterized";
-
+    /**
+     * Rebuild Descriptor.
+     */
     @Extension
     public static final RebuildDescriptor DESCRIPTOR = new RebuildDescriptor();
-
+    /**
+     * RebuildAction constructor.
+     */
     public RebuildAction() {
     }
 
@@ -117,7 +134,7 @@ public class RebuildAction implements Action {
      * @return True if the password fields should be pre-filled.
      */
     public boolean isRememberPasswordEnabled() {
-        return DESCRIPTOR.getRebuildConfiguration().rememberPasswordEnabled;
+        return DESCRIPTOR.getRebuildConfiguration().isRememberPasswordEnabled();
     }
 
     /**
@@ -183,8 +200,7 @@ public class RebuildAction implements Action {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
                 RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-                
-                if(settings != null && settings.getAuto_rebuild()) {
+                if (settings != null && settings.getAutoRebuild()) {
                     parameterizedRebuild(currentBuild, response);
                 } else {
                     response.sendRedirect(PARAMETERIZED_URL);
@@ -194,7 +210,13 @@ public class RebuildAction implements Action {
             }
         }
     }
-
+    /**
+     * Handles the rebuild request with parameter.
+     *
+     * @param currentBuild  AbstractBuild the build.
+     * @param response StaplerResponse the response handler.
+     * @throws IOException          in case of Stapler issues
+     */
     public void parameterizedRebuild(AbstractBuild currentBuild, StaplerResponse response) throws IOException {
         AbstractProject project = getProject();
         if (project == null) {
@@ -261,7 +283,7 @@ public class RebuildAction implements Action {
             if (!formData.isEmpty()) {
                 JSONArray a = JSONArray.fromObject(formData.get("parameter"));
                 for (Object o : a) {
-                    JSONObject jo = (JSONObject) o;
+                    JSONObject jo = (JSONObject)o;
                     String name = jo.getString("name");
                     ParameterValue parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
                     if (parameterValue != null) {
@@ -295,7 +317,7 @@ public class RebuildAction implements Action {
                 hasUserCause = true;
                 actions.add(new CauseAction(new Cause.UserIdCause()));
             } else {
-                actions.add(new CauseAction((Cause) buildCause));
+                actions.add(new CauseAction((Cause)buildCause));
             }
         }
         if (!hasUserCause) {
@@ -330,10 +352,10 @@ public class RebuildAction implements Action {
      */
     public boolean isRebuildAvailable() {
         AbstractProject project = getProject();
-        return project != null && 
-                project.hasPermission(AbstractProject.BUILD) && 
-                project.isBuildable() && !(project.isDisabled()) && 
-                !isMatrixRun();
+        return project != null
+                && project.hasPermission(AbstractProject.BUILD)
+                && project.isBuildable() && !(project.isDisabled())
+                && !isMatrixRun();
 
     }
 
@@ -349,7 +371,7 @@ public class RebuildAction implements Action {
      * @return ParameterValue instance of subclass of ParameterValue
      */
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
-                                            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
+            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
         ParameterDefinition paramDef;
         // this is normal case when user try to rebuild a parameterized job.
         if (paramDefProp != null) {
@@ -358,7 +380,8 @@ public class RebuildAction implements Action {
                 // The copy artifact plugin throws an exception when using createValue(req, jo)
                 // If the parameter comes from the copy artifact plugin, then use the single argument createValue
                 if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")) {
-                    SimpleParameterDefinition parameterDefinition = (SimpleParameterDefinition) paramDefProp.getParameterDefinition(parameterName);
+                    SimpleParameterDefinition parameterDefinition =
+                            (SimpleParameterDefinition)paramDefProp.getParameterDefinition(parameterName);
                     return parameterDefinition.createValue(jo.getString("value"));
                 }
                 return paramDef.createValue(req, jo);
@@ -407,7 +430,13 @@ public class RebuildAction implements Action {
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
-    
+     /**
+     * Method for constructing Rebuild cause.
+     *
+     * @param up AbsstractBuild
+     * @param paramAction ParametersAction.
+     * @return actions List<Action>
+     */
     private List<Action> constructRebuildCause(AbstractBuild up, ParametersAction paramAction) {
         List<Action> actions = copyBuildCausesAndAddUserCause(up);
         actions.add(new CauseAction(new RebuildCause(up)));

@@ -25,7 +25,11 @@ package com.sonyericsson.rebuild;
 
 import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.Action;
+import hudson.model.Hudson;
+import hudson.model.Run;
+import hudson.model.TransientBuildActionFactory;
 
 import java.util.Collection;
 
@@ -40,9 +44,10 @@ public class RebuildActionFactory extends TransientBuildActionFactory {
 
     @Override
     public Collection<? extends Action> createFor(Run target) {
-        if(target.getParent() instanceof MatrixConfiguration)
+        if (target.getParent() instanceof MatrixConfiguration) {
             return emptyList();
-        AbstractBuild build = (AbstractBuild) target;
+        }
+        AbstractBuild build = (AbstractBuild)target;
         boolean hasRebuildAction = target.getAction(RebuildAction.class) != null;
         if (hasRebuildAction) {
             return emptyList();
