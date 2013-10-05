@@ -23,6 +23,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebAssert;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -210,6 +211,58 @@ public class RebuildValidatorTest extends HudsonTestCase {
     }
 
     /**
+     * Creates a new freestyle project and build with a parameter value whose type is 
+     * unknown to rebuild plugin.
+     * Rebuild and verify that an exception should occur
+     * when that parameter value does not support {@link RebuildableParameterValue}.
+     *
+     * @throws Exception Exception
+     */
+    public void testRebuildUnsupportedUnknownParameterValue() throws Exception {
+        WebClient wc = createWebClient();
+        FreeStyleProject project = createFreeStyleProject();
+        
+        assertBuildStatusSuccess(project.scheduleBuild2(
+                0,
+                new Cause.RemoteCause("host", "note"),
+                new ParametersAction(
+                        new UnsupportedUnknownParameterValue("param1", "value1")
+                )
+        ));
+        FreeStyleBuild build = project.getLastBuild();
+        try {
+            wc.getPage(build, "rebuild");
+            fail("Request should fail.");
+        } catch(FailingHttpStatusCodeException e) {
+            // always fail for rebuild plugin does not know it.
+            assertEquals(500, e.getResponse().getStatusCode());
+        }
+    }
+
+    /**
+     * Creates a new freestyle project and build with a parameter value whose type is 
+     * unknown to rebuild plugin.
+     * Verify that rebuild succeeds if that parameter value supports {@link RebuildableParameterValue}.
+     *
+     * @throws Exception Exception
+     */
+    public void testRebuildSupportedUnknownParameterValue() throws Exception {
+        WebClient wc = createWebClient();
+        FreeStyleProject project = createFreeStyleProject();
+        
+        assertBuildStatusSuccess(project.scheduleBuild2(
+                0,
+                new Cause.RemoteCause("host", "note"),
+                new ParametersAction(
+                        new SupportedUnknownParameterValue("param1", "value1")
+                )
+        ));
+        FreeStyleBuild build = project.getLastBuild();
+        HtmlPage page = wc.getPage(build, "rebuild");
+        assertTrue(page.asText(), page.asText().contains("This is a mark for test"));
+    }
+
+    /**
      * Implementing an Extension always returning isApplicable false.
      */
     public static class ValidatorNeverApplicable extends RebuildValidator {
@@ -230,4 +283,35 @@ public class RebuildValidatorTest extends HudsonTestCase {
             return true;
         }
     }
+    
+    /**
+     * A parameter value rebuild plugin does not know.
+     */
+    public static class UnsupportedUnknownParameterValue extends StringParameterValue {
+        private static final long serialVersionUID = 3182218854913929L;
+        
+        public UnsupportedUnknownParameterValue(String name, String value) {
+            super(name, value);
+        }
+    }
+
+    /**
+     * A parameter value rebuild plugin does not know, but supports.
+     */
+    public static class SupportedUnknownParameterValue extends StringParameterValue implements RebuildableParameterValue {
+        private static final long serialVersionUID = 114922627975966439L;
+        
+        public SupportedUnknownParameterValue(String name, String value) {
+            super(name, value);
+        }
+        
+        @Override
+        public RebuildParameterPage getRebuildPage() {
+            RebuildParameterPage page = new RebuildParameterPage();
+            page.setClazz(getClass());
+            page.setPage("rebuild.groovy");
+            return page;
+        }
+    }
+
 }

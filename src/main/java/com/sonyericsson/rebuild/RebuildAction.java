@@ -445,4 +445,23 @@ public class RebuildAction implements Action {
         }
         return actions;
     }
+    
+    /**
+     * @param value the parameter value to show to rebuild.
+     * @return page for the parameter value.
+     */
+    public RebuildParameterPage getRebuildParameterPage(ParameterValue value) {
+        RebuildParameterPage page = null;
+        if (value instanceof RebuildableParameterValue) {
+            // If that parameter value provides its own view, use it.
+            page =  ((RebuildableParameterValue)value).getRebuildPage();
+        } else {
+            // If that parameter value does not provide its own view,
+            // use the one provided by me.
+            page = new RebuildParameterPage();
+            page.setClazz(getClass());
+            page.setPage(String.format("%s.jelly", value.getClass().getSimpleName()));
+        }
+        return page;
+    }
 }
