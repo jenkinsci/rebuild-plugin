@@ -34,6 +34,7 @@ import org.kohsuke.stapler.StaplerRequest;
 /**
  *
  * @author gardnerj
+ * @since 1.20
  */
 public class RebuildSettings extends JobProperty<Job<?, ?>> {
     /**
