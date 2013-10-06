@@ -445,4 +445,23 @@ public class RebuildAction implements Action {
         }
         return actions;
     }
+    
+    /**
+     * @param value the parameter value to show to rebuild.
+     * @return page for the parameter value.
+     */
+    public RebuildParameterPage getRebuildParameterPage(ParameterValue value) {
+        for (RebuildParameterProvider provider: RebuildParameterProvider.all()) {
+            RebuildParameterPage page = provider.getRebuildPage(value);
+            if (page != null) {
+                return page;
+            }
+        }
+        
+        // No provider available, use a view provided by rebuild plugin.
+        RebuildParameterPage page = new RebuildParameterPage();
+        page.setClazz(getClass());
+        page.setPage(String.format("%s.jelly", value.getClass().getSimpleName()));
+        return page;
+    }
 }
