@@ -459,9 +459,10 @@ public class RebuildAction implements Action {
         }
         
         // No provider available, use a view provided by rebuild plugin.
-        RebuildParameterPage page = new RebuildParameterPage();
-        page.setClazz(getClass());
-        page.setPage(String.format("%s.jelly", value.getClass().getSimpleName()));
+        RebuildParameterPage page = new RebuildParameterPage(
+                getClass(),
+                String.format("%s.jelly", value.getClass().getSimpleName())
+        );
         return page;
     }
 }

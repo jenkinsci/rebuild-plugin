@@ -318,9 +318,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
             if (!(value instanceof SupportedUnknownParameterValue)) {
                 return null;
             }
-            RebuildParameterPage page = new RebuildParameterPage();
-            page.setClazz(SupportedUnknownParameterValue.class);
-            page.setPage("rebuild.groovy");
+            RebuildParameterPage page = new RebuildParameterPage(SupportedUnknownParameterValue.class, "rebuild.groovy");
             return page;
         }
     }

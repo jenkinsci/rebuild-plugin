@@ -25,34 +25,31 @@
 package com.sonyericsson.rebuild;
 
 /**
- * A bean contains information of the view to show parameters in rebuild page.
+ * An object contains information of the view to show parameters in rebuild page.
  */
 public class RebuildParameterPage {
-    private Class<?> clazz = null;
+    private final Class<?> clazz;
     /**
      * @return the class for the view.
      */
     public Class<?>  getClazz() {
         return clazz;
     }
-    /**
-     * @param clazz the class for the view. 
-     */
-    public void setClazz(Class<?>  clazz) {
-        this.clazz = clazz;
-    }
     
-    private String page = null;
+    private final String page;
     /**
      * @return the path of jelly(or groovy) file.
      */
     public String getPage() {
         return page;
     }
+    
     /**
+     * @param clazz the class for the view.
      * @param page the path of jelly(or groovy) file.
      */
-    public void setPage(String page) {
+    public RebuildParameterPage(Class<?> clazz, String page) {
+        this.clazz = clazz;
         this.page = page;
     }
 }
