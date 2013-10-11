@@ -36,6 +36,9 @@ import hudson.model.ParameterValue;
  * If you want your custom {@link ParameterValue} to work with rebuild plugin,
  * do as followings:
  * <ol>
+ *   <li>Add a dependency to rebuild plugin to your pom.xml.
+ *       You should specify &lt;optional&gt;true&lt;/optional&gt;
+ *       to have your plugin work without rebuild plugin.</li>
  *   <li>Define a class implementing {@link RebuildParameterProvider}.</li>
  *   <li>Annotate the class with {@link Extension}.
  *       You should specify option=true in {@link Extension} annotation
