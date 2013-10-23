@@ -52,8 +52,14 @@ THE SOFTWARE.
             <f:form method="post" action="configSubmit" name="config">
                 <j:forEach var="parameterValue" items="${paramAction.parameters}">
                     <j:set var="valuePage" value="${parameterValue.class.simpleName}" />
-                    <st:include it="${parameterValue}"
-                                from="${it}"  page="${valuePage}.jelly" />
+                    <j:catch var="ex">
+                      <st:include it="${parameterValue}"
+                                from="${it}"  page="${valuePage}.jelly"/>
+                    </j:catch>
+                    <j:if test="${ex != null and ex.toString().contains('No page found')}">
+                      <st:include it="${parameterValue}"
+                                from="${it}"  page="StringParameterValue.jelly"/>
+                    </j:if>
                 </j:forEach>
                 <br/>
                 <br/>
