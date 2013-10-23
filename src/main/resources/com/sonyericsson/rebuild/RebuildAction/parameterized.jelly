@@ -52,8 +52,12 @@ THE SOFTWARE.
             <f:form method="post" action="configSubmit" name="config">
                 <j:forEach var="parameterValue" items="${paramAction.parameters}">
                     <j:set var="valuePage" value="${parameterValue.class.simpleName}" />
+                    <j:new className="java.lang.File" var="p_file">
+                        <j:arg type="java.lang.String" value="${valuePage}.jelly"/>
+                    </j:new>
+                    <j:setif var="valuePage" test="${p_file.exists()}" false="StringParameterValue"/>
                     <st:include it="${parameterValue}"
-                                from="${it}"  page="${valuePage}.jelly" />
+                                from="${it}"  page="${valuePage}.jelly"/>
                 </j:forEach>
                 <br/>
                 <br/>
