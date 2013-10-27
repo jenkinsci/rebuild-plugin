@@ -26,6 +26,7 @@ package com.sonyericsson.rebuild;
 import com.gargoylesoftware.htmlunit.WebAssert;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Build;
@@ -34,8 +35,11 @@ import hudson.model.CauseAction;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Project;
+import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
+
 import org.jvnet.hudson.test.HudsonTestCase;
 
 import java.io.IOException;
@@ -149,6 +153,8 @@ public class RebuildValidatorTest extends HudsonTestCase {
     public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
             throws Exception {
         FreeStyleProject project = createFreeStyleProject();
+        project.addProperty(new ParametersDefinitionProperty(new StringParameterDefinition("name", "default", "")));
+        project.save();
 
         // Build (#1)
         project.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(
@@ -174,6 +180,8 @@ public class RebuildValidatorTest extends HudsonTestCase {
     public void testWhenProjectWithCauseThenCauseIsCopiedAndUserCauseAdded()
             throws Exception {
         FreeStyleProject project = createFreeStyleProject();
+        project.addProperty(new ParametersDefinitionProperty(new StringParameterDefinition("name", "default", "")));
+        project.save();
 
         // Build (#1)
         project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"), new ParametersAction(

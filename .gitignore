@@ -8,3 +8,4 @@ work
 *.ipr
 *.iws
 .idea/
+/bin
