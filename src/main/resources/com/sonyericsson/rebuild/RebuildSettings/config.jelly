@@ -26,9 +26,8 @@ THE SOFTWARE.
 <?jelly escape-by-default='true'?>
 <!-- TODO add taglibs such as: xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:d="jelly:define" xmlns:i="jelly:fmt">
-    <f:section title="Rebuild Settings">
-        <f:entry title="Automatically Rebuild Without Asking For Parameters" field="autoRebuild">
-            <f:checkbox default="false" checked="${it.autoRebuild}" />
-        </f:entry>
-    </f:section>
+    <f:entry field="autoRebuild" title="${%Rebuild options:}">
+        <f:checkbox default="false" checked="${it.autoRebuild}" 
+                    title="${%Rebuild Without Asking For Parameters}"/>
+    </f:entry>
 </j:jelly>
