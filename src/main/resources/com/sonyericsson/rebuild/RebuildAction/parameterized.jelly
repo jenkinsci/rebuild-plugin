@@ -51,9 +51,11 @@ THE SOFTWARE.
             <j:set var="paramAction" value="${build.getAction(parmactionClass)}" />
             <f:form method="post" action="configSubmit" name="config">
                 <j:forEach var="parameterValue" items="${paramAction.parameters}">
-                    <j:set var="valuePage" value="${parameterValue.class.simpleName}" />
+                    <j:scope>
+                    <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
                     <st:include it="${parameterValue}"
-                                from="${it}"  page="${valuePage}.jelly" />
+                                class="${page.clazz}"  page="${page.page}" />
+                    </j:scope>
                 </j:forEach>
                 <br/>
                 <br/>
