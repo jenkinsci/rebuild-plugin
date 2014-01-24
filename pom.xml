@@ -13,7 +13,7 @@
 
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version>1.21-SNAPSHOT</version>
+    <version>1.21</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
 
