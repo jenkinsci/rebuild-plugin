@@ -23,12 +23,14 @@
  */
 package com.sonyericsson.rebuild;
 
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebAssert;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Build;
+import hudson.model.ParameterValue;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.FreeStyleBuild;
@@ -37,6 +39,7 @@ import hudson.model.ParametersAction;
 import hudson.model.Project;
 import hudson.model.StringParameterValue;
 import org.jvnet.hudson.test.HudsonTestCase;
+import org.jvnet.hudson.test.TestExtension;
 
 import java.io.IOException;
 import java.util.List;
@@ -228,6 +231,95 @@ public class RebuildValidatorTest extends HudsonTestCase {
         @Override
         public boolean isApplicable(AbstractBuild build) {
             return true;
+        }
+    }
+    
+    /**
+     * Creates a new freestyle project and build with a parameter value whose type is 
+     * unknown to rebuild plugin.
+     * Rebuild and verify that an exception should occur
+     * when that parameter value does not support {@link RebuildableParameterValue}.
+     *
+     * @throws Exception Exception
+     */
+    public void testRebuildUnsupportedUnknownParameterValue() throws Exception {
+        WebClient wc = createWebClient();
+        FreeStyleProject project = createFreeStyleProject();
+        
+        assertBuildStatusSuccess(project.scheduleBuild2(
+                0,
+                new Cause.RemoteCause("host", "note"),
+                new ParametersAction(
+                        new UnsupportedUnknownParameterValue("param1", "value1")
+                )
+        ));
+        FreeStyleBuild build = project.getLastBuild();
+        try {
+            wc.getPage(build, "rebuild");
+            fail("Request should fail.");
+        } catch(FailingHttpStatusCodeException e) {
+            // always fail for rebuild plugin does not know it.
+            assertEquals(500, e.getResponse().getStatusCode());
+        }
+    }
+
+    /**
+     * Creates a new freestyle project and build with a parameter value whose type is 
+     * unknown to rebuild plugin.
+     * Verify that rebuild succeeds if that parameter value supports {@link RebuildableParameterValue}.
+     *
+     * @throws Exception Exception
+     */
+    public void testRebuildSupportedUnknownParameterValue() throws Exception {
+        WebClient wc = createWebClient();
+        FreeStyleProject project = createFreeStyleProject();
+        
+        assertBuildStatusSuccess(project.scheduleBuild2(
+                0,
+                new Cause.RemoteCause("host", "note"),
+                new ParametersAction(
+                        new SupportedUnknownParameterValue("param1", "value1")
+                )
+        ));
+        FreeStyleBuild build = project.getLastBuild();
+        HtmlPage page = wc.getPage(build, "rebuild");
+        assertTrue(page.asText(), page.asText().contains("This is a mark for test"));
+    }
+    
+    /**
+     * A parameter value rebuild plugin does not know.
+     */
+    public static class UnsupportedUnknownParameterValue extends StringParameterValue {
+        private static final long serialVersionUID = 3182218854913929L;
+        
+        public UnsupportedUnknownParameterValue(String name, String value) {
+            super(name, value);
+        }
+    }
+
+    /**
+     * A parameter value rebuild plugin does not know, but supported by {@link TestRebuildParameterProvider}.
+     */
+    public static class SupportedUnknownParameterValue extends StringParameterValue {
+        private static final long serialVersionUID = 114922627975966439L;
+        
+        public SupportedUnknownParameterValue(String name, String value) {
+            super(name, value);
+        }
+    }
+    
+    /**
+     * Provides a view for {@link SupportedUnknownParameterValue} when rebuilding.
+     */
+    @TestExtension
+    public static class TestRebuildParameterProvider extends RebuildParameterProvider {
+        @Override
+        public RebuildParameterPage getRebuildPage(ParameterValue value) {
+            if (!(value instanceof SupportedUnknownParameterValue)) {
+                return null;
+            }
+            RebuildParameterPage page = new RebuildParameterPage(SupportedUnknownParameterValue.class, "rebuild.groovy");
+            return page;
         }
     }
 }
