@@ -39,14 +39,9 @@ THE SOFTWARE.
             <j:invoke var="buildClass" on="${currentThread.contextClassLoader}" method="loadClass">
                 <j:arg value="hudson.model.AbstractBuild" />
             </j:invoke>
+
             <j:invoke var="parmactionClass" on="${currentThread.contextClassLoader}" method="loadClass">
                 <j:arg value="hudson.model.ParametersAction" />
-            </j:invoke>
-            <j:invoke var="parametersDefinitionPropertyClass" on="${currentThread.contextClassLoader}" method="loadClass">
-                <j:arg value="hudson.model.ParametersDefinitionProperty" />
-            </j:invoke>
-            <j:invoke var="passwordParameterValueClass" on="${currentThread.contextClassLoader}" method="loadClass">
-                <j:arg value="hudson.model.PasswordParameterValue" />
             </j:invoke>
 
             <j:set var="instance" value="${it}"/>
@@ -54,17 +49,11 @@ THE SOFTWARE.
             <j:set var="rememberPasswordEnabled" value="${it.DESCRIPTOR.rebuildConfiguration.rememberPasswordEnabled}" scope="parent"/>
             <j:set var="build" value="${request.findAncestorObject(buildClass)}" />
             <j:set var="paramAction" value="${build.getAction(parmactionClass)}" />
-            <j:set var="parametersProperty" value="${build.parent.getProperty(parametersDefinitionPropertyClass)}" />
-            <f:form method="post" action="configSubmit" name="config" tableClass="parameters">
-                <j:forEach var="parameterDefinition" items="${parametersProperty.parameterDefinitions}">
-                    <tbody>
-                    	<j:set var="parameterValue" value="${paramAction.getParameter(parameterDefinition.name)}" />
-                    	<j:if test="${passwordParameterValueClass.isInstance(parameterValue) and !rememberPasswordEnabled}"> 
-	                    	<j:set var="parameterValue" value="${parameterDefinition.defaultParameterValue}" />
-                    	</j:if>
-                    	<st:include it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
-	                            page="${parameterDefinition.descriptor.valuePage}" />
-                    </tbody>
+            <f:form method="post" action="configSubmit" name="config">
+                <j:forEach var="parameterValue" items="${paramAction.parameters}">
+                    <j:set var="valuePage" value="${parameterValue.class.simpleName}" />
+                    <st:include it="${parameterValue}"
+                                from="${it}"  page="${valuePage}.jelly" />
                 </j:forEach>
                 <br/>
                 <br/>
