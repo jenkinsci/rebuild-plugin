@@ -186,7 +186,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
             throws Exception {
         FreeStyleProject project = createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
-				new StringParameterDefinition("param1", "defaultValue")));
+				new StringParameterDefinition("name", "defaultValue")));
 
         // Build (#1)
         project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"), new ParametersAction(

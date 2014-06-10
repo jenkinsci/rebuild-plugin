@@ -61,19 +61,25 @@ THE SOFTWARE.
                 <j:forEach var="parameterDefinition" items="${parametersProperty.parameterDefinitions}">
                     <tbody>
                     	<j:set var="parameterValue" value="${paramAction.getParameter(parameterDefinition.name)}" />
-	                    ${parameterValue!=null?parameterValue:'null'}
-	                    <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
-	                    ${page!=null?page:'null'}
-                    	<j:if test="${page != null}"> 
-		                    <j:scope>
-			                    <st:include it="${parameterValue}"
-            	                    class="${page.clazz}"  page="${page.page}" />
-                		    </j:scope>
+                    	<j:if test="${parameterValue != null}">
+	                    	<j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
+                    		<j:if test="${page != null}"> 
+		                    	<j:scope>
+				                    <st:include it="${parameterValue}"
+    	        	                    class="${page.clazz}"  page="${page.page}" />
+        	        		    </j:scope>
+            	        	</j:if>
+                	    	<j:if test="${page == null}">
+                    			<!-- Let's fallback on the regular valuePage implementation -->
+                    			<st:include it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
+	                        		    page="${parameterDefinition.descriptor.valuePage}" />
+                    		</j:if>
                     	</j:if>
-                    	<j:if test="${page == null}">
-                    		<!-- Let's fallback on the regular valuePage implementation -->
-                    		<st:include it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
-	                        	    page="${parameterDefinition.descriptor.valuePage}" />
+                    	<j:if test="${parameterValue == null}">
+                    			<!-- No previous value in case of new property definition introduced in the config, 
+                    			     so let's use the default from parameter definition -->
+                    			<st:include it="${parameterDefinition}"
+	                        		    page="${parameterDefinition.descriptor.valuePage}" />
                     	</j:if>
                     </tbody>
                 </j:forEach>
