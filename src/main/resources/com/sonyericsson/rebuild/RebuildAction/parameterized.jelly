@@ -43,19 +43,45 @@ THE SOFTWARE.
             <j:invoke var="parmactionClass" on="${currentThread.contextClassLoader}" method="loadClass">
                 <j:arg value="hudson.model.ParametersAction" />
             </j:invoke>
+            <j:invoke var="parametersDefinitionPropertyClass" on="${currentThread.contextClassLoader}" method="loadClass">
+                <j:arg value="hudson.model.ParametersDefinitionProperty" />
+            </j:invoke>
+            <j:invoke var="passwordParameterValueClass" on="${currentThread.contextClassLoader}" method="loadClass">
+                <j:arg value="hudson.model.PasswordParameterValue" />
+            </j:invoke>
 
             <j:set var="instance" value="${it}"/>
             <j:set var="descriptor" value="${it.descriptor}"/>
             <j:set var="rememberPasswordEnabled" value="${it.DESCRIPTOR.rebuildConfiguration.rememberPasswordEnabled}" scope="parent"/>
             <j:set var="build" value="${request.findAncestorObject(buildClass)}" />
             <j:set var="paramAction" value="${build.getAction(parmactionClass)}" />
-            <f:form method="post" action="configSubmit" name="config">
-                <j:forEach var="parameterValue" items="${paramAction.parameters}">
-                    <j:scope>
-                    <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
-                    <st:include it="${parameterValue}"
-                                class="${page.clazz}"  page="${page.page}" />
-                    </j:scope>
+            <j:set var="parametersProperty" value="${build.parent.getProperty(parametersDefinitionPropertyClass)}" />
+            <f:form method="post" action="configSubmit" name="config" tableClass="parameters">
+            	<!-- Displaying the form based on current job parameter config with previous build values. -->
+                <j:forEach var="parameterDefinition" items="${parametersProperty.parameterDefinitions}">
+                    <tbody>
+                    	<j:set var="parameterValue" value="${paramAction.getParameter(parameterDefinition.name)}" />
+                    	<j:if test="${parameterValue != null}">
+	                    	<j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
+                    		<j:if test="${page != null}"> 
+		                    	<j:scope>
+				                    <st:include it="${parameterValue}"
+    	        	                    class="${page.clazz}"  page="${page.page}" />
+        	        		    </j:scope>
+            	        	</j:if>
+                	    	<j:if test="${page == null}">
+                    			<!-- Let's fallback on the regular valuePage implementation -->
+                    			<st:include it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
+	                        		    page="${parameterDefinition.descriptor.valuePage}" />
+                    		</j:if>
+                    	</j:if>
+                    	<j:if test="${parameterValue == null}">
+                    			<!-- No previous value in case of new property definition introduced in the config, 
+                    			     so let's use the default from parameter definition -->
+                    			<st:include it="${parameterDefinition}"
+	                        		    page="${parameterDefinition.descriptor.valuePage}" />
+                    	</j:if>
+                    </tbody>
                 </j:forEach>
                 <br/>
                 <br/>
