@@ -23,6 +23,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import jenkins.model.Jenkins;
 import hudson.console.ModelHyperlinkNote;
 import hudson.model.Cause;
 import hudson.model.Run;
@@ -55,7 +56,7 @@ public class RebuildCause extends Cause.UpstreamCause {
      * @return String description.
      */
     public String getShortDescritptionHTML() {
-        return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(), '/'
+        return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(), Jenkins.getInstance().getRootUrl() + '/'
                 + getUpstreamUrl() + getUpstreamBuild());
     }
     /**
