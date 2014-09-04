@@ -42,7 +42,7 @@ public class RebuildLastCompletedBuildAction extends RebuildAction {
         boolean hasCompletedBuild = project.getLastCompletedBuild() != null;
         if (isBuildable) {
             if (hasCompletedBuild) {
-                return project.getLastCompletedBuild().getNumber() + "/rebuild";
+                return "lastCompletedBuild/rebuild";
             } else {
                 return "build?delay=0sec";
             }
