@@ -41,7 +41,6 @@ import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Project;
 import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
-import hudson.model.ParameterDefinition.ParameterDescriptor;
 
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.TestExtension;
@@ -57,9 +56,9 @@ import java.util.concurrent.ExecutionException;
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
 public class RebuildValidatorTest extends HudsonTestCase {
-   /**
-    * Sleep delay value.
-    */
+    /**
+     * Sleep delay value.
+     */
     public static final int DELAY = 100;
     /**
      * Tests with no extensions.
@@ -74,7 +73,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
         Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
                         "megaparty")))
-                .get();
+                        .get();
         assertNotNull(buildA.getAction(RebuildAction.class));
     }
 
@@ -92,7 +91,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
         Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
                         "megaparty")))
-                .get();
+                        .get();
         assertNull(buildA.getAction(RebuildAction.class));
     }
 
@@ -110,7 +109,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
         Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
                         "megaparty")))
-                .get();
+                        .get();
         assertNotNull(buildA.getAction(RebuildAction.class));
     }
 
@@ -129,7 +128,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
         Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
                         "megaparty")))
-                .get();
+                        .get();
         assertNull(buildA.getAction(RebuildAction.class));
     }
 
@@ -155,11 +154,29 @@ public class RebuildValidatorTest extends HudsonTestCase {
      *
      * @throws Exception Exception
      */
+    public void testWhenProjectWithNoParamsDefinedThenRebuildofBuildWithParamsShouldShowParams()
+            throws Exception {
+        FreeStyleProject project = createFreeStyleProject();
+
+        // Build (#1)
+        project.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(
+                new StringParameterValue("name", "ABC"))).get();
+        HtmlPage rebuildConfigPage = createWebClient().getPage(project, "1/rebuild");
+        WebAssert.assertElementPresentByXPath(rebuildConfigPage, "//div[@name='parameter']/input[@value='ABC']");
+    }
+
+    /**
+     * Creates a new freestyle project and builds the project with a string parameter.
+     * If the build is succesful, a rebuild of the last build is done.
+     * The rebuild on the project level should point to the last build
+     *
+     * @throws Exception Exception
+     */
     public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
             throws Exception {
         FreeStyleProject project = createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
-				new StringParameterDefinition("name", "defaultValue")));
+                new StringParameterDefinition("name", "defaultValue")));
 
         // Build (#1)
         project.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(
@@ -186,7 +203,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
             throws Exception {
         FreeStyleProject project = createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
-				new StringParameterDefinition("name", "defaultValue")));
+                new StringParameterDefinition("name", "defaultValue")));
 
         // Build (#1)
         project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"), new ParametersAction(
@@ -243,9 +260,9 @@ public class RebuildValidatorTest extends HudsonTestCase {
             return true;
         }
     }
-    
+
     /**
-     * Creates a new freestyle project and build with a parameter value whose type is 
+     * Creates a new freestyle project and build with a parameter value whose type is
      * unknown to rebuild plugin.
      * Rebuild and verify that an no exception occurs and page is displayed correctly.
      * 
@@ -257,24 +274,24 @@ public class RebuildValidatorTest extends HudsonTestCase {
         WebClient wc = createWebClient();
         FreeStyleProject project = createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
-				new UnsupportedUnknownParameterDefinition("param1", "defaultValue")));
-        
+                new UnsupportedUnknownParameterDefinition("param1", "defaultValue")));
+
         assertBuildStatusSuccess(project.scheduleBuild2(
                 0,
                 new Cause.RemoteCause("host", "note"),
                 new ParametersAction(
                         new UnsupportedUnknownParameterValue("param1", "value1")
-                )
-        ));
+                        )
+                ));
         FreeStyleBuild build = project.getLastBuild();
-        // it is trying to fallback and use the 
+        // it is trying to fallback and use the
         HtmlPage page = wc.getPage(build, "rebuild");
         // Check the hardcoded description is showing properly.
         assertTrue(page.asText().contains("Configuration page for UnsupportedUnknownParameterValue"));
     }
 
     /**
-     * Creates a new freestyle project and build with a parameter value whose type is 
+     * Creates a new freestyle project and build with a parameter value whose type is
      * unknown to rebuild plugin.
      * Verify that rebuild succeeds if that parameter value supports {@link RebuildableParameterValue}.
      *
@@ -284,57 +301,57 @@ public class RebuildValidatorTest extends HudsonTestCase {
         WebClient wc = createWebClient();
         FreeStyleProject project = createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
-				new SupportedUnknownParameterDefinition("param1", "defaultValue")));
-        
+                new SupportedUnknownParameterDefinition("param1", "defaultValue")));
+
         assertBuildStatusSuccess(project.scheduleBuild2(
                 0,
                 new Cause.RemoteCause("host", "note"),
                 new ParametersAction(
                         new SupportedUnknownParameterValue("param1", "value1")
-                )
-        ));
+                        )
+                ));
         FreeStyleBuild build = project.getLastBuild();
         HtmlPage page = wc.getPage(build, "rebuild");
         assertTrue(page.asText(), page.asText().contains("This is a mark for test"));
     }
-    
+
     /**
      * A parameter value rebuild plugin does not know.
      */
     public static class UnsupportedUnknownParameterValue extends StringParameterValue {
         private static final long serialVersionUID = 3182218854913929L;
-        
+
         public UnsupportedUnknownParameterValue(String name, String value) {
             super(name, value);
         }
     }
 
     public static class UnsupportedUnknownParameterDefinition extends StringParameterDefinition {
-		private static final long serialVersionUID = 1014662680565914672L;
+        private static final long serialVersionUID = 1014662680565914672L;
 
-		@DataBoundConstructor
-		public UnsupportedUnknownParameterDefinition(String name,
-				String defaultValue) {
-			super(name, defaultValue);
-		}
+        @DataBoundConstructor
+        public UnsupportedUnknownParameterDefinition(String name,
+                String defaultValue) {
+            super(name, defaultValue);
+        }
 
-		@Override
-		public ParameterValue createValue(String value) {
-			return new UnsupportedUnknownParameterValue(this.getName(), value);
-		}
+        @Override
+        public ParameterValue createValue(String value) {
+            return new UnsupportedUnknownParameterValue(this.getName(), value);
+        }
 
-		@Override
-		public StringParameterValue getDefaultParameterValue() {
-			return new UnsupportedUnknownParameterValue(this.getName(), this.getDefaultValue());
-		}
-		
-		@Extension
-	    public static class DescriptorImpl extends ParameterDescriptor {
-	        @Override
-	        public String getDisplayName() {
-	            return "UnsupportedUnknownParameterDefinition";
-	        }
-	    }
+        @Override
+        public StringParameterValue getDefaultParameterValue() {
+            return new UnsupportedUnknownParameterValue(this.getName(), this.getDefaultValue());
+        }
+
+        @Extension
+        public static class DescriptorImpl extends ParameterDescriptor {
+            @Override
+            public String getDisplayName() {
+                return "UnsupportedUnknownParameterDefinition";
+            }
+        }
 
     }
 
@@ -343,43 +360,43 @@ public class RebuildValidatorTest extends HudsonTestCase {
      */
     public static class SupportedUnknownParameterValue extends StringParameterValue {
         private static final long serialVersionUID = 114922627975966439L;
-        
+
         public SupportedUnknownParameterValue(String name, String value) {
             super(name, value);
         }
     }
-    
-    
+
+
     public static class SupportedUnknownParameterDefinition extends StringParameterDefinition {
-		private static final long serialVersionUID = 1014662680565914672L;
+        private static final long serialVersionUID = 1014662680565914672L;
 
-		@DataBoundConstructor
-		public SupportedUnknownParameterDefinition(String name,
-				String defaultValue) {
-			super(name, defaultValue);
-		}
+        @DataBoundConstructor
+        public SupportedUnknownParameterDefinition(String name,
+                String defaultValue) {
+            super(name, defaultValue);
+        }
 
-		@Override
-		public ParameterValue createValue(String value) {
-			return new SupportedUnknownParameterValue(this.getName(), value);
-		}
+        @Override
+        public ParameterValue createValue(String value) {
+            return new SupportedUnknownParameterValue(this.getName(), value);
+        }
 
-		@Override
-		public StringParameterValue getDefaultParameterValue() {
-			return new SupportedUnknownParameterValue(this.getName(), this.getDefaultValue());
-		}
+        @Override
+        public StringParameterValue getDefaultParameterValue() {
+            return new SupportedUnknownParameterValue(this.getName(), this.getDefaultValue());
+        }
 
-		@Extension
-	    public static class DescriptorImpl extends ParameterDescriptor {
-	        @Override
-	        public String getDisplayName() {
-	            return "SupportedUnknownParameterDefinition";
-	        }
-	    }
+        @Extension
+        public static class DescriptorImpl extends ParameterDescriptor {
+            @Override
+            public String getDisplayName() {
+                return "SupportedUnknownParameterDefinition";
+            }
+        }
 
     }
 
-    
+
     /**
      * Provides a view for {@link SupportedUnknownParameterValue} when rebuilding.
      */

@@ -74,7 +74,7 @@ THE SOFTWARE.
                     			<st:include it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
 	                        		    page="${parameterDefinition.descriptor.valuePage}" />
                     		</j:if>
-                    	</j:if>
+                        </j:if>
                     	<j:if test="${parameterValue == null}">
                     			<!-- No previous value in case of new property definition introduced in the config, 
                     			     so let's use the default from parameter definition -->
@@ -83,6 +83,14 @@ THE SOFTWARE.
                     	</j:if>
                     </tbody>
                 </j:forEach>
+                <j:if test="${empty(parametersProperty.parameterDefinitions)}">
+                            <j:forEach var="parameterValue" items="${paramAction.parameters}">
+                                <j:scope>
+                                    <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
+                                    <st:include it="${parameterValue}" class="${page.clazz}"  page="${page.page}" />
+                                </j:scope>
+                             </j:forEach>
+                </j:if>
                 <br/>
                 <br/>
                 <f:block>
