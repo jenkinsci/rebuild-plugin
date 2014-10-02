@@ -27,11 +27,6 @@ package com.sonyericsson.rebuild;
 import hudson.Extension;
 import hudson.model.Action;
 
-
-
-
-
-
 import javax.servlet.ServletException;
 
 import java.io.IOException;
@@ -59,7 +54,6 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-import org.kohsuke.stapler.WebApp;
 
 import com.sonyericsson.rebuild.RebuildParameterPage;
 import com.sonyericsson.rebuild.RebuildParameterProvider;
@@ -74,9 +68,9 @@ public class RebuildAction implements Action {
 
     private static final String SVN_TAG_PARAM_CLASS = "hudson.scm.listtagsparameter.ListSubversionTagsParameterValue";
     /*
-    * All the below transient variables are declared only for backward
-    * compatibility of the rebuild plugin.
-    */
+     * All the below transient variables are declared only for backward
+     * compatibility of the rebuild plugin.
+     */
     private transient String rebuildurl = "rebuild";
     private transient String parameters = "rebuildParam";
     private transient String p = "parameter";
@@ -204,8 +198,7 @@ public class RebuildAction implements Action {
      * @throws ServletException     if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    public void doIndex(StaplerRequest request, StaplerResponse response) throws
-            IOException, ServletException, InterruptedException {
+    public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException, ServletException, InterruptedException {
         AbstractBuild currentBuild = request.findAncestorObject(AbstractBuild.class);
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
@@ -272,8 +265,7 @@ public class RebuildAction implements Action {
      * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws
-            ServletException, IOException, InterruptedException {
+    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException, InterruptedException {
         AbstractProject project = getProject();
         if (project == null) {
             return;
@@ -441,7 +433,7 @@ public class RebuildAction implements Action {
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
-     /**
+    /**
      * Method for constructing Rebuild cause.
      *
      * @param up AbsstractBuild
@@ -456,7 +448,7 @@ public class RebuildAction implements Action {
         }
         return actions;
     }
-    
+
     /**
      * @param value the parameter value to show to rebuild.
      * @return page for the parameter value, or null if no suitable option found.
@@ -470,16 +462,16 @@ public class RebuildAction implements Action {
         }
 
         // Check if we have a branched Jelly in the plugin.
-		if (getClass().getResource(String.format("/%s/%s.jelly", getClass().getCanonicalName().replace('.', '/'), value.getClass().getSimpleName())) != null) {
-			// No provider available, use an existing view provided by rebuild plugin.
-			return new RebuildParameterPage(
-					getClass(),
-					String.format("%s.jelly", value.getClass().getSimpleName())
-					);
-			
-		}
-		// Else we return that we haven't found anything.
-		// So Jelly fallback could occur.
+        if (getClass().getResource(String.format("/%s/%s.jelly", getClass().getCanonicalName().replace('.', '/'), value.getClass().getSimpleName())) != null) {
+            // No provider available, use an existing view provided by rebuild plugin.
+            return new RebuildParameterPage(
+                    getClass(),
+                    String.format("%s.jelly", value.getClass().getSimpleName())
+                    );
+
+        }
+        // Else we return that we haven't found anything.
+        // So Jelly fallback could occur.
         return null;
     }
 }
