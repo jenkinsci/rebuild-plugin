@@ -30,6 +30,7 @@ import hudson.model.Action;
 import javax.servlet.ServletException;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,7 @@ import com.sonyericsson.rebuild.RebuildParameterProvider;
 public class RebuildAction implements Action {
 
     private static final String SVN_TAG_PARAM_CLASS = "hudson.scm.listtagsparameter.ListSubversionTagsParameterValue";
+    private static final String NODE_LABEL_PARAM_CLASS = "org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterValue";
     /*
      * All the below transient variables are declared only for backward
      * compatibility of the rebuild plugin.
@@ -402,9 +404,12 @@ public class RebuildAction implements Action {
          */
         if (jo.containsKey("value")) {
             return cloneParameter(paramAction.getParameter(parameterName), jo.getString("value"));
-        } else {
+        } else if (jo.containsKey("label")) { // nodelabel plugin
+            return cloneParameter(paramAction.getParameter(parameterName), jo.getString("label"));
+        } else if (jo.containsKey("tag")) {
             return cloneParameter(paramAction.getParameter(parameterName), jo.getString("tag"));
         }
+        throw new RuntimeException("Unexpected parameter: " + jo.toString());
     }
 
     /**
@@ -430,9 +435,19 @@ public class RebuildAction implements Action {
              * getClass().getName() to avoid dependency on svn plugin.
              */
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
+        } else if (oldValue.getClass().getName().equals(NODE_LABEL_PARAM_CLASS)) {
+            /**
+             * getClass().getName() to avoid dependency on nodelabel plugin.
+             */
+            try {
+                Constructor ctor = oldValue.getClass().getConstructor(String.class, String.class);
+                return (ParameterValue)ctor.newInstance(new Object[]{oldValue.getName(), newValue});
+            } catch (Exception e) {
+            }
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
+
     /**
      * Method for constructing Rebuild cause.
      *
