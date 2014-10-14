@@ -189,8 +189,8 @@ public class RebuildValidatorTest extends HudsonTestCase {
         WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
 
         HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
-        assertEquals("Rebuild Last should point to the second build", rebuildHref.getHrefAttribute(),
-                "/" + project.getUrl() + "2/rebuild");
+        assertEquals("Rebuild Last should point to the second build",
+                "/" + project.getUrl() + "lastCompletedBuild/rebuild", rebuildHref.getHrefAttribute());
     }
 
     /**
