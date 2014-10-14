@@ -36,6 +36,9 @@ import hudson.model.TaskListener;
  * @author Joel Johnson
  * @author Oleg Nenashev
  */
+
+import jenkins.model.Jenkins;
+
 public class RebuildCause extends Cause.UpstreamCause {
     /**
      * RebuildCause constructor.
@@ -55,8 +58,8 @@ public class RebuildCause extends Cause.UpstreamCause {
      * @return String description.
      */
     public String getShortDescritptionHTML() {
-        return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(), '/'
-                + getUpstreamUrl() + getUpstreamBuild());
+        return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(),
+                Jenkins.getInstance().getRootUrlFromRequest() + getUpstreamUrl() + getUpstreamBuild());
     }
     /**
      * Method calculate the indent.
