@@ -47,7 +47,11 @@ public class RebuildActionFactory extends TransientBuildActionFactory {
         if (target.getParent() instanceof MatrixConfiguration) {
             return emptyList();
         }
-        AbstractBuild build = (AbstractBuild)target;
+        if (!(target instanceof AbstractBuild)) {
+            return emptyList();
+        }
+
+        AbstractBuild build = (AbstractBuild) target;
         boolean hasRebuildAction = target.getAction(RebuildAction.class) != null;
         if (hasRebuildAction) {
             return emptyList();
