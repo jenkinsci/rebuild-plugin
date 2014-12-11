@@ -24,7 +24,9 @@
 package com.sonyericsson.rebuild;
 
 import hudson.ExtensionPoint;
+import hudson.Util;
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
 
 import java.io.Serializable;
 
@@ -41,5 +43,16 @@ public abstract class RebuildValidator implements Serializable, ExtensionPoint {
      * @param build Build to use when verifying applicability
      * @return true if the plug-in provides its own rebuild functionality. E.g. disable the rebuild action.
      */
-    public abstract boolean isApplicable(AbstractBuild build);
+    public /*abstract*/ boolean isApplicable(Run build) {
+        if (Util.isOverridden(RebuildValidator.class, getClass(), "isApplicable", AbstractBuild.class) && build instanceof AbstractBuild) {
+            return isApplicable((AbstractBuild) build);
+        } else {
+            throw new AbstractMethodError("you must override the new overload of isApplicable");
+        }
+    }
+
+    @Deprecated
+    public boolean isApplicable(AbstractBuild build) {
+        return isApplicable((Run) build);
+    }
 }

@@ -26,7 +26,6 @@ package com.sonyericsson.rebuild;
 
 
 import hudson.Extension;
-import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -48,9 +47,7 @@ public class Rebuilder extends RunListener<Run> {
     }
 
     @Override
-    public void onCompleted(Run r, TaskListener listener) {
-        if (r instanceof AbstractBuild) {
-            AbstractBuild build = (AbstractBuild)r;
+    public void onCompleted(Run build, TaskListener listener) {
             for (RebuildValidator rebuildValidator : Hudson.getInstance().
                     getExtensionList(RebuildValidator.class)) {
                 if (rebuildValidator.isApplicable(build)) {
@@ -58,8 +55,8 @@ public class Rebuilder extends RunListener<Run> {
                 }
             }
             RebuildAction rebuildAction = new RebuildAction();
+            // TODO what is the purpose of this? If eligible, RebuildActionFactory would already be adding it anyway (without saving anything to XML).
             build.getActions().add(rebuildAction);
-        }
     }
 
 }

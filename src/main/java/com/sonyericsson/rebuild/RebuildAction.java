@@ -34,15 +34,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hudson.matrix.MatrixRun;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.Hudson;
+import hudson.model.Item;
+import hudson.model.Job;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
+import hudson.model.Queue;
+import hudson.model.Run;
 import hudson.model.SimpleParameterDefinition;
 import hudson.model.ParameterDefinition;
 import hudson.model.PasswordParameterValue;
@@ -74,7 +76,7 @@ public class RebuildAction implements Action {
     private transient String rebuildurl = "rebuild";
     private transient String parameters = "rebuildParam";
     private transient String p = "parameter";
-    private transient AbstractBuild<?, ?> build;
+    private transient Run<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
     private static final String PARAMETERIZED_URL = "parameterized";
     /**
@@ -102,7 +104,7 @@ public class RebuildAction implements Action {
      *
      * @return build.
      */
-    public AbstractBuild<?, ?> getBuild() {
+    public Run<?, ?> getBuild() {
         return build;
     }
 
@@ -147,15 +149,15 @@ public class RebuildAction implements Action {
      *
      * @return currentProject.
      */
-    public AbstractProject getProject() {
+    public Job getProject() {
         if (build != null) {
-            return build.getProject();
+            return build.getParent();
         }
 
-        AbstractProject currentProject = null;
+        Job currentProject = null;
         StaplerRequest request = Stapler.getCurrentRequest();
         if (request != null) {
-            currentProject = request.findAncestorObject(AbstractProject.class);
+            currentProject = request.findAncestorObject(Job.class);
         }
 
         return currentProject;
@@ -199,7 +201,7 @@ public class RebuildAction implements Action {
      * @throws InterruptedException if something unfortunate happens.
      */
     public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException, ServletException, InterruptedException {
-        AbstractBuild currentBuild = request.findAncestorObject(AbstractBuild.class);
+        Run currentBuild = request.findAncestorObject(Run.class);
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
@@ -217,23 +219,23 @@ public class RebuildAction implements Action {
     /**
      * Handles the rebuild request with parameter.
      *
-     * @param currentBuild  AbstractBuild the build.
+     * @param currentBuild the build.
      * @param response StaplerResponse the response handler.
      * @throws IOException          in case of Stapler issues
      */
-    public void parameterizedRebuild(AbstractBuild currentBuild, StaplerResponse response) throws IOException {
-        AbstractProject project = getProject();
+    public void parameterizedRebuild(Run currentBuild, StaplerResponse response) throws IOException {
+        Job project = getProject();
         if (project == null) {
             return;
         }
-        project.checkPermission(AbstractProject.BUILD);
+        project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
 
             List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
             ParametersAction action = currentBuild.getAction(ParametersAction.class);
             actions.add(action);
 
-            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, actions);
+            Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
         }
     }
@@ -247,12 +249,12 @@ public class RebuildAction implements Action {
      * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    public void nonParameterizedRebuild(AbstractBuild currentBuild, StaplerResponse
+    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
             response) throws ServletException, IOException, InterruptedException {
-        getProject().checkPermission(AbstractProject.BUILD);
+        getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildCause(build, null);
-        Hudson.getInstance().getQueue().schedule(currentBuild.getProject(), 0, actions);
+        Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
 
@@ -266,19 +268,19 @@ public class RebuildAction implements Action {
      * @throws InterruptedException if something unfortunate happens.
      */
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException, InterruptedException {
-        AbstractProject project = getProject();
+        Job project = getProject();
         if (project == null) {
             return;
         }
-        project.checkPermission(AbstractProject.BUILD);
+        project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
             if (!req.getMethod().equals("POST")) {
                 // show the parameter entry form.
                 req.getView(this, "index.jelly").forward(req, rsp);
                 return;
             }
-            build = req.findAncestorObject(AbstractBuild.class);
-            ParametersDefinitionProperty paramDefProp = build.getProject().getProperty(
+            build = req.findAncestorObject(Run.class);
+            ParametersDefinitionProperty paramDefProp = build.getParent().getProperty(
                     ParametersDefinitionProperty.class);
             List<ParameterValue> values = new ArrayList<ParameterValue>();
             ParametersAction paramAction = build.getAction(ParametersAction.class);
@@ -296,7 +298,7 @@ public class RebuildAction implements Action {
             }
 
             List<Action> actions = constructRebuildCause(build, new ParametersAction(values));
-            Hudson.getInstance().getQueue().schedule(build.getProject(), 0, actions);
+            Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
         }
@@ -310,7 +312,7 @@ public class RebuildAction implements Action {
      * @param fromBuild the build to copy the causes from.
      * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
      */
-    private List<Action> copyBuildCausesAndAddUserCause(AbstractBuild<?, ?> fromBuild) {
+    private List<Action> copyBuildCausesAndAddUserCause(Run<?, ?> fromBuild) {
         List currentBuildCauses = fromBuild.getCauses();
 
         List<Action> actions = new ArrayList<Action>(currentBuildCauses.size());
@@ -339,7 +341,7 @@ public class RebuildAction implements Action {
     public boolean isMatrixRun() {
         StaplerRequest request = Stapler.getCurrentRequest();
         if (request != null) {
-            build = request.findAncestorObject(AbstractBuild.class);
+            build = request.findAncestorObject(Run.class);
             if (build != null && build instanceof MatrixRun) {
                 return true;
             }
@@ -354,10 +356,11 @@ public class RebuildAction implements Action {
      * @return boolean
      */
     public boolean isRebuildAvailable() {
-        AbstractProject project = getProject();
+        Job project = getProject();
         return project != null
-                && project.hasPermission(AbstractProject.BUILD)
-                && project.isBuildable() && !(project.isDisabled())
+                && project.hasPermission(Item.BUILD)
+                && project.isBuildable()
+                && project instanceof Queue.Task
                 && !isMatrixRun();
 
     }
@@ -440,7 +443,7 @@ public class RebuildAction implements Action {
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
-    private List<Action> constructRebuildCause(AbstractBuild up, ParametersAction paramAction) {
+    private List<Action> constructRebuildCause(Run up, ParametersAction paramAction) {
         List<Action> actions = copyBuildCausesAndAddUserCause(up);
         actions.add(new CauseAction(new RebuildCause(up)));
         if (paramAction != null) {

@@ -23,7 +23,7 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 
 /**
  * Reschedules last completed build for the project if available.
@@ -33,7 +33,7 @@ public class RebuildLastCompletedBuildAction extends RebuildAction {
 
     @Override
     public String getUrlName() {
-        AbstractProject project = getProject();
+        Job project = getProject();
         if (project == null) {
             return null;
         }
