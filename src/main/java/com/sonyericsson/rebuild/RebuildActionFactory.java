@@ -25,9 +25,9 @@ package com.sonyericsson.rebuild;
 
 import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Hudson;
+import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TransientBuildActionFactory;
 
@@ -43,16 +43,16 @@ import static java.util.Collections.singleton;
 public class RebuildActionFactory extends TransientBuildActionFactory {
 
     @Override
-    public Collection<? extends Action> createFor(Run target) {
-        if (target.getParent() instanceof MatrixConfiguration) {
+    public Collection<? extends Action> createFor(Run build) {
+        // TODO should this not just use RebuildAction.isRebuildAvailable? Or conversely, is that method needed if we are already filtering here?
+        if (build.getParent() instanceof MatrixConfiguration) {
             return emptyList();
         }
-        if (!(target instanceof AbstractBuild)) {
+        if (!(build.getParent() instanceof Queue.Task)) {
             return emptyList();
         }
 
-        AbstractBuild build = (AbstractBuild) target;
-        boolean hasRebuildAction = target.getAction(RebuildAction.class) != null;
+        boolean hasRebuildAction = build.getAction(RebuildAction.class) != null;
         if (hasRebuildAction) {
             return emptyList();
         }
