@@ -5,7 +5,7 @@
         <f:entry title="Rebuild Configuration">
                 <table width="100%">
                     <f:entry title="Remember Password Enabled" field="rememberPasswordEnabled">
-                        <f:checkbox default="true" checked="${descriptor.rebuildConfiguration.rememberPasswordEnabled}" />
+                        <f:checkbox checked="${descriptor.rebuildConfiguration.rememberPasswordEnabled}" />
                     </f:entry>
                 </table>
         </f:entry>
