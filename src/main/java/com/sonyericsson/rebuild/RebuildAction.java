@@ -174,7 +174,7 @@ public class RebuildAction implements Action {
 
     @Override
     public String getDisplayName() {
-        if (isRebuildAvailable()) {
+		if (isRebuildAvailable()) {
             return "Rebuild";
         } else {
             return null;
@@ -361,11 +361,21 @@ public class RebuildAction implements Action {
                 && project.hasPermission(Item.BUILD)
                 && project.isBuildable()
                 && project instanceof Queue.Task
-                && !isMatrixRun();
+                && !isMatrixRun() 
+                && isAutoRebuildDisbaled();
 
     }
 
-    /**
+    private boolean isAutoRebuildDisbaled() {
+        RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+        
+        if (settings != null && settings.getAutoRebuildDisabled()) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
      * Method for getting the ParameterValue instance from ParameterDefinition
      * or ParamterAction.
      *

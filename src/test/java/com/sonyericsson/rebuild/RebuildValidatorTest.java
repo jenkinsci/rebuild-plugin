@@ -238,6 +238,25 @@ public class RebuildValidatorTest extends HudsonTestCase {
         assertTrue("Build should have user, remote and rebuild causes", hasRebuildCause
                 && hasRemoteCause && hasUserIdCause);
     }
+    
+    /**
+	 * Creates a new freestyle project, builds it and ensures the rebuild action is not
+	 * available on the project level.
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testWhenProjectWithoutParamsThenRebuildProjectDisabled()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.scheduleBuild2(0);
+		RebuildSettings settings = new RebuildSettings(false, true);
+		project.addProperty(settings);
+		project.save();
+		HtmlPage projectPage = createWebClient().getPage(project);
+		WebAssert.assertLinkNotPresentWithText(projectPage, "Rebuild Last");
+
+	}
 
     /**
      * Implementing an Extension always returning isApplicable false.
