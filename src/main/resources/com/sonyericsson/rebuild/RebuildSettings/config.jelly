@@ -31,8 +31,8 @@ THE SOFTWARE.
         <f:checkbox default="false" checked="${it.autoRebuild}" 
                     title="${%Rebuild Without Asking For Parameters}"/>
     </f:entry>
-    <f:entry field="autoRebuildDisabled">
-    	<f:checkbox default="false" checked="${it.autoRebuildDisbaled}" 
+    <f:entry field="rebuildDisabled">
+    	<f:checkbox default="false" checked="${it.rebuildDisbaled}" 
                     title="${%Disable Rebuilding for this job}"/>
     </f:entry>
 </j:jelly>

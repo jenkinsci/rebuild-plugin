@@ -362,17 +362,17 @@ public class RebuildAction implements Action {
                 && project.isBuildable()
                 && project instanceof Queue.Task
                 && !isMatrixRun() 
-                && isAutoRebuildDisbaled();
+                && !isRebuildDisbaled();
 
     }
 
-    private boolean isAutoRebuildDisbaled() {
+    private boolean isRebuildDisbaled() {
         RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
         
-        if (settings != null && settings.getAutoRebuildDisabled()) {
-			return false;
+        if (settings != null && settings.getRebuildDisabled()) {
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	/**
