@@ -56,359 +56,445 @@ import java.util.concurrent.ExecutionException;
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
 public class RebuildValidatorTest extends HudsonTestCase {
-    /**
-     * Sleep delay value.
-     */
-    public static final int DELAY = 100;
-    /**
-     * Tests with no extensions.
-     *
-     * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
-     * @throws ExecutionException   ExecutionException
-     */
-    public void testNoRebuildValidatorExtension()
-            throws IOException, InterruptedException, ExecutionException {
-        Project projectA = createFreeStyleProject("testFreeStyleA");
-        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
-                new ParametersAction(new StringParameterValue("party",
-                        "megaparty")))
-                        .get();
-        assertNotNull(buildA.getAction(RebuildAction.class));
-    }
+	/**
+	 * Sleep delay value.
+	 */
+	public static final int DELAY = 100;
 
-    /**
-     * Tests with an extension returning isApplicable true.
-     *
-     * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
-     * @throws ExecutionException   ExecutionException
-     */
-    public void testRebuildValidatorExtensionIsApplicableTrue()
-            throws IOException, InterruptedException, ExecutionException {
-        hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorAlwaysApplicable());
-        Project projectA = createFreeStyleProject("testFreeStyleB");
-        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
-                new ParametersAction(new StringParameterValue("party",
-                        "megaparty")))
-                        .get();
-        assertNull(buildA.getAction(RebuildAction.class));
-    }
+	/**
+	 * Tests with no extensions.
+	 *
+	 * @throws IOException
+	 *             IOException
+	 * @throws InterruptedException
+	 *             InterruptedException
+	 * @throws ExecutionException
+	 *             ExecutionException
+	 */
+	public void testNoRebuildValidatorExtension() throws IOException,
+			InterruptedException, ExecutionException {
+		Project projectA = createFreeStyleProject("testFreeStyleA");
+		Build buildA = (Build) projectA.scheduleBuild2(
+				0,
+				new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("party",
+						"megaparty"))).get();
+		assertNotNull(buildA.getAction(RebuildAction.class));
+	}
 
-    /**
-     * Tests with an extension returning isApplicable false.
-     *
-     * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
-     * @throws ExecutionException   ExecutionException
-     */
-    public void testRebuildValidatorExtensionIsApplicableFalse()
-            throws IOException, InterruptedException, ExecutionException {
-        hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorNeverApplicable());
-        Project projectA = createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
-                new ParametersAction(new StringParameterValue("party",
-                        "megaparty")))
-                        .get();
-        assertNotNull(buildA.getAction(RebuildAction.class));
-    }
+	/**
+	 * Tests with an extension returning isApplicable true.
+	 *
+	 * @throws IOException
+	 *             IOException
+	 * @throws InterruptedException
+	 *             InterruptedException
+	 * @throws ExecutionException
+	 *             ExecutionException
+	 */
+	public void testRebuildValidatorExtensionIsApplicableTrue()
+			throws IOException, InterruptedException, ExecutionException {
+		hudson.getExtensionList(RebuildValidator.class).add(0,
+				new ValidatorAlwaysApplicable());
+		Project projectA = createFreeStyleProject("testFreeStyleB");
+		Build buildA = (Build) projectA.scheduleBuild2(
+				0,
+				new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("party",
+						"megaparty"))).get();
+		assertNull(buildA.getAction(RebuildAction.class));
+	}
 
-    /**
-     * Tests with two extensions returning isApplicable true AND false.
-     *
-     * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
-     * @throws ExecutionException   ExecutionException
-     */
-    public void testRebuildValidatorExtensionIsApplicableTrueFalse()
-            throws IOException, InterruptedException, ExecutionException {
-        hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorAlwaysApplicable());
-        hudson.getExtensionList(RebuildValidator.class).add(0, new ValidatorNeverApplicable());
-        Project projectA = createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build)projectA.scheduleBuild2(0, new Cause.UserIdCause(),
-                new ParametersAction(new StringParameterValue("party",
-                        "megaparty")))
-                        .get();
-        assertNull(buildA.getAction(RebuildAction.class));
-    }
+	/**
+	 * Tests with an extension returning isApplicable false.
+	 *
+	 * @throws IOException
+	 *             IOException
+	 * @throws InterruptedException
+	 *             InterruptedException
+	 * @throws ExecutionException
+	 *             ExecutionException
+	 */
+	public void testRebuildValidatorExtensionIsApplicableFalse()
+			throws IOException, InterruptedException, ExecutionException {
+		hudson.getExtensionList(RebuildValidator.class).add(0,
+				new ValidatorNeverApplicable());
+		Project projectA = createFreeStyleProject("testFreeStyleC");
+		Build buildA = (Build) projectA.scheduleBuild2(
+				0,
+				new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("party",
+						"megaparty"))).get();
+		assertNotNull(buildA.getAction(RebuildAction.class));
+	}
 
-    /**
-     * Creates a new freestyle project and checks if the rebuild action is available on the project level.
-     *
-     * @throws Exception Exception
-     */
-    public void testWhenProjectWithoutParamsThenRebuildProjectAvailable()
-            throws Exception {
-        FreeStyleProject project = createFreeStyleProject();
+	/**
+	 * Tests with two extensions returning isApplicable true AND false.
+	 *
+	 * @throws IOException
+	 *             IOException
+	 * @throws InterruptedException
+	 *             InterruptedException
+	 * @throws ExecutionException
+	 *             ExecutionException
+	 */
+	public void testRebuildValidatorExtensionIsApplicableTrueFalse()
+			throws IOException, InterruptedException, ExecutionException {
+		hudson.getExtensionList(RebuildValidator.class).add(0,
+				new ValidatorAlwaysApplicable());
+		hudson.getExtensionList(RebuildValidator.class).add(0,
+				new ValidatorNeverApplicable());
+		Project projectA = createFreeStyleProject("testFreeStyleC");
+		Build buildA = (Build) projectA.scheduleBuild2(
+				0,
+				new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("party",
+						"megaparty"))).get();
+		assertNull(buildA.getAction(RebuildAction.class));
+	}
 
-        FreeStyleBuild build = project.scheduleBuild2(0).get();
+	/**
+	 * Creates a new freestyle project and checks if the rebuild action is
+	 * available on the project level.
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testWhenProjectWithoutParamsThenRebuildProjectAvailable()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
 
-        RebuildLastCompletedBuildAction action = build.getProject().getAction(RebuildLastCompletedBuildAction.class);
-        assertNotNull(action);
-    }
+		FreeStyleBuild build = project.scheduleBuild2(0).get();
 
-    /**
-     * Creates a new freestyle project and builds the project with a string parameter.
-     * If the build is succesful, a rebuild of the last build is done.
-     * The rebuild on the project level should point to the last build
-     *
-     * @throws Exception Exception
-     */
-    public void testWhenProjectWithNoParamsDefinedThenRebuildofBuildWithParamsShouldShowParams()
-            throws Exception {
-        FreeStyleProject project = createFreeStyleProject();
+		RebuildLastCompletedBuildAction action = build.getProject().getAction(
+				RebuildLastCompletedBuildAction.class);
+		assertNotNull(action);
+	}
 
-        // Build (#1)
-        project.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(
-                new StringParameterValue("name", "ABC"))).get();
-        HtmlPage rebuildConfigPage = createWebClient().getPage(project, "1/rebuild");
-        WebAssert.assertElementPresentByXPath(rebuildConfigPage, "//div[@name='parameter']/input[@value='ABC']");
-    }
+	/**
+	 * Creates a new freestyle project and builds the project with a string
+	 * parameter. If the build is succesful, a rebuild of the last build is
+	 * done. The rebuild on the project level should point to the last build
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testWhenProjectWithNoParamsDefinedThenRebuildofBuildWithParamsShouldShowParams()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
 
-    /**
-     * Creates a new freestyle project and builds the project with a string parameter.
-     * If the build is succesful, a rebuild of the last build is done.
-     * The rebuild on the project level should point to the last build
-     *
-     * @throws Exception Exception
-     */
-    public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
-            throws Exception {
-        FreeStyleProject project = createFreeStyleProject();
-        project.addProperty(new ParametersDefinitionProperty(
-                new StringParameterDefinition("name", "defaultValue")));
+		// Build (#1)
+		project.scheduleBuild2(0, new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("name", "ABC")))
+				.get();
+		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+				"1/rebuild");
+		WebAssert.assertElementPresentByXPath(rebuildConfigPage,
+				"//div[@name='parameter']/input[@value='ABC']");
+	}
 
-        // Build (#1)
-        project.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(
-                new StringParameterValue("name", "test"))).get();
-        HtmlPage rebuildConfigPage = createWebClient().getPage(project, "1/rebuild");
-        // Rebuild (#2)
-        submit(rebuildConfigPage.getFormByName("config"));
+	/**
+	 * Creates a new freestyle project and builds the project with a string
+	 * parameter. If the build is succesful, a rebuild of the last build is
+	 * done. The rebuild on the project level should point to the last build
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new StringParameterDefinition("name", "defaultValue")));
 
-        HtmlPage projectPage = createWebClient().getPage(project);
-        WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
+		// Build (#1)
+		project.scheduleBuild2(0, new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("name", "test")))
+				.get();
+		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+				"1/rebuild");
+		// Rebuild (#2)
+		submit(rebuildConfigPage.getFormByName("config"));
 
-        HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
-        assertEquals("Rebuild Last should point to the second build",
-                "/" + project.getUrl() + "lastCompletedBuild/rebuild", rebuildHref.getHrefAttribute());
-    }
+		HtmlPage projectPage = createWebClient().getPage(project);
+		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
 
-    /**
-     * Creates a new freestyle project and rebuild. Check that the RebuildCause has been set
-     * to the new build. Check also that a UserIdCause is added.
-     *
-     * @throws Exception Exception
-     */
-    public void testWhenProjectWithCauseThenCauseIsCopiedAndUserCauseAdded()
-            throws Exception {
-        FreeStyleProject project = createFreeStyleProject();
-        project.addProperty(new ParametersDefinitionProperty(
-                new StringParameterDefinition("name", "defaultValue")));
+		HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
+		assertEquals("Rebuild Last should point to the second build", "/"
+				+ project.getUrl() + "lastCompletedBuild/rebuild",
+				rebuildHref.getHrefAttribute());
+	}
 
-        // Build (#1)
-        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"), new ParametersAction(
-                new StringParameterValue("name", "test"))).get();
-        HtmlPage rebuildConfigPage = createWebClient().getPage(project, "1/rebuild");
-        // Rebuild (#2)
-        submit(rebuildConfigPage.getFormByName("config"));
+	/**
+	 * Creates a new freestyle project and rebuild. Check that the RebuildCause
+	 * has been set to the new build. Check also that a UserIdCause is added.
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testWhenProjectWithCauseThenCauseIsCopiedAndUserCauseAdded()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new StringParameterDefinition("name", "defaultValue")));
 
-        createWebClient().getPage(project).getAnchorByText("Rebuild Last").click();
+		// Build (#1)
+		project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+				new ParametersAction(new StringParameterValue("name", "test")))
+				.get();
+		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+				"1/rebuild");
+		// Rebuild (#2)
+		submit(rebuildConfigPage.getFormByName("config"));
 
-        while (project.isBuilding()) {
-            Thread.sleep(DELAY);
-        }
-        List<Action> actions = project.getLastCompletedBuild().getActions();
-        boolean hasRebuildCause = false;
-        boolean hasRemoteCause = false;
-        boolean hasUserIdCause = false;
-        for (Action action : actions) {
-            if (action instanceof CauseAction) {
-                CauseAction causeAction = (CauseAction)action;
-                if (causeAction.getCauses().get(0).getClass().equals(RebuildCause.class)) {
-                    hasRebuildCause = true;
-                }
-                if (causeAction.getCauses().get(0).getClass().equals(Cause.RemoteCause.class)) {
-                    hasRemoteCause = true;
-                }
-                if (causeAction.getCauses().get(0).getClass().equals(Cause.UserIdCause.class)) {
-                    hasUserIdCause = true;
-                }
-            }
-        }
-        assertTrue("Build should have user, remote and rebuild causes", hasRebuildCause
-                && hasRemoteCause && hasUserIdCause);
-    }
+		createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+				.click();
 
-    /**
-     * Implementing an Extension always returning isApplicable false.
-     */
-    public static class ValidatorNeverApplicable extends RebuildValidator {
+		while (project.isBuilding()) {
+			Thread.sleep(DELAY);
+		}
+		List<Action> actions = project.getLastCompletedBuild().getActions();
+		boolean hasRebuildCause = false;
+		boolean hasRemoteCause = false;
+		boolean hasUserIdCause = false;
+		for (Action action : actions) {
+			if (action instanceof CauseAction) {
+				CauseAction causeAction = (CauseAction) action;
+				if (causeAction.getCauses().get(0).getClass()
+						.equals(RebuildCause.class)) {
+					hasRebuildCause = true;
+				}
+				if (causeAction.getCauses().get(0).getClass()
+						.equals(Cause.RemoteCause.class)) {
+					hasRemoteCause = true;
+				}
+				if (causeAction.getCauses().get(0).getClass()
+						.equals(Cause.UserIdCause.class)) {
+					hasUserIdCause = true;
+				}
+			}
+		}
+		assertTrue("Build should have user, remote and rebuild causes",
+				hasRebuildCause && hasRemoteCause && hasUserIdCause);
+	}
 
-        @Override
-        public boolean isApplicable(AbstractBuild build) {
-            return false;
-        }
-    }
+	/**
+	 * Creates a new freestyle project, builds it and ensures the rebuild action
+	 * is available on the project level.
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testWhenProjectWithoutParamsThenRebuildProjectEnabled()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.scheduleBuild2(0);
+		RebuildSettings settings = new RebuildSettings(false, false);
+		project.addProperty(settings);
+		project.save();
+		HtmlPage projectPage = createWebClient().getPage(project);
+		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
 
-    /**
-     * Implementing an Extension always returning isApplicable true.
-     */
-    public static class ValidatorAlwaysApplicable extends RebuildValidator {
+	}
 
-        @Override
-        public boolean isApplicable(AbstractBuild build) {
-            return true;
-        }
-    }
+	/**
+	 * Creates a new freestyle project, builds it and ensures the rebuild action
+	 * isn't available on the project level.
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testWhenProjectWithoutParamsThenRebuildProjectIsDisabled()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.scheduleBuild2(0);
+		RebuildSettings settings = new RebuildSettings(false, true);
+		project.addProperty(settings);
+		project.save();
+		HtmlPage projectPage = createWebClient().getPage(project);
+		WebAssert.assertLinkNotPresentWithText(projectPage, "Rebuild Last");
 
-    /**
-     * Creates a new freestyle project and build with a parameter value whose type is
-     * unknown to rebuild plugin.
-     * Rebuild and verify that an no exception occurs and page is displayed correctly.
-     * 
-     *  {@link RebuildableParameterValue}.
-     *
-     * @throws Exception Exception
-     */
-    public void testRebuildUnsupportedUnknownParameterValue() throws Exception {
-        WebClient wc = createWebClient();
-        FreeStyleProject project = createFreeStyleProject();
-        project.addProperty(new ParametersDefinitionProperty(
-                new UnsupportedUnknownParameterDefinition("param1", "defaultValue")));
+	}
 
-        assertBuildStatusSuccess(project.scheduleBuild2(
-                0,
-                new Cause.RemoteCause("host", "note"),
-                new ParametersAction(
-                        new UnsupportedUnknownParameterValue("param1", "value1")
-                        )
-                ));
-        FreeStyleBuild build = project.getLastBuild();
-        // it is trying to fallback and use the
-        HtmlPage page = wc.getPage(build, "rebuild");
-        // Check the hardcoded description is showing properly.
-        assertTrue(page.asText().contains("Configuration page for UnsupportedUnknownParameterValue"));
-    }
+	/**
+	 * Implementing an Extension always returning isApplicable false.
+	 */
+	public static class ValidatorNeverApplicable extends RebuildValidator {
 
-    /**
-     * Creates a new freestyle project and build with a parameter value whose type is
-     * unknown to rebuild plugin.
-     * Verify that rebuild succeeds if that parameter value supports {@link RebuildableParameterValue}.
-     *
-     * @throws Exception Exception
-     */
-    public void testRebuildSupportedUnknownParameterValue() throws Exception {
-        WebClient wc = createWebClient();
-        FreeStyleProject project = createFreeStyleProject();
-        project.addProperty(new ParametersDefinitionProperty(
-                new SupportedUnknownParameterDefinition("param1", "defaultValue")));
+		@Override
+		public boolean isApplicable(AbstractBuild build) {
+			return false;
+		}
+	}
 
-        assertBuildStatusSuccess(project.scheduleBuild2(
-                0,
-                new Cause.RemoteCause("host", "note"),
-                new ParametersAction(
-                        new SupportedUnknownParameterValue("param1", "value1")
-                        )
-                ));
-        FreeStyleBuild build = project.getLastBuild();
-        HtmlPage page = wc.getPage(build, "rebuild");
-        assertTrue(page.asText(), page.asText().contains("This is a mark for test"));
-    }
+	/**
+	 * Implementing an Extension always returning isApplicable true.
+	 */
+	public static class ValidatorAlwaysApplicable extends RebuildValidator {
 
-    /**
-     * A parameter value rebuild plugin does not know.
-     */
-    public static class UnsupportedUnknownParameterValue extends StringParameterValue {
-        private static final long serialVersionUID = 3182218854913929L;
+		@Override
+		public boolean isApplicable(AbstractBuild build) {
+			return true;
+		}
+	}
 
-        public UnsupportedUnknownParameterValue(String name, String value) {
-            super(name, value);
-        }
-    }
+	/**
+	 * Creates a new freestyle project and build with a parameter value whose
+	 * type is unknown to rebuild plugin. Rebuild and verify that an no
+	 * exception occurs and page is displayed correctly.
+	 * 
+	 * {@link RebuildableParameterValue}.
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testRebuildUnsupportedUnknownParameterValue() throws Exception {
+		WebClient wc = createWebClient();
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new UnsupportedUnknownParameterDefinition("param1",
+						"defaultValue")));
 
-    public static class UnsupportedUnknownParameterDefinition extends StringParameterDefinition {
-        private static final long serialVersionUID = 1014662680565914672L;
+		assertBuildStatusSuccess(project.scheduleBuild2(0,
+				new Cause.RemoteCause("host", "note"),
+				new ParametersAction(new UnsupportedUnknownParameterValue(
+						"param1", "value1"))));
+		FreeStyleBuild build = project.getLastBuild();
+		// it is trying to fallback and use the
+		HtmlPage page = wc.getPage(build, "rebuild");
+		// Check the hardcoded description is showing properly.
+		assertTrue(page.asText().contains(
+				"Configuration page for UnsupportedUnknownParameterValue"));
+	}
 
-        @DataBoundConstructor
-        public UnsupportedUnknownParameterDefinition(String name,
-                String defaultValue) {
-            super(name, defaultValue);
-        }
+	/**
+	 * Creates a new freestyle project and build with a parameter value whose
+	 * type is unknown to rebuild plugin. Verify that rebuild succeeds if that
+	 * parameter value supports {@link RebuildableParameterValue}.
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testRebuildSupportedUnknownParameterValue() throws Exception {
+		WebClient wc = createWebClient();
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new SupportedUnknownParameterDefinition("param1",
+						"defaultValue")));
 
-        @Override
-        public ParameterValue createValue(String value) {
-            return new UnsupportedUnknownParameterValue(this.getName(), value);
-        }
+		assertBuildStatusSuccess(project
+				.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+						new ParametersAction(
+								new SupportedUnknownParameterValue("param1",
+										"value1"))));
+		FreeStyleBuild build = project.getLastBuild();
+		HtmlPage page = wc.getPage(build, "rebuild");
+		assertTrue(page.asText(),
+				page.asText().contains("This is a mark for test"));
+	}
 
-        @Override
-        public StringParameterValue getDefaultParameterValue() {
-            return new UnsupportedUnknownParameterValue(this.getName(), this.getDefaultValue());
-        }
+	/**
+	 * A parameter value rebuild plugin does not know.
+	 */
+	public static class UnsupportedUnknownParameterValue extends
+			StringParameterValue {
+		private static final long serialVersionUID = 3182218854913929L;
 
-        @Extension
-        public static class DescriptorImpl extends ParameterDescriptor {
-            @Override
-            public String getDisplayName() {
-                return "UnsupportedUnknownParameterDefinition";
-            }
-        }
+		public UnsupportedUnknownParameterValue(String name, String value) {
+			super(name, value);
+		}
+	}
 
-    }
+	public static class UnsupportedUnknownParameterDefinition extends
+			StringParameterDefinition {
+		private static final long serialVersionUID = 1014662680565914672L;
 
-    /**
-     * A parameter value rebuild plugin does not know, but supported by {@link TestRebuildParameterProvider}.
-     */
-    public static class SupportedUnknownParameterValue extends StringParameterValue {
-        private static final long serialVersionUID = 114922627975966439L;
+		@DataBoundConstructor
+		public UnsupportedUnknownParameterDefinition(String name,
+				String defaultValue) {
+			super(name, defaultValue);
+		}
 
-        public SupportedUnknownParameterValue(String name, String value) {
-            super(name, value);
-        }
-    }
+		@Override
+		public ParameterValue createValue(String value) {
+			return new UnsupportedUnknownParameterValue(this.getName(), value);
+		}
 
+		@Override
+		public StringParameterValue getDefaultParameterValue() {
+			return new UnsupportedUnknownParameterValue(this.getName(),
+					this.getDefaultValue());
+		}
 
-    public static class SupportedUnknownParameterDefinition extends StringParameterDefinition {
-        private static final long serialVersionUID = 1014662680565914672L;
+		@Extension
+		public static class DescriptorImpl extends ParameterDescriptor {
+			@Override
+			public String getDisplayName() {
+				return "UnsupportedUnknownParameterDefinition";
+			}
+		}
 
-        @DataBoundConstructor
-        public SupportedUnknownParameterDefinition(String name,
-                String defaultValue) {
-            super(name, defaultValue);
-        }
+	}
 
-        @Override
-        public ParameterValue createValue(String value) {
-            return new SupportedUnknownParameterValue(this.getName(), value);
-        }
+	/**
+	 * A parameter value rebuild plugin does not know, but supported by
+	 * {@link TestRebuildParameterProvider}.
+	 */
+	public static class SupportedUnknownParameterValue extends
+			StringParameterValue {
+		private static final long serialVersionUID = 114922627975966439L;
 
-        @Override
-        public StringParameterValue getDefaultParameterValue() {
-            return new SupportedUnknownParameterValue(this.getName(), this.getDefaultValue());
-        }
+		public SupportedUnknownParameterValue(String name, String value) {
+			super(name, value);
+		}
+	}
 
-        @Extension
-        public static class DescriptorImpl extends ParameterDescriptor {
-            @Override
-            public String getDisplayName() {
-                return "SupportedUnknownParameterDefinition";
-            }
-        }
+	public static class SupportedUnknownParameterDefinition extends
+			StringParameterDefinition {
+		private static final long serialVersionUID = 1014662680565914672L;
 
-    }
+		@DataBoundConstructor
+		public SupportedUnknownParameterDefinition(String name,
+				String defaultValue) {
+			super(name, defaultValue);
+		}
 
+		@Override
+		public ParameterValue createValue(String value) {
+			return new SupportedUnknownParameterValue(this.getName(), value);
+		}
 
-    /**
-     * Provides a view for {@link SupportedUnknownParameterValue} when rebuilding.
-     */
-    @TestExtension
-    public static class TestRebuildParameterProvider extends RebuildParameterProvider {
-        @Override
-        public RebuildParameterPage getRebuildPage(ParameterValue value) {
-            if (!(value instanceof SupportedUnknownParameterValue)) {
-                return null;
-            }
-            RebuildParameterPage page = new RebuildParameterPage(SupportedUnknownParameterValue.class, "rebuild.groovy");
-            return page;
-        }
-    }
+		@Override
+		public StringParameterValue getDefaultParameterValue() {
+			return new SupportedUnknownParameterValue(this.getName(),
+					this.getDefaultValue());
+		}
+
+		@Extension
+		public static class DescriptorImpl extends ParameterDescriptor {
+			@Override
+			public String getDisplayName() {
+				return "SupportedUnknownParameterDefinition";
+			}
+		}
+
+	}
+
+	/**
+	 * Provides a view for {@link SupportedUnknownParameterValue} when
+	 * rebuilding.
+	 */
+	@TestExtension
+	public static class TestRebuildParameterProvider extends
+			RebuildParameterProvider {
+		@Override
+		public RebuildParameterPage getRebuildPage(ParameterValue value) {
+			if (!(value instanceof SupportedUnknownParameterValue)) {
+				return null;
+			}
+			RebuildParameterPage page = new RebuildParameterPage(
+					SupportedUnknownParameterValue.class, "rebuild.groovy");
+			return page;
+		}
+	}
 }

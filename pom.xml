@@ -60,6 +60,15 @@
             </roles>
             <timezone>+1</timezone>
         </developer>
+        <developer>
+            <id>hagzag</id>
+            <name>Haggai Philip Zagury</name>
+	    <email>hagzag@tikalk.com</email>
+            <roles>
+                <role>maintainer</role>
+            </roles>
+            <timezone>+2</timezone>
+        </developer>
     </developers>
 
     <pluginRepositories>
