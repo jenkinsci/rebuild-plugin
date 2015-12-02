@@ -373,15 +373,15 @@ public class RebuildAction implements Action {
     }
 
     private boolean isRebuildDisbaled() {
-        RebuildSettings settings = (RebuildSettings) getProject().getProperty(RebuildSettings.class);
+        RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
 
         if (settings != null && settings.getRebuildDisabled()) {
-            return true;
-        }
-        return false;
-    }
+			return true;
+		}
+		return false;
+	}
 
-    /**
+	/**
      * Method for getting the ParameterValue instance from ParameterDefinition
      * or ParamterAction.
      *
@@ -393,7 +393,7 @@ public class RebuildAction implements Action {
      * @return ParameterValue instance of subclass of ParameterValue
      */
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
-                                            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
+            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
         ParameterDefinition paramDef;
         // this is normal case when user try to rebuild a parameterized job.
         if (paramDefProp != null) {
@@ -403,7 +403,7 @@ public class RebuildAction implements Action {
                 // If the parameter comes from the copy artifact plugin, then use the single argument createValue
                 if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")) {
                     SimpleParameterDefinition parameterDefinition =
-                            (SimpleParameterDefinition) paramDefProp.getParameterDefinition(parameterName);
+                            (SimpleParameterDefinition)paramDefProp.getParameterDefinition(parameterName);
                     return parameterDefinition.createValue(jo.getString("value"));
                 }
                 return paramDef.createValue(req, jo);
@@ -452,11 +452,10 @@ public class RebuildAction implements Action {
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
-
     /**
      * Method for constructing Rebuild cause.
      *
-     * @param up          AbsstractBuild
+     * @param up AbsstractBuild
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
@@ -474,7 +473,7 @@ public class RebuildAction implements Action {
      * @return page for the parameter value, or null if no suitable option found.
      */
     public RebuildParameterPage getRebuildParameterPage(ParameterValue value) {
-        for (RebuildParameterProvider provider : RebuildParameterProvider.all()) {
+        for (RebuildParameterProvider provider: RebuildParameterProvider.all()) {
             RebuildParameterPage page = provider.getRebuildPage(value);
             if (page != null) {
                 return page;
@@ -487,7 +486,7 @@ public class RebuildAction implements Action {
             return new RebuildParameterPage(
                     getClass(),
                     String.format("%s.jelly", value.getClass().getSimpleName())
-            );
+                    );
 
         }
         // Else we return that we haven't found anything.
