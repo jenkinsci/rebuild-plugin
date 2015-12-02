@@ -24,6 +24,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import com.google.common.collect.*;
 import hudson.Extension;
 import hudson.model.Action;
 
@@ -32,6 +33,8 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.Comparator;
 
 import hudson.matrix.MatrixRun;
 import hudson.model.BooleanParameterValue;
@@ -56,9 +59,6 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-
-import com.sonyericsson.rebuild.RebuildParameterPage;
-import com.sonyericsson.rebuild.RebuildParameterProvider;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -297,7 +297,13 @@ public class RebuildAction implements Action {
                 }
             }
 
-            List<Action> actions = constructRebuildCause(build, new ParametersAction(values));
+            Set<ParameterValue> mergedValues = ImmutableSortedSet.copyOf(new Comparator<ParameterValue>() {
+                @Override
+                public int compare(ParameterValue o1, ParameterValue o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            }, Iterables.concat(values, paramAction.getParameters()));
+            List<Action> actions = constructRebuildCause(build, new ParametersAction(Lists.newArrayList(mergedValues)));
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
@@ -361,21 +367,21 @@ public class RebuildAction implements Action {
                 && project.hasPermission(Item.BUILD)
                 && project.isBuildable()
                 && project instanceof Queue.Task
-                && !isMatrixRun() 
+                && !isMatrixRun()
                 && !isRebuildDisbaled();
 
     }
 
     private boolean isRebuildDisbaled() {
-        RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-        
-        if (settings != null && settings.getRebuildDisabled()) {
-			return true;
-		}
-		return false;
-	}
+        RebuildSettings settings = (RebuildSettings) getProject().getProperty(RebuildSettings.class);
 
-	/**
+        if (settings != null && settings.getRebuildDisabled()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Method for getting the ParameterValue instance from ParameterDefinition
      * or ParamterAction.
      *
@@ -387,7 +393,7 @@ public class RebuildAction implements Action {
      * @return ParameterValue instance of subclass of ParameterValue
      */
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
-            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
+                                            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
         ParameterDefinition paramDef;
         // this is normal case when user try to rebuild a parameterized job.
         if (paramDefProp != null) {
@@ -397,7 +403,7 @@ public class RebuildAction implements Action {
                 // If the parameter comes from the copy artifact plugin, then use the single argument createValue
                 if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")) {
                     SimpleParameterDefinition parameterDefinition =
-                            (SimpleParameterDefinition)paramDefProp.getParameterDefinition(parameterName);
+                            (SimpleParameterDefinition) paramDefProp.getParameterDefinition(parameterName);
                     return parameterDefinition.createValue(jo.getString("value"));
                 }
                 return paramDef.createValue(req, jo);
@@ -446,10 +452,11 @@ public class RebuildAction implements Action {
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
+
     /**
      * Method for constructing Rebuild cause.
      *
-     * @param up AbsstractBuild
+     * @param up          AbsstractBuild
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
@@ -467,7 +474,7 @@ public class RebuildAction implements Action {
      * @return page for the parameter value, or null if no suitable option found.
      */
     public RebuildParameterPage getRebuildParameterPage(ParameterValue value) {
-        for (RebuildParameterProvider provider: RebuildParameterProvider.all()) {
+        for (RebuildParameterProvider provider : RebuildParameterProvider.all()) {
             RebuildParameterPage page = provider.getRebuildPage(value);
             if (page != null) {
                 return page;
@@ -480,7 +487,7 @@ public class RebuildAction implements Action {
             return new RebuildParameterPage(
                     getClass(),
                     String.format("%s.jelly", value.getClass().getSimpleName())
-                    );
+            );
 
         }
         // Else we return that we haven't found anything.
