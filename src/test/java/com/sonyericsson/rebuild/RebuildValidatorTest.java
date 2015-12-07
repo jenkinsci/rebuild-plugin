@@ -50,6 +50,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static com.sonyericsson.rebuild.matchers.IsCollectionContainingStringParameterValues.hasStringParamValues;
+import static com.sonyericsson.rebuild.matchers.IsNotCollectionContainingStringParameterValues.hasNoStringParamValues;
+import static com.sonyericsson.rebuild.matchers.StringParameterValueMatcher.equalToStringParamValue;
+import static org.junit.Assert.assertThat;
+
 /**
  * For testing the extension point.
  *
@@ -391,6 +396,110 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		HtmlPage page = wc.getPage(build, "rebuild");
 		assertTrue(page.asText(),
 				page.asText().contains("This is a mark for test"));
+	}
+
+	public void testWhenProjectWithExistingParamAndOverridingParamWhenRebuild()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new StringParameterDefinition("existing", "defaultValue")));
+
+		// Build (#1)
+		project.scheduleBuild2(0, new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("existing", "overridingValue")))
+				.get();
+		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+				"1/rebuild");
+		// Rebuild (#2)
+		submit(rebuildConfigPage.getFormByName("config"));
+
+		List<ParameterValue> parameterValues = project.getBuildByNumber(2).getAction(ParametersAction.class).getParameters();
+
+		assertThat(parameterValues, hasStringParamValues(equalToStringParamValue("existing", "overridingValue")));
+		assertThat(parameterValues, hasNoStringParamValues(equalToStringParamValue("existing", "defaultValue")));
+	}
+
+	public void testWhenProjectWithExistingParamAndOverridingParamWhenRebuildOfLastBuild()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new StringParameterDefinition("existing", "defaultValue")));
+
+		// Build (#1)
+		project.scheduleBuild2(0, new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("existing", "overridingValue")))
+				.get();
+		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+				"1/rebuild");
+		// Rebuild (#2)
+		submit(rebuildConfigPage.getFormByName("config"));
+
+		HtmlPage projectPage = createWebClient().getPage(project);
+		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
+
+		HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
+		assertEquals("Rebuild Last should point to the second build", "/"
+						+ project.getUrl() + "lastCompletedBuild/rebuild",
+				rebuildHref.getHrefAttribute());
+
+		List<ParameterValue> parameterValues = project.getLastCompletedBuild().getAction(ParametersAction.class).getParameters();
+
+		assertThat(parameterValues, hasStringParamValues(equalToStringParamValue("existing", "overridingValue")));
+		assertThat(parameterValues, hasNoStringParamValues(equalToStringParamValue("existing", "defaultValue")));
+	}
+
+	public void testWhenProjectWithExistingParamAndInjectedParamWhenRebuild()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new StringParameterDefinition("oldName", "oldValue")));
+
+		// Build (#1)
+		project.scheduleBuild2(0, new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("injectedName", "injectedValue")))
+				.get();
+		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+				"1/rebuild");
+		// Rebuild (#2)
+		submit(rebuildConfigPage.getFormByName("config"));
+
+		List<ParameterValue> parameterValues = project.getBuildByNumber(2).getAction(ParametersAction.class).getParameters();
+
+		assertThat(parameterValues, hasStringParamValues(
+				equalToStringParamValue("oldName", "oldValue"),
+				equalToStringParamValue("injectedName", "injectedValue")
+		));
+	}
+
+	public void testWhenProjectWithExistingParamAndInjectedParamWhenRebuildOfLastBuild()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new StringParameterDefinition("oldName", "oldValue")));
+
+		// Build (#1)
+		project.scheduleBuild2(0, new Cause.UserIdCause(),
+				new ParametersAction(new StringParameterValue("injectedName", "injectedValue")))
+				.get();
+		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+				"1/rebuild");
+		// Rebuild (#2)
+		submit(rebuildConfigPage.getFormByName("config"));
+
+		HtmlPage projectPage = createWebClient().getPage(project);
+		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
+
+		HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
+		assertEquals("Rebuild Last should point to the second build", "/"
+						+ project.getUrl() + "lastCompletedBuild/rebuild",
+				rebuildHref.getHrefAttribute());
+
+		List<ParameterValue> parameterValues = project.getLastCompletedBuild().getAction(ParametersAction.class).getParameters();
+
+		assertThat(parameterValues, hasStringParamValues(
+				equalToStringParamValue("oldName", "oldValue"),
+				equalToStringParamValue("injectedName", "injectedValue")
+		));
 	}
 
 	/**
