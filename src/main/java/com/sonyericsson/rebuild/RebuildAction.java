@@ -302,7 +302,7 @@ public class RebuildAction implements Action {
                 public int compare(ParameterValue o1, ParameterValue o2) {
                     return o1.getName().compareTo(o2.getName());
                 }
-            }, Iterables.concat(values, paramAction.getParameters()));
+            }, Iterables.concat(values, paramAction == null ? new ArrayList<ParameterValue>() : paramAction.getParameters()));
             List<Action> actions = constructRebuildCause(build, new ParametersAction(Lists.newArrayList(mergedValues)));
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
 
