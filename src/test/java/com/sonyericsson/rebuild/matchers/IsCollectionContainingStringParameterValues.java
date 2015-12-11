@@ -32,7 +32,7 @@ public final class IsCollectionContainingStringParameterValues extends TypeSafeM
             resultMap.put(stringParameterValueMatcher, false);
             for (ParameterValue item : items) {
                 if (stringParameterValueMatcher.matches(item)) {
-                    resultMap.replace(stringParameterValueMatcher, true);
+                    resultMap.put(stringParameterValueMatcher, true);
                     break;
                 }
             }
