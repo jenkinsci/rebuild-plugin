@@ -57,9 +57,6 @@ import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import com.sonyericsson.rebuild.RebuildParameterPage;
-import com.sonyericsson.rebuild.RebuildParameterProvider;
-
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
  * the build with existing parameters.
@@ -294,6 +291,18 @@ public class RebuildAction implements Action {
                     if (parameterValue != null) {
                         values.add(parameterValue);
                     }
+                }
+            }
+            for (ParameterValue source : paramAction.getParameters()) {
+                boolean alreadyAdded = false;
+                for (ParameterValue dest : values) {
+                    if (source.getName().equals(dest.getName())) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    values.add(source);
                 }
             }
 
