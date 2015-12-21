@@ -50,9 +50,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static com.sonyericsson.rebuild.matchers.IsCollectionContainingStringParameterValues.hasStringParamValues;
-import static com.sonyericsson.rebuild.matchers.IsNotCollectionContainingStringParameterValues.hasNoStringParamValues;
-import static com.sonyericsson.rebuild.matchers.StringParameterValueMatcher.equalToStringParamValue;
+import static com.sonyericsson.rebuild.matchers.StringParameterValuesMatcher.hasStringParamValues;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -398,7 +397,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				page.asText().contains("This is a mark for test"));
 	}
 
-	public void testWhenProjectWithExistingParamAndOverridingParamWhenRebuild()
+	public void testNewParametersShouldOverrideExistingParametersIfHaveSameName()
 			throws Exception {
 		FreeStyleProject project = createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
@@ -415,11 +414,11 @@ public class RebuildValidatorTest extends HudsonTestCase {
 
 		List<ParameterValue> parameterValues = project.getBuildByNumber(2).getAction(ParametersAction.class).getParameters();
 
-		assertThat(parameterValues, hasStringParamValues(equalToStringParamValue("existing", "overridingValue")));
-		assertThat(parameterValues, hasNoStringParamValues(equalToStringParamValue("existing", "defaultValue")));
+		assertThat(parameterValues, hasStringParamValues(new StringParameterValue("existing", "overridingValue")));
+		assertThat(parameterValues, not(hasStringParamValues(new StringParameterValue("existing", "defaultValue"))));
 	}
 
-	public void testWhenProjectWithExistingParamAndOverridingParamWhenRebuildOfLastBuild()
+	public void testRebuildingLastBuildShouldMaintainExistingParameters()
 			throws Exception {
 		FreeStyleProject project = createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
@@ -444,11 +443,11 @@ public class RebuildValidatorTest extends HudsonTestCase {
 
 		List<ParameterValue> parameterValues = project.getLastCompletedBuild().getAction(ParametersAction.class).getParameters();
 
-		assertThat(parameterValues, hasStringParamValues(equalToStringParamValue("existing", "overridingValue")));
-		assertThat(parameterValues, hasNoStringParamValues(equalToStringParamValue("existing", "defaultValue")));
+		assertThat(parameterValues, hasStringParamValues(new StringParameterValue("existing", "overridingValue")));
+		assertThat(parameterValues, not(hasStringParamValues(new StringParameterValue("existing", "defaultValue"))));
 	}
 
-	public void testWhenProjectWithExistingParamAndInjectedParamWhenRebuild()
+	public void testInjectedParametersShouldOverrideExistingParametersIfHaveSameName()
 			throws Exception {
 		FreeStyleProject project = createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
@@ -466,12 +465,12 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		List<ParameterValue> parameterValues = project.getBuildByNumber(2).getAction(ParametersAction.class).getParameters();
 
 		assertThat(parameterValues, hasStringParamValues(
-				equalToStringParamValue("oldName", "oldValue"),
-				equalToStringParamValue("injectedName", "injectedValue")
+				new StringParameterValue("oldName", "oldValue"),
+				new StringParameterValue("injectedName", "injectedValue")
 		));
 	}
 
-	public void testWhenProjectWithExistingParamAndInjectedParamWhenRebuildOfLastBuild()
+	public void testRebuildingLastBuildShouldMaintainInjectedParameters()
 			throws Exception {
 		FreeStyleProject project = createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
@@ -497,8 +496,8 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		List<ParameterValue> parameterValues = project.getLastCompletedBuild().getAction(ParametersAction.class).getParameters();
 
 		assertThat(parameterValues, hasStringParamValues(
-				equalToStringParamValue("oldName", "oldValue"),
-				equalToStringParamValue("injectedName", "injectedValue")
+				new StringParameterValue("oldName", "oldValue"),
+				new StringParameterValue("injectedName", "injectedValue")
 		));
 	}
 
