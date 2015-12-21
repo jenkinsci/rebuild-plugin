@@ -24,6 +24,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import com.google.common.collect.*;
 import hudson.Extension;
 import hudson.model.Action;
 
@@ -32,6 +33,8 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.Comparator;
 
 import hudson.matrix.MatrixRun;
 import hudson.model.BooleanParameterValue;
@@ -56,9 +59,6 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-
-import com.sonyericsson.rebuild.RebuildParameterPage;
-import com.sonyericsson.rebuild.RebuildParameterProvider;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -297,7 +297,13 @@ public class RebuildAction implements Action {
                 }
             }
 
-            List<Action> actions = constructRebuildCause(build, new ParametersAction(values));
+            Set<ParameterValue> mergedValues = ImmutableSortedSet.copyOf(new Comparator<ParameterValue>() {
+                @Override
+                public int compare(ParameterValue o1, ParameterValue o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            }, Iterables.concat(values, paramAction == null ? new ArrayList<ParameterValue>() : paramAction.getParameters()));
+            List<Action> actions = constructRebuildCause(build, new ParametersAction(Lists.newArrayList(mergedValues)));
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
@@ -361,14 +367,14 @@ public class RebuildAction implements Action {
                 && project.hasPermission(Item.BUILD)
                 && project.isBuildable()
                 && project instanceof Queue.Task
-                && !isMatrixRun() 
+                && !isMatrixRun()
                 && !isRebuildDisbaled();
 
     }
 
     private boolean isRebuildDisbaled() {
         RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-        
+
         if (settings != null && settings.getRebuildDisabled()) {
 			return true;
 		}
