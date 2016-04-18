@@ -24,41 +24,38 @@
  */
 package com.sonyericsson.rebuild;
 
+import com.sonyericsson.rebuild.node.NodeLabelParameterValue;
 import hudson.Extension;
-import hudson.model.Action;
-
-import javax.servlet.ServletException;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import hudson.matrix.MatrixRun;
+import hudson.model.AbstractBuild;
+import hudson.model.Action;
 import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Job;
+import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
+import hudson.model.PasswordParameterValue;
 import hudson.model.Queue;
 import hudson.model.Run;
-import hudson.model.SimpleParameterDefinition;
-import hudson.model.ParameterDefinition;
-import hudson.model.PasswordParameterValue;
 import hudson.model.RunParameterValue;
+import hudson.model.SimpleParameterDefinition;
 import hudson.model.StringParameterValue;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import com.sonyericsson.rebuild.RebuildParameterPage;
-import com.sonyericsson.rebuild.RebuildParameterProvider;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -67,6 +64,9 @@ import com.sonyericsson.rebuild.RebuildParameterProvider;
  * @author Shemeer S;
  */
 public class RebuildAction implements Action {
+
+    public static final String REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME = "com.sonyericsson.rebuild.rebuildOnTheSameNode";
+    private static final String DEFAULT_NODE_NAME = "master";
 
     private static final String SVN_TAG_PARAM_CLASS = "hudson.scm.listtagsparameter.ListSubversionTagsParameterValue";
     /*
@@ -200,6 +200,7 @@ public class RebuildAction implements Action {
      * @throws ServletException     if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
+    @SuppressWarnings("unused") // "Rebuild"
     public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException, ServletException, InterruptedException {
         Run currentBuild = request.findAncestorObject(Run.class);
         if (currentBuild != null) {
@@ -207,12 +208,14 @@ public class RebuildAction implements Action {
             if (paramAction != null) {
                 RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
                 if (settings != null && settings.getAutoRebuild()) {
+                    //TODO redirect to parameterized? need to specify 'build on the same node'
                     parameterizedRebuild(currentBuild, response);
                 } else {
                     response.sendRedirect(PARAMETERIZED_URL);
                 }
             } else {
-                nonParameterizedRebuild(currentBuild, response);
+                // show parameterized page anyway: need to specify if the rebuild should be executed at the same node
+                response.sendRedirect(PARAMETERIZED_URL);
             }
         }
     }
@@ -239,24 +242,26 @@ public class RebuildAction implements Action {
             response.sendRedirect("../../");
         }
     }
-    /**
-     * Call this method while rebuilding
-     * non parameterized build.     .
-     *
-     * @param currentBuild current build.
-     * @param response     current response object.
-     * @throws ServletException     if something unfortunate happens.
-     * @throws IOException          if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
-     */
-    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
-            response) throws ServletException, IOException, InterruptedException {
-        getProject().checkPermission(Item.BUILD);
 
-        List<Action> actions = constructRebuildCause(build, null);
-        Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
-        response.sendRedirect("../../");
-    }
+    //TODO remove?
+//    /**
+//     * Call this method while rebuilding
+//     * non parameterized build.     .
+//     *
+//     * @param currentBuild current build.
+//     * @param response     current response object.
+//     * @throws ServletException     if something unfortunate happens.
+//     * @throws IOException          if something unfortunate happens.
+//     * @throws InterruptedException if something unfortunate happens.
+//     */
+//    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
+//            response) throws ServletException, IOException, InterruptedException {
+//        getProject().checkPermission(Item.BUILD);
+//
+//        List<Action> actions = constructRebuildCause(build, null);
+//        Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
+//        response.sendRedirect("../../");
+//    }
 
     /**
      * Saves the form to the configuration and disk.
@@ -267,6 +272,7 @@ public class RebuildAction implements Action {
      * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
+    @SuppressWarnings("unused") // "Rebuild"
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException, InterruptedException {
         Job project = getProject();
         if (project == null) {
@@ -388,6 +394,20 @@ public class RebuildAction implements Action {
      */
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
             String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
+        // handle 'rebuild on the same node' parameter
+        if (REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME.equals(parameterName)) {
+            if ("true".equals(jo.getString("value"))) {
+                String nodeName = ((AbstractBuild<?,?>) build).getBuiltOn().getNodeName();
+                if (StringUtils.isEmpty(nodeName)) {
+                    // was built on master
+                    nodeName = DEFAULT_NODE_NAME;
+                }
+                return new NodeLabelParameterValue(nodeName); // nodeName used as a label
+            } else {
+                return null; // do nothing
+            }
+        }
+
         ParameterDefinition paramDef;
         // this is normal case when user try to rebuild a parameterized job.
         if (paramDefProp != null) {

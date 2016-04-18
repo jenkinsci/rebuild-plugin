@@ -95,6 +95,10 @@ THE SOFTWARE.
                 <br/>
                 <f:block>
                     <f:submit value="${%Rebuild}"/>
+                    <span name="parameter">
+                        <f:checkbox name="value" checked="false" title="${%Rebuild on the same node that the original build}"/>
+                        <input type="hidden" name="name" value="${it.REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME}" />
+                    </span>
                 </f:block>
             </f:form>
         </l:main-panel>
