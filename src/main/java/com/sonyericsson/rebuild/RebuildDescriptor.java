@@ -1,5 +1,6 @@
 package com.sonyericsson.rebuild;
 
+import com.sonyericsson.rebuild.node.NodeLabelParameterValue;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
@@ -28,6 +29,11 @@ public final class RebuildDescriptor extends GlobalConfiguration {
                 Boolean.valueOf(formData.getString("rememberPasswordEnabled")));
         save();
         return true;
+    }
+
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public boolean isNodeLabelParameterValue(Object o) {
+        return o instanceof NodeLabelParameterValue;
     }
 
     /**

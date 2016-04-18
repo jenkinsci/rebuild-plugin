@@ -466,6 +466,7 @@ public class RebuildAction implements Action {
         }
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
+
     /**
      * Method for constructing Rebuild cause.
      *
@@ -486,6 +487,7 @@ public class RebuildAction implements Action {
      * @param value the parameter value to show to rebuild.
      * @return page for the parameter value, or null if no suitable option found.
      */
+    @SuppressWarnings("unused") // used from parameterized.jelly
     public RebuildParameterPage getRebuildParameterPage(ParameterValue value) {
         for (RebuildParameterProvider provider: RebuildParameterProvider.all()) {
             RebuildParameterPage page = provider.getRebuildPage(value);

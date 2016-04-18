@@ -84,12 +84,14 @@ THE SOFTWARE.
                     </tbody>
                 </j:forEach>
                 <j:if test="${empty(parametersProperty.parameterDefinitions)}">
-                            <j:forEach var="parameterValue" items="${paramAction.parameters}">
-                                <j:scope>
-                                    <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
-                                    <st:include it="${parameterValue}" class="${page.clazz}"  page="${page.page}" />
-                                </j:scope>
-                             </j:forEach>
+                    <j:forEach var="parameterValue" items="${paramAction.parameters}">
+                        <j:if test="${!it.DESCRIPTOR.isNodeLabelParameterValue(parameterValue)}">
+                            <j:scope>
+                                <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
+                                <st:include it="${parameterValue}" class="${page.clazz}"  page="${page.page}" />
+                            </j:scope>
+                        </j:if>
+                     </j:forEach>
                 </j:if>
                 <br/>
                 <br/>
