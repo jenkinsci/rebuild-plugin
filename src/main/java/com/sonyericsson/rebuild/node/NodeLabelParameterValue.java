@@ -13,11 +13,13 @@ import org.kohsuke.stapler.export.Exported;
 import java.util.List;
 
 public class NodeLabelParameterValue extends ParameterValue {
+    private static final String NODE_LABEL_PARAMETER_NAME = "com.sonyericsson.rebuild.node.NODE_LABEL";
+
     @Exported(visibility = 3)
     private final String label;
 
     public NodeLabelParameterValue(String nodeLabel) {
-        super("NODELABEL");
+        super(NODE_LABEL_PARAMETER_NAME);
         if (nodeLabel == null || nodeLabel.trim().isEmpty()) {
             label = "master";
         } else {
