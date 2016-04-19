@@ -226,7 +226,7 @@ public class RebuildAction implements Action {
      * @param response StaplerResponse the response handler.
      * @throws IOException          in case of Stapler issues
      */
-    public void parameterizedRebuild(Run currentBuild, StaplerResponse response) throws IOException {
+    public void parameterizedRebuild(Run<?,?> currentBuild, StaplerResponse response) throws IOException {
         Job project = getProject();
         if (project == null) {
             return;
@@ -319,16 +319,16 @@ public class RebuildAction implements Action {
      * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
      */
     private List<Action> copyBuildCausesAndAddUserCause(Run<?, ?> fromBuild) {
-        List currentBuildCauses = fromBuild.getCauses();
+        List<Cause> currentBuildCauses = fromBuild.getCauses();
 
         List<Action> actions = new ArrayList<Action>(currentBuildCauses.size());
         boolean hasUserCause = false;
-        for (Object buildCause : currentBuildCauses) {
+        for (Cause buildCause : currentBuildCauses) {
             if (buildCause instanceof Cause.UserIdCause) {
                 hasUserCause = true;
                 actions.add(new CauseAction(new Cause.UserIdCause()));
             } else {
-                actions.add(new CauseAction((Cause)buildCause));
+                actions.add(new CauseAction(buildCause));
             }
         }
         if (!hasUserCause) {
@@ -474,7 +474,7 @@ public class RebuildAction implements Action {
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
-    private List<Action> constructRebuildCause(Run up, ParametersAction paramAction) {
+    private List<Action> constructRebuildCause(Run<?,?> up, ParametersAction paramAction) {
         List<Action> actions = copyBuildCausesAndAddUserCause(up);
         actions.add(new CauseAction(new RebuildCause(up)));
         if (paramAction != null) {
