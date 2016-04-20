@@ -104,6 +104,13 @@ THE SOFTWARE.
                         </span>
                     </j:if>
                 </f:block>
+
+                <j:if test="${!it.previousNodeExists()}">
+                    <f:block >
+                        <br />
+                        <div class="warning">Rebuild cannot be executed on the same node that the original build because that node doesn't exist anymore.</div>
+                    </f:block>
+                </j:if>
             </f:form>
         </l:main-panel>
     </l:layout>

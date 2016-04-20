@@ -536,7 +536,7 @@ public class RebuildAction implements Action {
      */
     @SuppressWarnings("unused") // used from parameterized.jelly
     public boolean canBeBuiltOnTheSameNode() {
-        AbstractBuild<?, ?> ab = (AbstractBuild<?, ?>) this.build;
+        AbstractBuild<?, ?> ab = (AbstractBuild<?, ?>) build;
         ParametersAction paramAction = build.getAction(ParametersAction.class);
         if (paramAction != null) {
             // check if whether the job uses NodeLabel Parameter Plugin
@@ -552,7 +552,6 @@ public class RebuildAction implements Action {
 
         Node previousNode = ab.getBuiltOn();
         if (previousNode == null) {
-            //TODO show warning if node is deleted
             return false; // node no longer exists
         }
         AbstractProject<?, ?> project = ab.getProject();
@@ -562,5 +561,14 @@ public class RebuildAction implements Action {
         }
 
         return assignedLabel.matches(previousNode);
+    }
+
+    /**
+     * Checks whether the previous (from the original build) node exists now.
+     */
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public boolean previousNodeExists() {
+        AbstractBuild<?, ?> ab = (AbstractBuild<?, ?>) build;
+        return ab.getBuiltOn() != null;
     }
 }
