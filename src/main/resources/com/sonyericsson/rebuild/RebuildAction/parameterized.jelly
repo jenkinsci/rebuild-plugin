@@ -110,7 +110,14 @@ THE SOFTWARE.
                 <j:if test="${it.shouldShowPrevNodeNotExistsWarning(canBeBuiltOnTheSameNode)}">
                     <f:block >
                         <br />
-                        <div class="warning">Rebuild cannot be executed on the same node that the original build because that node doesn't exist anymore.</div>
+                        <div class="warning">${%Original build's node doesn't exist anymore.}</div>
+                    </f:block>
+                </j:if>
+
+                <j:if test="${it.shouldShowNodeLabelParameterPluginUsedWarning(canBeBuiltOnTheSameNode)}">
+                    <f:block >
+                        <br />
+                        <div class="warning">${%'Rebuild on the same node' option not shown due to NodeLabel Parameter Plugin usage.}</div>
                     </f:block>
                 </j:if>
             </f:form>

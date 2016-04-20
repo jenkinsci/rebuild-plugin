@@ -579,4 +579,9 @@ public class RebuildAction implements Action {
     public boolean shouldShowPrevNodeNotExistsWarning(CanBeBuildOnTheSameNodeCheckResult res) {
         return res == NODE_NOT_EXISTS;
     }
+
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public boolean shouldShowNodeLabelParameterPluginUsedWarning(CanBeBuildOnTheSameNodeCheckResult res) {
+        return res == NODELABEL_PARAMETER_PLUGIN_USED;
+    }
 }
