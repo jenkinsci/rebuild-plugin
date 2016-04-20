@@ -1,6 +1,5 @@
 package com.sonyericsson.rebuild;
 
-import com.sonyericsson.rebuild.node.NodeLabelParameterValue;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
