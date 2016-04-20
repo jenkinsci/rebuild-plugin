@@ -28,6 +28,7 @@ import com.sonyericsson.rebuild.node.NodeLabelParameterValue;
 import hudson.Extension;
 import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
@@ -35,6 +36,8 @@ import hudson.model.CauseAction;
 import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Job;
+import hudson.model.Label;
+import hudson.model.Node;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
@@ -67,6 +70,10 @@ public class RebuildAction implements Action {
 
     public static final String REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME = "com.sonyericsson.rebuild.rebuildOnTheSameNode";
     private static final String DEFAULT_NODE_NAME = "master";
+
+    // names of the parameter values from NodeLabel Parameter Plugin
+    private static final String CLASS_LABEL_PARAMETER_VALUE = "org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterValue";
+    private static final String CLASS_NODE_PARAMETER_VALUE = "org.jvnet.jenkins.plugins.nodelabelparameter.NodeParameterValue";
 
     private static final String SVN_TAG_PARAM_CLASS = "hudson.scm.listtagsparameter.ListSubversionTagsParameterValue";
     /*
@@ -200,25 +207,26 @@ public class RebuildAction implements Action {
      * @throws ServletException     if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    @SuppressWarnings("unused") // "Rebuild"
+    @SuppressWarnings("unused") // "Rebuild" button
     public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException, ServletException, InterruptedException {
         Run currentBuild = request.findAncestorObject(Run.class);
         if (currentBuild != null) {
-            ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
-            if (paramAction != null) {
-                RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-                if (settings != null && settings.getAutoRebuild()) {
-                    //TODO redirect to parameterized? need to specify 'build on the same node'
+            RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+            if (settings == null || !settings.getAutoRebuild()) {
+                // show parameterized.jelly page (even if the job is not parameterized):
+                // need to specify if the rebuild should be executed at the same node
+                response.sendRedirect(PARAMETERIZED_URL);
+            } else {
+                // rebuild w/o showing parameterized.jelly page
+                if (currentBuild.getAction(ParametersAction.class) != null) {
                     parameterizedRebuild(currentBuild, response);
                 } else {
-                    response.sendRedirect(PARAMETERIZED_URL);
+                    nonParameterizedRebuild(currentBuild, response);
                 }
-            } else {
-                // show parameterized page anyway: need to specify if the rebuild should be executed at the same node
-                response.sendRedirect(PARAMETERIZED_URL);
             }
         }
     }
+
     /**
      * Handles the rebuild request with parameter.
      *
@@ -233,7 +241,6 @@ public class RebuildAction implements Action {
         }
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
-
             List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
             ParametersAction action = currentBuild.getAction(ParametersAction.class);
             actions.add(action);
@@ -243,25 +250,23 @@ public class RebuildAction implements Action {
         }
     }
 
-    //TODO remove?
-//    /**
-//     * Call this method while rebuilding
-//     * non parameterized build.     .
-//     *
-//     * @param currentBuild current build.
-//     * @param response     current response object.
-//     * @throws ServletException     if something unfortunate happens.
-//     * @throws IOException          if something unfortunate happens.
-//     * @throws InterruptedException if something unfortunate happens.
-//     */
-//    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
-//            response) throws ServletException, IOException, InterruptedException {
-//        getProject().checkPermission(Item.BUILD);
-//
-//        List<Action> actions = constructRebuildCause(build, null);
-//        Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
-//        response.sendRedirect("../../");
-//    }
+    /**
+     * Call this method while rebuilding
+     * non parameterized build.     .
+     *
+     * @param currentBuild current build.
+     * @param response     current response object.
+     * @throws ServletException     if something unfortunate happens.
+     * @throws IOException          if something unfortunate happens.
+     * @throws InterruptedException if something unfortunate happens.
+     */
+    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse response)
+            throws ServletException, IOException, InterruptedException {
+        getProject().checkPermission(Item.BUILD);
+        List<Action> actions = constructRebuildCause(build, null);
+        Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
+        response.sendRedirect("../../");
+    }
 
     /**
      * Saves the form to the configuration and disk.
@@ -272,7 +277,7 @@ public class RebuildAction implements Action {
      * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    @SuppressWarnings("unused") // "Rebuild"
+    @SuppressWarnings("unused") // "Rebuild" button
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException, InterruptedException {
         Job project = getProject();
         if (project == null) {
@@ -470,7 +475,7 @@ public class RebuildAction implements Action {
     /**
      * Method for constructing Rebuild cause.
      *
-     * @param up AbsstractBuild
+     * @param up AbstractBuild
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
@@ -482,6 +487,9 @@ public class RebuildAction implements Action {
         }
         return actions;
     }
+
+
+    // The following methods are called from parameterized.jelly page
 
     /**
      * @param value the parameter value to show to rebuild.
@@ -508,5 +516,51 @@ public class RebuildAction implements Action {
         // Else we return that we haven't found anything.
         // So Jelly fallback could occur.
         return null;
+    }
+
+    /**
+     * Checks if the ParameterValue is an instance of {@link NodeLabelParameterValue}. Used to define whether the
+     * parameter value should have it's input element on the parameterized.jelly page.
+     */
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public boolean isNodeLabelParameterValue(ParameterValue parameterValue) {
+        return parameterValue instanceof NodeLabelParameterValue;
+    }
+
+    /**
+     * Checks if the rebuild can be executed on the same node that the original build. The result can be false if
+     * the job has 'Restrict where this project can be run' option configured or if the job has parameters from
+     * NodeLabel Parameter Plugin.
+     *
+     * This method is used to define whether 'Build on the same node' checkbox should be shown.
+     */
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public boolean canBeBuiltOnTheSameNode() {
+        AbstractBuild<?, ?> ab = (AbstractBuild<?, ?>) this.build;
+        ParametersAction paramAction = build.getAction(ParametersAction.class);
+        if (paramAction != null) {
+            // check if whether the job uses NodeLabel Parameter Plugin
+            for (ParameterValue parameterValue : paramAction.getParameters()) {
+                String parameterValueClass = parameterValue.getClass().getName();
+                if (parameterValueClass.equals(CLASS_LABEL_PARAMETER_VALUE) ||
+                        parameterValueClass.equals(CLASS_NODE_PARAMETER_VALUE)) {
+                    // if NodeLabel Parameter Plugin is used 'Rebuild on the same node' checkbox is not shown
+                    return false;
+                }
+            }
+        }
+
+        Node previousNode = ab.getBuiltOn();
+        if (previousNode == null) {
+            //TODO show warning if node is deleted
+            return false; // node no longer exists
+        }
+        AbstractProject<?, ?> project = ab.getProject();
+        Label assignedLabel = project.getAssignedLabel();
+        if (assignedLabel == null) {
+            return true; // job can be built on any node
+        }
+
+        return assignedLabel.matches(previousNode);
     }
 }

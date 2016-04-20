@@ -31,11 +31,6 @@ public final class RebuildDescriptor extends GlobalConfiguration {
         return true;
     }
 
-    @SuppressWarnings("unused") // used from parameterized.jelly
-    public boolean isNodeLabelParameterValue(Object o) {
-        return o instanceof NodeLabelParameterValue;
-    }
-
     /**
      * Gets the configuration object.
      *
