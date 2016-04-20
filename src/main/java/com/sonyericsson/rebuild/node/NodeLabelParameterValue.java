@@ -12,7 +12,7 @@ import org.kohsuke.stapler.export.Exported;
 
 import java.util.List;
 
-public class NodeLabelParameterValue extends ParameterValue {
+public final class NodeLabelParameterValue extends ParameterValue {
     private static final String NODE_LABEL_PARAMETER_NAME = "com.sonyericsson.rebuild.node.NODE_LABEL";
 
     @Exported(visibility = 3)

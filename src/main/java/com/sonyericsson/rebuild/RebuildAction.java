@@ -24,6 +24,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import com.sonyericsson.rebuild.node.CanBeBuildOnTheSameNodeCheckResult;
 import com.sonyericsson.rebuild.node.NodeLabelParameterValue;
 import hudson.Extension;
 import hudson.matrix.MatrixRun;
@@ -59,6 +60,11 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.sonyericsson.rebuild.node.CanBeBuildOnTheSameNodeCheckResult.NODELABEL_PARAMETER_PLUGIN_USED;
+import static com.sonyericsson.rebuild.node.CanBeBuildOnTheSameNodeCheckResult.NODE_NOT_EXISTS;
+import static com.sonyericsson.rebuild.node.CanBeBuildOnTheSameNodeCheckResult.NODE_NOT_MATCHES_RESTRICT_LABEL;
+import static com.sonyericsson.rebuild.node.CanBeBuildOnTheSameNodeCheckResult.OK;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -528,14 +534,11 @@ public class RebuildAction implements Action {
     }
 
     /**
-     * Checks if the rebuild can be executed on the same node that the original build. The result can be false if
-     * the job has 'Restrict where this project can be run' option configured or if the job has parameters from
-     * NodeLabel Parameter Plugin.
-     *
+     * Checks if the rebuild can be executed on the same node that the original build.
      * This method is used to define whether 'Build on the same node' checkbox should be shown.
      */
     @SuppressWarnings("unused") // used from parameterized.jelly
-    public boolean canBeBuiltOnTheSameNode() {
+    public CanBeBuildOnTheSameNodeCheckResult canBeBuiltOnTheSameNode() {
         AbstractBuild<?, ?> ab = (AbstractBuild<?, ?>) build;
         ParametersAction paramAction = build.getAction(ParametersAction.class);
         if (paramAction != null) {
@@ -545,30 +548,35 @@ public class RebuildAction implements Action {
                 if (parameterValueClass.equals(CLASS_LABEL_PARAMETER_VALUE) ||
                         parameterValueClass.equals(CLASS_NODE_PARAMETER_VALUE)) {
                     // if NodeLabel Parameter Plugin is used 'Rebuild on the same node' checkbox is not shown
-                    return false;
+                    return NODELABEL_PARAMETER_PLUGIN_USED;
                 }
             }
         }
 
         Node previousNode = ab.getBuiltOn();
         if (previousNode == null) {
-            return false; // node no longer exists
+            return NODE_NOT_EXISTS;
         }
         AbstractProject<?, ?> project = ab.getProject();
         Label assignedLabel = project.getAssignedLabel();
         if (assignedLabel == null) {
-            return true; // job can be built on any node
+            return OK; // job can be built on any node
         }
 
-        return assignedLabel.matches(previousNode);
+        if (assignedLabel.matches(previousNode)) {
+            return OK;
+        } else {
+            return NODE_NOT_MATCHES_RESTRICT_LABEL;
+        }
     }
 
-    /**
-     * Checks whether the previous (from the original build) node exists now.
-     */
     @SuppressWarnings("unused") // used from parameterized.jelly
-    public boolean previousNodeExists() {
-        AbstractBuild<?, ?> ab = (AbstractBuild<?, ?>) build;
-        return ab.getBuiltOn() != null;
+    public boolean shouldShowRebuildOnTheSameNodeCheckbox(CanBeBuildOnTheSameNodeCheckResult res) {
+        return res == OK;
+    }
+
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public boolean shouldShowPrevNodeNotExistsWarning(CanBeBuildOnTheSameNodeCheckResult res) {
+        return res == NODE_NOT_EXISTS;
     }
 }

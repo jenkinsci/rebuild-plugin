@@ -95,9 +95,11 @@ THE SOFTWARE.
                 </j:if>
                 <br/>
                 <br/>
+
+                <j:set var="canBeBuiltOnTheSameNode" value="${it.canBeBuiltOnTheSameNode()}" />
                 <f:block>
                     <f:submit value="${%Rebuild}"/>
-                    <j:if test="${it.canBeBuiltOnTheSameNode()}">
+                    <j:if test="${it.shouldShowRebuildOnTheSameNodeCheckbox(canBeBuiltOnTheSameNode)}">
                         <span name="parameter">
                             <f:checkbox name="value" checked="false" title="${%Rebuild on the same node that the original build}"/>
                             <input type="hidden" name="name" value="${it.REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME}" />
@@ -105,7 +107,7 @@ THE SOFTWARE.
                     </j:if>
                 </f:block>
 
-                <j:if test="${!it.previousNodeExists()}">
+                <j:if test="${it.shouldShowPrevNodeNotExistsWarning(canBeBuiltOnTheSameNode)}">
                     <f:block >
                         <br />
                         <div class="warning">Rebuild cannot be executed on the same node that the original build because that node doesn't exist anymore.</div>
