@@ -584,4 +584,14 @@ public class RebuildAction implements Action {
     public boolean shouldShowNodeLabelParameterPluginUsedWarning(CanBeBuildOnTheSameNodeCheckResult res) {
         return res == NODELABEL_PARAMETER_PLUGIN_USED;
     }
+
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public String getPrevBuildNodeName() {
+        return ((AbstractBuild<?, ?>) build).getBuiltOnStr();
+    }
+
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public String getPrevBuildNodeUrl() {
+        return ((AbstractBuild<?, ?>) build).getBuiltOn().getSearchUrl();
+    }
 }

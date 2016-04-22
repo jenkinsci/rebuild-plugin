@@ -101,7 +101,8 @@ THE SOFTWARE.
                     <f:submit value="${%Rebuild}"/>
                     <j:if test="${it.shouldShowRebuildOnTheSameNodeCheckbox(canBeBuiltOnTheSameNode)}">
                         <span name="parameter">
-                            <f:checkbox name="value" checked="false" title="${%Rebuild on the same node that the original build}"/>
+                            <f:checkbox name="value" checked="false" title="${%Rebuild on the same node that the original build}: "/>
+                            <a href="${rootURL}/${it.getPrevBuildNodeUrl()}" style="font-weight: bold;">${' ' + it.getPrevBuildNodeName()}</a>
                             <input type="hidden" name="name" value="${it.REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME}" />
                         </span>
                     </j:if>
@@ -110,7 +111,8 @@ THE SOFTWARE.
                 <j:if test="${it.shouldShowPrevNodeNotExistsWarning(canBeBuiltOnTheSameNode)}">
                     <f:block >
                         <br />
-                        <div class="warning">${%Original build's node doesn't exist anymore.}</div>
+                        <span class="warning">${%Original build's node doesn't exist anymore}:</span>
+                        <span style="font-weight: bold;">${' ' + it.getPrevBuildNodeName()}</span>
                     </f:block>
                 </j:if>
 
