@@ -78,7 +78,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
 
         @Override
         public String getDisplayName() {
-            return "Rebuild Settings";
+            return "Promote Rebuild Settings";
         }
 
         @Override

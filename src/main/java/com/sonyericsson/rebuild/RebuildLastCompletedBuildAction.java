@@ -42,7 +42,7 @@ public class RebuildLastCompletedBuildAction extends RebuildAction {
         boolean hasCompletedBuild = project.getLastCompletedBuild() != null;
         if (isBuildable) {
             if (hasCompletedBuild) {
-                return "lastCompletedBuild/rebuild";
+                return "lastCompletedBuild/promoterebuild";
             } else {
                 return "build?delay=0sec";
             }
@@ -53,6 +53,6 @@ public class RebuildLastCompletedBuildAction extends RebuildAction {
 
     @Override
     public String getDisplayName() {
-        return "Rebuild Last";
+        return "Promote Rebuild Last";
     }
 }

@@ -29,11 +29,11 @@ THE SOFTWARE.
    
     <f:entry field="autoRebuild" title="${%Rebuild options:}">
         <f:checkbox default="false" checked="${it.autoRebuild}" 
-                    title="${%Rebuild Without Asking For Parameters}"/>
+                    title="${%Promote Without Asking For Parameters}"/>
     </f:entry>
     <f:entry field="rebuildDisabled">
     	<f:checkbox default="false" checked="${it.rebuildDisbaled}" 
-                    title="${%Disable Rebuilding for this job}"/>
+                    title="${%Disable Promote for this job}"/>
     </f:entry>
 </j:jelly>
 

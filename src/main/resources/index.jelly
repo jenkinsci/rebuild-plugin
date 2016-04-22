@@ -3,5 +3,5 @@
   Since we don't really have anything dynamic here, let's just use static HTML.
 -->
 <div>
-  This plugin is for rebuilding a job using the same parameters.
+  This plugin is for promote rebuilding a job using the same parameters.
 </div>

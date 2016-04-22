@@ -57,9 +57,6 @@ import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import com.sonyericsson.rebuild.RebuildParameterPage;
-import com.sonyericsson.rebuild.RebuildParameterProvider;
-
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
  * the build with existing parameters.
@@ -73,8 +70,8 @@ public class RebuildAction implements Action {
      * All the below transient variables are declared only for backward
      * compatibility of the rebuild plugin.
      */
-    private transient String rebuildurl = "rebuild";
-    private transient String parameters = "rebuildParam";
+    private transient String rebuildurl = "promoterebuild";
+    private transient String parameters = "promoterebuildParam";
     private transient String p = "parameter";
     private transient Run<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
@@ -175,7 +172,7 @@ public class RebuildAction implements Action {
     @Override
     public String getDisplayName() {
 		if (isRebuildAvailable()) {
-            return "Rebuild";
+            return "PROMOTE REBUILD";
         } else {
             return null;
         }
@@ -184,7 +181,7 @@ public class RebuildAction implements Action {
     @Override
     public String getUrlName() {
         if (isRebuildAvailable()) {
-            return "rebuild";
+            return "promoterebuild";
         } else {
             return null;
         }
@@ -234,6 +231,8 @@ public class RebuildAction implements Action {
             List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
             ParametersAction action = currentBuild.getAction(ParametersAction.class);
             actions.add(action);
+
+            addPromoteRebuildActionParamater(actions);
 
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
@@ -455,11 +454,16 @@ public class RebuildAction implements Action {
      */
     private List<Action> constructRebuildCause(Run up, ParametersAction paramAction) {
         List<Action> actions = copyBuildCausesAndAddUserCause(up);
-        actions.add(new CauseAction(new RebuildCause(up)));
+        addPromoteRebuildActionParamater(actions);
+        actions.add(new PromoteRebuildAction(up));
         if (paramAction != null) {
             actions.add(paramAction);
         }
         return actions;
+    }
+
+    private void addPromoteRebuildActionParamater(List<Action> actions) {
+        actions.add(new ParametersAction(new StringParameterValue("promoterebuild","truetrue")));
     }
 
     /**

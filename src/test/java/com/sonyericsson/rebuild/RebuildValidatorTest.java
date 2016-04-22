@@ -188,7 +188,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				new ParametersAction(new StringParameterValue("name", "ABC")))
 				.get();
 		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
-				"1/rebuild");
+				"1/promoterebuild");
 		WebAssert.assertElementPresentByXPath(rebuildConfigPage,
 				"//div[@name='parameter']/input[@value='ABC']");
 	}
@@ -212,21 +212,21 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				new ParametersAction(new StringParameterValue("name", "test")))
 				.get();
 		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
-				"1/rebuild");
+				"1/promoterebuild");
 		// Rebuild (#2)
 		submit(rebuildConfigPage.getFormByName("config"));
 
 		HtmlPage projectPage = createWebClient().getPage(project);
-		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
+		WebAssert.assertLinkPresentWithText(projectPage, "Promote Rebuild Last");
 
-		HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
+		HtmlAnchor rebuildHref = projectPage.getAnchorByText("Promote Rebuild Last");
 		assertEquals("Rebuild Last should point to the second build", "/"
-				+ project.getUrl() + "lastCompletedBuild/rebuild",
+				+ project.getUrl() + "lastCompletedBuild/promoterebuild",
 				rebuildHref.getHrefAttribute());
 	}
 
 	/**
-	 * Creates a new freestyle project and rebuild. Check that the RebuildCause
+	 * Creates a new freestyle project and rebuild. Check that the PromoteRebuildAction
 	 * has been set to the new build. Check also that a UserIdCause is added.
 	 *
 	 * @throws Exception
@@ -243,11 +243,11 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				new ParametersAction(new StringParameterValue("name", "test")))
 				.get();
 		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
-				"1/rebuild");
+				"1/promoterebuild");
 		// Rebuild (#2)
 		submit(rebuildConfigPage.getFormByName("config"));
 
-		createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+		createWebClient().getPage(project).getAnchorByText("Promote Rebuild Last")
 				.click();
 
 		while (project.isBuilding()) {
@@ -261,7 +261,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 			if (action instanceof CauseAction) {
 				CauseAction causeAction = (CauseAction) action;
 				if (causeAction.getCauses().get(0).getClass()
-						.equals(RebuildCause.class)) {
+						.equals(PromoteRebuildAction.class)) {
 					hasRebuildCause = true;
 				}
 				if (causeAction.getCauses().get(0).getClass()
@@ -272,7 +272,9 @@ public class RebuildValidatorTest extends HudsonTestCase {
 						.equals(Cause.UserIdCause.class)) {
 					hasUserIdCause = true;
 				}
-			}
+			} else if(action instanceof PromoteRebuildAction) {
+                hasRebuildCause = true;
+            }
 		}
 		assertTrue("Build should have user, remote and rebuild causes",
 				hasRebuildCause && hasRemoteCause && hasUserIdCause);
@@ -293,7 +295,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		project.addProperty(settings);
 		project.save();
 		HtmlPage projectPage = createWebClient().getPage(project);
-		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
+		WebAssert.assertLinkPresentWithText(projectPage, "Promote Rebuild Last");
 
 	}
 
@@ -312,7 +314,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		project.addProperty(settings);
 		project.save();
 		HtmlPage projectPage = createWebClient().getPage(project);
-		WebAssert.assertLinkNotPresentWithText(projectPage, "Rebuild Last");
+		WebAssert.assertLinkNotPresentWithText(projectPage, "Promote Rebuild Last");
 
 	}
 
@@ -361,7 +363,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 						"param1", "value1"))));
 		FreeStyleBuild build = project.getLastBuild();
 		// it is trying to fallback and use the
-		HtmlPage page = wc.getPage(build, "rebuild");
+		HtmlPage page = wc.getPage(build, "promoterebuild");
 		// Check the hardcoded description is showing properly.
 		assertTrue(page.asText().contains(
 				"Configuration page for UnsupportedUnknownParameterValue"));
@@ -388,7 +390,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 								new SupportedUnknownParameterValue("param1",
 										"value1"))));
 		FreeStyleBuild build = project.getLastBuild();
-		HtmlPage page = wc.getPage(build, "rebuild");
+		HtmlPage page = wc.getPage(build, "promoterebuild");
 		assertTrue(page.asText(),
 				page.asText().contains("This is a mark for test"));
 	}

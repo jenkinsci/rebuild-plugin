@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
-    <artifactId>rebuild</artifactId>
+    <artifactId>promoterebuild</artifactId>
     <version>1.26-SNAPSHOT</version>
     <packaging>hpi</packaging>
-    <name>Rebuilder</name>
+    <name>PromoteRebuilder</name>
 
     <repositories>
         <repository>
