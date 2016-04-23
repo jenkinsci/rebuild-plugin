@@ -29,27 +29,6 @@ public class PromotedJobGlobal extends GlobalVariable {
             throw new IllegalStateException("cannot find associated build");
         }
 
-        StringBuilder changeSet = new StringBuilder();
-
-        if(build instanceof WorkflowRun) {
-            WorkflowRun workflowRun = (WorkflowRun) build;
-            List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets = workflowRun.getChangeSets();
-            for (ChangeLogSet<? extends ChangeLogSet.Entry> entries : changeSets) {
-
-                for (ChangeLogSet.Entry entry : entries) {
-
-                    //echo "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}"
-//                    String line = entry.getCommitId()
-                    changeSet.append(entry.getCommitId())
-                            .append(" ")
-                            .append(entry.getMsg())
-                            .append("\n");
-                }
-
-            }
-
-        }
-
         List<PromoteRebuildCauseAction> result = build.getActions(PromoteRebuildCauseAction.class);
         return new PromotedJob(result);
     }
