@@ -5,11 +5,9 @@ package dsl
  */
 def call(body = {}) {
     def config = [:]
-    if (body != null) {
-        body.resolveStrategy = Closure.DELEGATE_FIRST
-        body.delegate = new StagePromotionDelegate(config)
-        body()
-    }
+    body.resolveStrategy = Closure.DELEGATE_ONLY
+    body.delegate = new StagePromotionDelegate(config)
+    body()
 
     def jenkinsUrl = "${env.JENKINS_URL}"
     def jobPath = currentBuild.getAbsoluteUrl().replace(jenkinsUrl, '/')
@@ -20,19 +18,16 @@ def call(body = {}) {
 
 }
 
-class StagePromotionDelegate
-{
+class StagePromotionDelegate {
     def map
 
-    StagePromotionDelegate(map)
-    {
+    StagePromotionDelegate(map) {
         this.map = map
         this.map['message'] = 'Promote to RELEASE'
 
     }
 
-    def message(msg)
-    {
+    def message(msg) {
         this.map['message'] = msg
     }
 }
