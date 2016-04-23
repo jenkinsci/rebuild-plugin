@@ -1,4 +1,4 @@
-package com.sonyericsson.hudson.plugins.rebuild;
+package uk.co.bbc.mobileci.promoterebuild.hudson.plugins.rebuild;
 
 import uk.co.bbc.mobileci.promoterebuild.PromoteRebuildAction;
 /**
