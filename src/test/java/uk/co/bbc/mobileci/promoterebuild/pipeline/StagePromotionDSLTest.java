@@ -20,11 +20,27 @@ public class StagePromotionDSLTest  {
     public JenkinsRule j = new JenkinsRule();
 
     @Test
-    public void createsBadge() throws Exception {
+    public void createsDefaultBadge() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition(
                 "node {\n" +
                         "  stagePromotion {}\n" +
+                        "}", false));
+        WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
+
+        assertEquals("Promote to RELEASE", run.getAction(GroovyPostbuildAction.class).getText());
+
+        String expectedPromoteUrl = "/" + p.getBuildByNumber(1).getUrl() + "promoterebuild";
+        assertEquals(expectedPromoteUrl, run.getAction(GroovyPostbuildAction.class).getLink());
+
+    }
+
+    @Test
+    public void createsDefaultBadgeWithMinimalCode() throws Exception {
+        WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsFlowDefinition(
+                "node {\n" +
+                        "  stagePromotion()\n" +
                         "}", false));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
 
