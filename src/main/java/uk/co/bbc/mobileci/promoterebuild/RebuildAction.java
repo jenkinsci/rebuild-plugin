@@ -22,7 +22,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonyericsson.rebuild;
+package uk.co.bbc.mobileci.promoterebuild;
 
 import hudson.Extension;
 import hudson.model.Action;
@@ -193,7 +193,6 @@ public class RebuildAction implements Action {
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
-                RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
                     parameterizedRebuild(currentBuild, response);
             } else {
                 nonParameterizedRebuild(currentBuild, response);
@@ -242,51 +241,6 @@ public class RebuildAction implements Action {
         response.sendRedirect("../../");
     }
 
-    /**
-     * Saves the form to the configuration and disk.
-     *
-     * @param req StaplerRequest
-     * @param rsp StaplerResponse
-     * @throws ServletException     if something unfortunate happens.
-     * @throws IOException          if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
-     */
-    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException, InterruptedException {
-        Job project = getProject();
-        if (project == null) {
-            return;
-        }
-        project.checkPermission(Item.BUILD);
-        if (isRebuildAvailable()) {
-            if (!req.getMethod().equals("POST")) {
-                // show the parameter entry form.
-                req.getView(this, "index.jelly").forward(req, rsp);
-                return;
-            }
-            build = req.findAncestorObject(Run.class);
-            ParametersDefinitionProperty paramDefProp = build.getParent().getProperty(
-                    ParametersDefinitionProperty.class);
-            List<ParameterValue> values = new ArrayList<ParameterValue>();
-            ParametersAction paramAction = build.getAction(ParametersAction.class);
-            JSONObject formData = req.getSubmittedForm();
-            if (!formData.isEmpty()) {
-                JSONArray a = JSONArray.fromObject(formData.get("parameter"));
-                for (Object o : a) {
-                    JSONObject jo = (JSONObject)o;
-                    String name = jo.getString("name");
-                    ParameterValue parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
-                    if (parameterValue != null) {
-                        values.add(parameterValue);
-                    }
-                }
-            }
-
-            List<Action> actions = constructRebuildCause(build, new ParametersAction(values));
-            Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
-
-            rsp.sendRedirect("../../");
-        }
-    }
 
     /**
      * Extracts the build causes and adds or replaces the {@link hudson.model.Cause.UserIdCause}. The result is a
@@ -345,19 +299,10 @@ public class RebuildAction implements Action {
                 && project.hasPermission(Item.BUILD)
                 && project.isBuildable()
                 && project instanceof Queue.Task
-                && !isMatrixRun() 
-                && !isRebuildDisbaled();
+                && !isMatrixRun() ;
 
     }
 
-    private boolean isRebuildDisbaled() {
-        RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-        
-        if (settings != null && settings.getRebuildDisabled()) {
-			return true;
-		}
-		return false;
-	}
 
 	/**
      * Method for getting the ParameterValue instance from ParameterDefinition
@@ -447,30 +392,4 @@ public class RebuildAction implements Action {
         return actions;
     }
 
-
-    /**
-     * @param value the parameter value to show to rebuild.
-     * @return page for the parameter value, or null if no suitable option found.
-     */
-    public RebuildParameterPage getRebuildParameterPage(ParameterValue value) {
-        for (RebuildParameterProvider provider: RebuildParameterProvider.all()) {
-            RebuildParameterPage page = provider.getRebuildPage(value);
-            if (page != null) {
-                return page;
-            }
-        }
-
-        // Check if we have a branched Jelly in the plugin.
-        if (getClass().getResource(String.format("/%s/%s.jelly", getClass().getCanonicalName().replace('.', '/'), value.getClass().getSimpleName())) != null) {
-            // No provider available, use an existing view provided by rebuild plugin.
-            return new RebuildParameterPage(
-                    getClass(),
-                    String.format("%s.jelly", value.getClass().getSimpleName())
-                    );
-
-        }
-        // Else we return that we haven't found anything.
-        // So Jelly fallback could occur.
-        return null;
-    }
 }

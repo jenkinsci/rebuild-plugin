@@ -21,10 +21,8 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonyericsson.rebuild;
+package uk.co.bbc.mobileci.promoterebuild;
 
-import com.gargoylesoftware.htmlunit.WebAssert;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 import hudson.Extension;
@@ -46,8 +44,7 @@ import junit.framework.Assert;
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.TestExtension;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.ResponseImpl;
-import org.kohsuke.stapler.StaplerResponse;
+import uk.co.bbc.mobileci.promoterebuild.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -222,7 +219,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		}
 
 		assertTrue("Build should have user, remote and promote causes",
-				hasPromoteAction && hasRemoteCause && hasUserIdCause);
+                hasPromoteAction && hasRemoteCause && hasUserIdCause);
 	}
 
 
@@ -383,21 +380,4 @@ public class RebuildValidatorTest extends HudsonTestCase {
 
 	}
 
-	/**
-	 * Provides a view for {@link SupportedUnknownParameterValue} when
-	 * rebuilding.
-	 */
-	@TestExtension
-	public static class TestRebuildParameterProvider extends
-			RebuildParameterProvider {
-		@Override
-		public RebuildParameterPage getRebuildPage(ParameterValue value) {
-			if (!(value instanceof SupportedUnknownParameterValue)) {
-				return null;
-			}
-			RebuildParameterPage page = new RebuildParameterPage(
-					SupportedUnknownParameterValue.class, "rebuild.groovy");
-			return page;
-		}
-	}
 }

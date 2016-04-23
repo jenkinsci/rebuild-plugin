@@ -21,7 +21,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonyericsson.rebuild;
+package uk.co.bbc.mobileci.promoterebuild;
 
 import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;

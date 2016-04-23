@@ -2,7 +2,6 @@
  *  The MIT License
  *
  *  Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.
- *  Copyright 2012 Sony Mobile Communications AB. All rights reservered.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +21,38 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonyericsson.rebuild;
+package uk.co.bbc.mobileci.promoterebuild;
 
-
-import hudson.Extension;
-import hudson.model.Hudson;
+import hudson.ExtensionPoint;
+import hudson.Util;
+import hudson.model.AbstractBuild;
 import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.model.listeners.RunListener;
+
+import java.io.Serializable;
 
 /**
- * Runtime Listner class which allows the user to rebuild the parameterized build.
+ * Extension point for allowing disabling of the rebuild-action, in case
+ * other plug-ins provides similar functionality.
  *
- * @author Shemeer S.
+ * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
-@Extension
-public class Rebuilder extends RunListener<Run> {
-
+public abstract class RebuildValidator implements Serializable, ExtensionPoint {
     /**
-     * Rebuilder class constructor.
+     * Method for acknowledge that another plug-ins wants handle the Rebuild functionality itself.
+     *
+     * @param build Build to use when verifying applicability
+     * @return true if the plug-in provides its own rebuild functionality. E.g. disable the rebuild action.
      */
-    public Rebuilder() {
-        super(Run.class);
+    public /*abstract*/ boolean isApplicable(Run build) {
+        if (Util.isOverridden(RebuildValidator.class, getClass(), "isApplicable", AbstractBuild.class) && build instanceof AbstractBuild) {
+            return isApplicable((AbstractBuild) build);
+        } else {
+            throw new AbstractMethodError("you must override the new overload of isApplicable");
+        }
     }
 
-    @Override
-    public void onCompleted(Run build, TaskListener listener) {
-            for (RebuildValidator rebuildValidator : Hudson.getInstance().
-                    getExtensionList(RebuildValidator.class)) {
-                if (rebuildValidator.isApplicable(build)) {
-                    return;
-                }
-            }
-            RebuildAction rebuildAction = new RebuildAction();
-            // TODO what is the purpose of this? If eligible, RebuildActionFactory would already be adding it anyway (without saving anything to XML).
-            build.getActions().add(rebuildAction);
+    @Deprecated
+    public boolean isApplicable(AbstractBuild build) {
+        return isApplicable((Run) build);
     }
-
 }

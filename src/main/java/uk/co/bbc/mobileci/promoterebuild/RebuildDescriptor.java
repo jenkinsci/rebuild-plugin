@@ -1,4 +1,4 @@
-package com.sonyericsson.rebuild;
+package uk.co.bbc.mobileci.promoterebuild;
 
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;

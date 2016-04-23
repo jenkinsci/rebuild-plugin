@@ -1,6 +1,6 @@
 package com.sonyericsson.hudson.plugins.rebuild;
 
-import com.sonyericsson.rebuild.RebuildAction;
+import uk.co.bbc.mobileci.promoterebuild.RebuildAction;
 /**
  * Root class.
  * This class is declared only for
