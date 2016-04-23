@@ -42,9 +42,7 @@ import hudson.model.StringParameterValue;
 
 import junit.framework.Assert;
 import org.jvnet.hudson.test.HudsonTestCase;
-import org.jvnet.hudson.test.TestExtension;
 import org.kohsuke.stapler.DataBoundConstructor;
-import uk.co.bbc.mobileci.promoterebuild.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -55,7 +53,7 @@ import java.util.concurrent.ExecutionException;
  *
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
-public class RebuildValidatorTest extends HudsonTestCase {
+public class PromoteRebuildValidatorTest extends HudsonTestCase {
 	/**
 	 * Sleep delay value.
 	 */
@@ -79,7 +77,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				new Cause.UserIdCause(),
 				new ParametersAction(new StringParameterValue("party",
 						"megaparty"))).get();
-		assertNotNull(buildA.getAction(RebuildAction.class));
+		assertNotNull(buildA.getAction(PromoteRebuildAction.class));
 	}
 
 	/**
@@ -94,7 +92,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 */
 	public void testRebuildValidatorExtensionIsApplicableTrue()
 			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(RebuildValidator.class).add(0,
+		hudson.getExtensionList(PromoteRebuildValidator.class).add(0,
 				new ValidatorAlwaysApplicable());
 		Project projectA = createFreeStyleProject("testFreeStyleB");
 		Build buildA = (Build) projectA.scheduleBuild2(
@@ -102,7 +100,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				new Cause.UserIdCause(),
 				new ParametersAction(new StringParameterValue("party",
 						"megaparty"))).get();
-		assertNull(buildA.getAction(RebuildAction.class));
+		assertNull(buildA.getAction(PromoteRebuildAction.class));
 	}
 
 	/**
@@ -117,7 +115,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 */
 	public void testRebuildValidatorExtensionIsApplicableFalse()
 			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(RebuildValidator.class).add(0,
+		hudson.getExtensionList(PromoteRebuildValidator.class).add(0,
 				new ValidatorNeverApplicable());
 		Project projectA = createFreeStyleProject("testFreeStyleC");
 		Build buildA = (Build) projectA.scheduleBuild2(
@@ -125,7 +123,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				new Cause.UserIdCause(),
 				new ParametersAction(new StringParameterValue("party",
 						"megaparty"))).get();
-		assertNotNull(buildA.getAction(RebuildAction.class));
+		assertNotNull(buildA.getAction(PromoteRebuildAction.class));
 	}
 
 	/**
@@ -140,9 +138,9 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 */
 	public void testRebuildValidatorExtensionIsApplicableTrueFalse()
 			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(RebuildValidator.class).add(0,
+		hudson.getExtensionList(PromoteRebuildValidator.class).add(0,
 				new ValidatorAlwaysApplicable());
-		hudson.getExtensionList(RebuildValidator.class).add(0,
+		hudson.getExtensionList(PromoteRebuildValidator.class).add(0,
 				new ValidatorNeverApplicable());
 		Project projectA = createFreeStyleProject("testFreeStyleC");
 		Build buildA = (Build) projectA.scheduleBuild2(
@@ -150,7 +148,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				new Cause.UserIdCause(),
 				new ParametersAction(new StringParameterValue("party",
 						"megaparty"))).get();
-		assertNull(buildA.getAction(RebuildAction.class));
+		assertNull(buildA.getAction(PromoteRebuildAction.class));
 	}
 
 
@@ -213,7 +211,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 						.equals(Cause.UserIdCause.class)) {
 					hasUserIdCause = true;
 				}
-			} else if(action instanceof PromoteRebuildAction) {
+			} else if(action instanceof PromoteRebuildCauseAction) {
                 hasPromoteAction = true;
             }
 		}
@@ -227,7 +225,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	/**
 	 * Implementing an Extension always returning isApplicable false.
 	 */
-	public static class ValidatorNeverApplicable extends RebuildValidator {
+	public static class ValidatorNeverApplicable extends PromoteRebuildValidator {
 
 		@Override
 		public boolean isApplicable(AbstractBuild build) {
@@ -238,7 +236,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	/**
 	 * Implementing an Extension always returning isApplicable true.
 	 */
-	public static class ValidatorAlwaysApplicable extends RebuildValidator {
+	public static class ValidatorAlwaysApplicable extends PromoteRebuildValidator {
 
 		@Override
 		public boolean isApplicable(AbstractBuild build) {

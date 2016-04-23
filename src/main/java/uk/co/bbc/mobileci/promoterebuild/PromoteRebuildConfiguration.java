@@ -31,7 +31,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 /**
  * This class holds the configuration values for the rebuild action.
  */
-public class RebuildConfiguration implements Describable {
+public class PromoteRebuildConfiguration implements Describable {
     /**
      * password remember boolean variable.
      */
@@ -44,7 +44,7 @@ public class RebuildConfiguration implements Describable {
      * a job with a password parameter.
      */
     @DataBoundConstructor
-    public RebuildConfiguration(boolean rememberPasswordEnabled) {
+    public PromoteRebuildConfiguration(boolean rememberPasswordEnabled) {
         this.rememberPasswordEnabled = rememberPasswordEnabled;
     }
 
@@ -57,7 +57,7 @@ public class RebuildConfiguration implements Describable {
 
     @Override
     public Descriptor getDescriptor() {
-        return Hudson.getInstance().getDescriptorOrDie(RebuildConfiguration.class);
+        return Hudson.getInstance().getDescriptorOrDie(PromoteRebuildConfiguration.class);
     }
 
     /**

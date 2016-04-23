@@ -37,24 +37,24 @@ import hudson.model.listeners.RunListener;
  * @author Shemeer S.
  */
 @Extension
-public class Rebuilder extends RunListener<Run> {
+public class PromoteRebuilder extends RunListener<Run> {
 
     /**
      * Rebuilder class constructor.
      */
-    public Rebuilder() {
+    public PromoteRebuilder() {
         super(Run.class);
     }
 
     @Override
     public void onCompleted(Run build, TaskListener listener) {
-            for (RebuildValidator rebuildValidator : Hudson.getInstance().
-                    getExtensionList(RebuildValidator.class)) {
-                if (rebuildValidator.isApplicable(build)) {
+            for (PromoteRebuildValidator promoteRebuildValidator : Hudson.getInstance().
+                    getExtensionList(PromoteRebuildValidator.class)) {
+                if (promoteRebuildValidator.isApplicable(build)) {
                     return;
                 }
             }
-            RebuildAction rebuildAction = new RebuildAction();
+            PromoteRebuildAction rebuildAction = new PromoteRebuildAction();
             // TODO what is the purpose of this? If eligible, RebuildActionFactory would already be adding it anyway (without saving anything to XML).
             build.getActions().add(rebuildAction);
     }

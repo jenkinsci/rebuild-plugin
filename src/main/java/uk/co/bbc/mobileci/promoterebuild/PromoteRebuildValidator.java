@@ -36,7 +36,7 @@ import java.io.Serializable;
  *
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
-public abstract class RebuildValidator implements Serializable, ExtensionPoint {
+public abstract class PromoteRebuildValidator implements Serializable, ExtensionPoint {
     /**
      * Method for acknowledge that another plug-ins wants handle the Rebuild functionality itself.
      *
@@ -44,7 +44,7 @@ public abstract class RebuildValidator implements Serializable, ExtensionPoint {
      * @return true if the plug-in provides its own rebuild functionality. E.g. disable the rebuild action.
      */
     public /*abstract*/ boolean isApplicable(Run build) {
-        if (Util.isOverridden(RebuildValidator.class, getClass(), "isApplicable", AbstractBuild.class) && build instanceof AbstractBuild) {
+        if (Util.isOverridden(PromoteRebuildValidator.class, getClass(), "isApplicable", AbstractBuild.class) && build instanceof AbstractBuild) {
             return isApplicable((AbstractBuild) build);
         } else {
             throw new AbstractMethodError("you must override the new overload of isApplicable");

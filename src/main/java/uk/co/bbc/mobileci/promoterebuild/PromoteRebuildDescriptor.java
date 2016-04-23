@@ -7,13 +7,13 @@ import org.kohsuke.stapler.StaplerRequest;
 /**
  * This class holds the configuration values for the rebuild action.
  */
-public final class RebuildDescriptor extends GlobalConfiguration {
-    private final RebuildConfiguration rebuildConfiguration = new RebuildConfiguration(Boolean.TRUE);
+public final class PromoteRebuildDescriptor extends GlobalConfiguration {
+    private final PromoteRebuildConfiguration rebuildConfiguration = new PromoteRebuildConfiguration(Boolean.TRUE);
 
     /**
      * Constructs a new Descriptor implementation.
      */
-    public RebuildDescriptor() {
+    public PromoteRebuildDescriptor() {
         load();
     }
 
@@ -35,7 +35,7 @@ public final class RebuildDescriptor extends GlobalConfiguration {
      *
      * @return the configuration object.
      */
-    public RebuildConfiguration getRebuildConfiguration() {
+    public PromoteRebuildConfiguration getRebuildConfiguration() {
         return rebuildConfiguration;
     }
 }

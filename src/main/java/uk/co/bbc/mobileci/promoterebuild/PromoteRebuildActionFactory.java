@@ -40,7 +40,7 @@ import static java.util.Collections.singleton;
  * Enables rebuild for builds that ran before installing the rebuild plugin.
  */
 @Extension
-public class RebuildActionFactory extends TransientBuildActionFactory {
+public class PromoteRebuildActionFactory extends TransientBuildActionFactory {
 
     @Override
     public Collection<? extends Action> createFor(Run build) {
@@ -52,16 +52,16 @@ public class RebuildActionFactory extends TransientBuildActionFactory {
             return emptyList();
         }
 
-        boolean hasRebuildAction = build.getAction(RebuildAction.class) != null;
+        boolean hasRebuildAction = build.getAction(PromoteRebuildAction.class) != null;
         if (hasRebuildAction) {
             return emptyList();
         }
-        for (RebuildValidator rebuildValidator : Hudson.getInstance().
-                getExtensionList(RebuildValidator.class)) {
-            if (rebuildValidator.isApplicable(build)) {
+        for (PromoteRebuildValidator promoteRebuildValidator : Hudson.getInstance().
+                getExtensionList(PromoteRebuildValidator.class)) {
+            if (promoteRebuildValidator.isApplicable(build)) {
                 return emptyList();
             }
         }
-        return singleton(new RebuildAction());
+        return singleton(new PromoteRebuildAction());
     }
 }
