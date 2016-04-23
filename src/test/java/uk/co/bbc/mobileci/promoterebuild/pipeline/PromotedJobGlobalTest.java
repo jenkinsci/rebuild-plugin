@@ -29,7 +29,7 @@ public class PromotedJobGlobalTest {
         p.setDefinition(new CpsFlowDefinition(
                 "node {\n" +
                         "  promotedJob\n" +
-                        "}", false));
+                        "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
     }
 
@@ -41,7 +41,7 @@ public class PromotedJobGlobalTest {
                         "  if( ! promotedJob.isPromotion()) {" +
                         "       manager.addWarningBadge 'stuff is broken'\n" +
                         "}\n" +
-                        "}", false));
+                        "}", true));
         QueueTaskFuture<WorkflowRun> workflowRunQueueTaskFuture = p.scheduleBuild2(0);
         WorkflowRun r = workflowRunQueueTaskFuture.waitForStart();
         while (r.isBuilding()) {
@@ -70,7 +70,7 @@ public class PromotedJobGlobalTest {
 
         p.setDefinition(new CpsFlowDefinition(
                 script,
-                false));
+                true));
         QueueTaskFuture<WorkflowRun> workflowRunQueueTaskFuture = p.scheduleBuild2(0);
         WorkflowRun r = workflowRunQueueTaskFuture.waitForStart();
         while (r.isBuilding()) {
