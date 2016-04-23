@@ -46,10 +46,10 @@ import java.util.List;
 @ExportedBean(defaultVisibility = 3)
 public class PromoteRebuildAction implements Action {
 
-    private final PromoteRebuild upstreamCause;
+    private final PromoteRebuildCause upstreamCause;
 
     @Exported(visibility=2)
-    public List<PromoteRebuild> getPromoteRebuildCause() {
+    public List<PromoteRebuildCause> getPromoteRebuild() {
         return Collections.unmodifiableList(Arrays.asList(upstreamCause));
     }
 
@@ -58,7 +58,7 @@ public class PromoteRebuildAction implements Action {
      * @param  up Run.
      */
     public PromoteRebuildAction(Run<?, ?> up) {
-        upstreamCause = new PromoteRebuild(up);
+        upstreamCause = new PromoteRebuildCause(up);
     }
 
 
@@ -79,12 +79,12 @@ public class PromoteRebuildAction implements Action {
     }
 
     @ExportedBean
-    public static class PromoteRebuild {
+    public static class PromoteRebuildCause {
 
 
         private final Cause.UpstreamCause upstreamCause;
 
-        public PromoteRebuild(Run<?, ?> up) {
+        public PromoteRebuildCause(Run<?, ?> up) {
             upstreamCause = new Cause.UpstreamCause(up);
         }
 

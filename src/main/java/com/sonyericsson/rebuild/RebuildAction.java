@@ -162,20 +162,22 @@ public class RebuildAction implements Action {
 
     @Override
     public String getIconFileName() {
-        if (isRebuildAvailable()) {
-            return "clock.gif";
-        } else {
-            return null;
-        }
+//        if (isRebuildAvailable()) {
+//            return "clock.gif";
+//        } else {
+//            return null;
+//        }
+        return null;
     }
 
     @Override
     public String getDisplayName() {
-		if (isRebuildAvailable()) {
-            return "PROMOTE REBUILD";
-        } else {
-            return null;
-        }
+        return null;
+//		if (isRebuildAvailable()) {
+//            return "PROMOTE REBUILD";
+//        } else {
+//            return null;
+//        }
     }
 
     @Override
@@ -203,11 +205,11 @@ public class RebuildAction implements Action {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
                 RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-                if (settings != null && settings.getAutoRebuild()) {
+//                if (settings != null && settings.getAutoRebuild()) {
                     parameterizedRebuild(currentBuild, response);
-                } else {
-                    response.sendRedirect(PARAMETERIZED_URL);
-                }
+//                } else {
+//                    response.sendRedirect(PARAMETERIZED_URL);
+//                }
             } else {
                 nonParameterizedRebuild(currentBuild, response);
             }
@@ -231,8 +233,6 @@ public class RebuildAction implements Action {
             List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
             ParametersAction action = currentBuild.getAction(ParametersAction.class);
             actions.add(action);
-
-            addPromoteRebuildActionParamater(actions);
 
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
@@ -454,7 +454,7 @@ public class RebuildAction implements Action {
      */
     private List<Action> constructRebuildCause(Run up, ParametersAction paramAction) {
         List<Action> actions = copyBuildCausesAndAddUserCause(up);
-        addPromoteRebuildActionParamater(actions);
+
         actions.add(new PromoteRebuildAction(up));
         if (paramAction != null) {
             actions.add(paramAction);
@@ -462,9 +462,6 @@ public class RebuildAction implements Action {
         return actions;
     }
 
-    private void addPromoteRebuildActionParamater(List<Action> actions) {
-        actions.add(new ParametersAction(new StringParameterValue("promoterebuild","truetrue")));
-    }
 
     /**
      * @param value the parameter value to show to rebuild.
