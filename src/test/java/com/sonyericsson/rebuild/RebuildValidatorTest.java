@@ -156,24 +156,6 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		assertNull(buildA.getAction(RebuildAction.class));
 	}
 
-	/**
-	 * Creates a new freestyle project and checks if the rebuild action is
-	 * available on the project level.
-	 *
-	 * @throws Exception
-	 *             Exception
-	 */
-	public void testWhenProjectWithoutParamsThenRebuildProjectAvailable()
-			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
-
-		FreeStyleBuild build = project.scheduleBuild2(0).get();
-
-		RebuildLastCompletedBuildAction action = build.getProject().getAction(
-				RebuildLastCompletedBuildAction.class);
-		assertNotNull(action);
-	}
-
 
 
     public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuildWithoutAskingForInput()
@@ -211,28 +193,21 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
 				new ParametersAction(new StringParameterValue("name", "test")))
 				.get();
+
+        // Rebuild (#2)
 		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
 				"1/promoterebuild");
-		// Rebuild (#2)
-		submit(rebuildConfigPage.getFormByName("config"));
-
-		createWebClient().getPage(project).getAnchorByText("Promote Rebuild Last")
-				.click();
 
 		while (project.isBuilding()) {
 			Thread.sleep(DELAY);
 		}
 		List<Action> actions = project.getLastCompletedBuild().getActions();
-		boolean hasRebuildCause = false;
+		boolean hasPromoteAction = false;
 		boolean hasRemoteCause = false;
 		boolean hasUserIdCause = false;
 		for (Action action : actions) {
 			if (action instanceof CauseAction) {
 				CauseAction causeAction = (CauseAction) action;
-				if (causeAction.getCauses().get(0).getClass()
-						.equals(PromoteRebuildAction.class)) {
-					hasRebuildCause = true;
-				}
 				if (causeAction.getCauses().get(0).getClass()
 						.equals(Cause.RemoteCause.class)) {
 					hasRemoteCause = true;
@@ -242,11 +217,12 @@ public class RebuildValidatorTest extends HudsonTestCase {
 					hasUserIdCause = true;
 				}
 			} else if(action instanceof PromoteRebuildAction) {
-                hasRebuildCause = true;
+                hasPromoteAction = true;
             }
 		}
-		assertTrue("Build should have user, remote and rebuild causes",
-				hasRebuildCause && hasRemoteCause && hasUserIdCause);
+
+		assertTrue("Build should have user, remote and promote causes",
+				hasPromoteAction && hasRemoteCause && hasUserIdCause);
 	}
 
 

@@ -75,7 +75,6 @@ public class RebuildAction implements Action {
     private transient String p = "parameter";
     private transient Run<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
-    private static final String PARAMETERIZED_URL = "parameterized";
     /**
      * Rebuild Descriptor.
      */
@@ -162,22 +161,12 @@ public class RebuildAction implements Action {
 
     @Override
     public String getIconFileName() {
-//        if (isRebuildAvailable()) {
-//            return "clock.gif";
-//        } else {
-//            return null;
-//        }
         return null;
     }
 
     @Override
     public String getDisplayName() {
         return null;
-//		if (isRebuildAvailable()) {
-//            return "PROMOTE REBUILD";
-//        } else {
-//            return null;
-//        }
     }
 
     @Override
@@ -205,11 +194,7 @@ public class RebuildAction implements Action {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
                 RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-//                if (settings != null && settings.getAutoRebuild()) {
                     parameterizedRebuild(currentBuild, response);
-//                } else {
-//                    response.sendRedirect(PARAMETERIZED_URL);
-//                }
             } else {
                 nonParameterizedRebuild(currentBuild, response);
             }
