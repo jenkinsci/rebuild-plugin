@@ -3,11 +3,11 @@ package dsl
 /**
  * Created by beazlr02 on 23/04/16.
  */
-def call(body) {
+def call(body = {}) {
     def config = [:]
     if (body != null) {
         body.resolveStrategy = Closure.DELEGATE_FIRST
-        body.delegate = config
+        body.delegate = new StagePromotionDelegate(config)
         body()
     }
 
@@ -16,7 +16,24 @@ def call(body) {
     def promoUrl = jobPath + "promoterebuild"
     echo promoUrl
 
-    manager.addBadge('clock.png', 'Promote to RELEASE', promoUrl)
+    manager.addBadge('clock.png', config.message, promoUrl)
 
+}
+
+class StagePromotionDelegate
+{
+    def map
+
+    StagePromotionDelegate(map)
+    {
+        this.map = map
+        this.map['message'] = 'Promote to RELEASE'
+
+    }
+
+    def message(msg)
+    {
+        this.map['message'] = msg
+    }
 }
 

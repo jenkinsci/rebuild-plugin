@@ -50,4 +50,18 @@ public class StagePromotionDSLTest  {
         assertEquals(expectedPromoteUrl, run.getAction(GroovyPostbuildAction.class).getLink());
 
     }
+
+    @Test
+    public void createsBadgeWithCustomMessage() throws Exception {
+        WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsFlowDefinition(
+                "node {\n" +
+                        "  stagePromotion {\n" +
+                        "    message 'testing a release'\n" +
+                        "  }\n" +
+                        "}", false));
+        WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
+
+        assertEquals("testing a release", run.getAction(GroovyPostbuildAction.class).getText());
+    }
 }
