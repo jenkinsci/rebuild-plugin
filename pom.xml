@@ -7,7 +7,7 @@
         <artifactId>plugin</artifactId>
         <!-- Since rebuild plugin is using some functions available in
         Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
-        <version>1.481</version>
+        <version>1.556</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -172,6 +172,21 @@
             <artifactId>guava</artifactId>
             <version>12.0-rc1</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-cps</artifactId>
+            <version>1.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>script-security</artifactId>
+            <version>1.15</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-aggregator</artifactId>
+            <version>1.13</version>
         </dependency>
     </dependencies>
     <scm>
