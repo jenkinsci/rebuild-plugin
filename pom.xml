@@ -7,7 +7,7 @@
         <artifactId>plugin</artifactId>
         <!-- Since rebuild plugin is using some functions available in
         Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
-        <version>1.556</version>
+        <version>1.609</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -187,6 +187,16 @@
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-aggregator</artifactId>
             <version>1.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-step-api</artifactId>
+            <version>1.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jvnet.hudson.plugins</groupId>
+            <artifactId>groovy-postbuild</artifactId>
+            <version>2.3.1</version>
         </dependency>
     </dependencies>
     <scm>
