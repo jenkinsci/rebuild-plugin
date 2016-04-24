@@ -31,9 +31,10 @@ public class BuildChangesGlobalTest {
                         "}", true));
 
         j.assertBuildStatusSuccess(p.scheduleBuild2(0));
-        AnnotatedLargeText logText = p.getLastCompletedBuild().getLogText();
 
-        logText.writeRawLogTo(0, System.err);
+        //dump a log for debugging
+        //AnnotatedLargeText logText = p.getLastCompletedBuild().getLogText();
+        //logText.writeRawLogTo(0, System.err);
     }
 
 
