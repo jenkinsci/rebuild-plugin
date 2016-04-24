@@ -2,6 +2,7 @@ package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
 import hudson.Extension;
 import hudson.model.Run;
+import hudson.plugins.git.util.BuildData;
 import hudson.scm.ChangeLogSet;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.cps.CpsScript;
@@ -30,22 +31,30 @@ public class PromotedJobGlobal extends GlobalVariable {
             throw new IllegalStateException("cannot find associated build");
         }
 
-        List<PromoteRebuildCauseAction> result = build.getActions(PromoteRebuildCauseAction.class);
-        return new PromotedJob(result);
+        return new PromotedJob(build);
     }
 
     public static final class PromotedJob {
 
+        private final String hash;
         @Whitelisted private boolean promotion;
 
-        public PromotedJob(List<PromoteRebuildCauseAction> result) {
-            promotion = result.size()>0;
+        public PromotedJob(Run<?, ?> build) {
+
+            promotion = build.getActions(PromoteRebuildCauseAction.class).size()>0;
+
+            this.hash = build.getPreviousBuild().getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
         }
 
         @Whitelisted
         public boolean isPromotion() {
 
             return promotion;
+        }
+
+        @Whitelisted
+        public String getHash() {
+            return hash;
         }
     }
 
