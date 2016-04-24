@@ -43,18 +43,16 @@ public class BuildChangesGlobalTest {
                                 "}", true));
 
                 story.assertBuildStatusSuccess(p.scheduleBuild2(0));
-
-
     }
 
 
-
-    @Test public void smokeTests() throws Exception {
+    @Test
+    public void twoCommits() throws Exception {
 
         sampleRepo.init();
-        String script = "node {\n" +
+        String script;
+        script = "node {\n" +
                 "  echo pipelineBuildChangeset.getChangeSet()\n" +
-                "  echo 'A_MSG_IN_LOG'\n" +
                 "}";
         sampleRepo.write("Jenkinsfile", script);
         sampleRepo.git("add", "Jenkinsfile");
@@ -62,9 +60,20 @@ public class BuildChangesGlobalTest {
 
         WorkflowJob p = story.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsScmFlowDefinition(new GitStep(sampleRepo.toString()).createSCM(), "Jenkinsfile"));
-        WorkflowRun b = p.scheduleBuild2(0).waitForStart();
-        story.assertLogContains("A_MSG_IN_LOG",
-                story.assertBuildStatusSuccess(story.waitForCompletion(b)));
 
+        story.waitForCompletion(p.scheduleBuild2(0).get());
+
+        sampleRepo.write("Jenkinsfile2", script);
+        sampleRepo.git("add", "Jenkinsfile2");
+        sampleRepo.git("commit", "--message=commitForTest");
+
+        sampleRepo.write("Jenkinsfile3", script);
+        sampleRepo.git("add", "Jenkinsfile3");
+        sampleRepo.git("commit", "--message=anotherCommitForTest");
+
+        WorkflowRun b = p.scheduleBuild2(0).waitForStart();
+
+        story.waitForMessage("commitForTest", b);
+        story.waitForMessage("anotherCommitForTest", b);
     }
 }
