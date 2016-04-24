@@ -1,5 +1,8 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
+import hudson.model.Action;
+import hudson.plugins.git.util.BuildData;
+import org.apache.commons.io.FileUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -11,6 +14,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * Created by beazlr02 on 23/04/16.
@@ -62,9 +68,16 @@ public class BuildChangesGlobalTest {
         sampleRepo.git("add", "Jenkinsfile3");
         sampleRepo.git("commit", "--message=anotherCommitForTest");
 
-        WorkflowRun b = p.scheduleBuild2(0).waitForStart();
+        WorkflowRun b = p.scheduleBuild2(0).get();
 
-        story.waitForMessage("commitForTest", b);
-        story.waitForMessage("anotherCommitForTest", b);
+        story.waitForCompletion(b);
+
+
+        story.assertLogContains("commitForTest", b);
+        story.assertLogContains("anotherCommitForTest", b);
+
+
+        String masterHeadHash = b.getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
+        story.assertLogContains(masterHeadHash, b);
     }
 }
