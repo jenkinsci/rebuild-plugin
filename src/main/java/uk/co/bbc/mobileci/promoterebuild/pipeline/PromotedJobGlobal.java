@@ -2,8 +2,10 @@ package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
 import hudson.Extension;
 import hudson.model.Run;
+import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.BuildData;
 import hudson.scm.ChangeLogSet;
+import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.cps.CpsScript;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariable;
@@ -36,14 +38,26 @@ public class PromotedJobGlobal extends GlobalVariable {
 
     public static final class PromotedJob {
 
-        private final String hash;
+        private  String hash;
         @Whitelisted private boolean promotion;
 
         public PromotedJob(Run<?, ?> build) {
 
             promotion = build.getActions(PromoteRebuildCauseAction.class).size()>0;
 
-            this.hash = build.getPreviousBuild().getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
+            Run<?, ?> previousBuild = build.getPreviousBuild();
+            if(isPromotion() && previousBuild !=null) {
+                BuildData action = previousBuild.getAction(BuildData.class);
+                if(action!=null) {
+                    Revision lastBuiltRevision = action.getLastBuiltRevision();
+                    if(lastBuiltRevision!=null) {
+                        ObjectId sha1 = lastBuiltRevision.getSha1();
+                        if (sha1!=null) {
+                            this.hash = sha1.getName();
+                        }
+                    }
+                }
+            }
         }
 
         @Whitelisted
