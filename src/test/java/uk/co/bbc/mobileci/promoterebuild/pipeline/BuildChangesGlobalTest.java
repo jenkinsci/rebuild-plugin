@@ -1,8 +1,5 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import hudson.console.AnnotatedLargeText;
-import hudson.model.queue.QueueTaskFuture;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -12,14 +9,8 @@ import org.jenkinsci.plugins.workflow.steps.scm.GitStep;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runners.model.Statement;
-import org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildAction;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.RestartableJenkinsRule;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * Created by beazlr02 on 23/04/16.
@@ -47,7 +38,7 @@ public class BuildChangesGlobalTest {
 
 
     @Test
-    public void twoCommits() throws Exception {
+    public void twoCommitsInChangeList() throws Exception {
 
         sampleRepo.init();
         String script;
