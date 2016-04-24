@@ -73,9 +73,7 @@ public class PromotedJobGlobalTest {
                 true));
         QueueTaskFuture<WorkflowRun> workflowRunQueueTaskFuture = p.scheduleBuild2(0);
         WorkflowRun r = workflowRunQueueTaskFuture.waitForStart();
-        while (r.isBuilding()) {
-            Thread.sleep(100);
-        }
+        j.waitForCompletion(r);
 
         assertEquals("not promotion", r.getAction(GroovyPostbuildAction.class).getText());
 
@@ -88,6 +86,8 @@ public class PromotedJobGlobalTest {
         assertEquals("Build number should have incremented", 2, number);
 
         r = p.getLastCompletedBuild();
+
+        j.waitForCompletion(r);
 
         assertEquals("is a promotion", r.getAction(GroovyPostbuildAction.class).getText());
 
