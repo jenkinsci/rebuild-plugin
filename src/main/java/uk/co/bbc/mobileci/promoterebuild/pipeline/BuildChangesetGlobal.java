@@ -3,6 +3,7 @@ package uk.co.bbc.mobileci.promoterebuild.pipeline;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.cps.CpsScript;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariable;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -44,6 +45,7 @@ public class BuildChangesetGlobal extends GlobalVariable {
             this.workflowRun = result;
         }
 
+        @Whitelisted
         public String getChangeSet() {
             StringBuilder changeSet = new StringBuilder();
 

@@ -3,6 +3,7 @@ package uk.co.bbc.mobileci.promoterebuild.pipeline;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.cps.CpsScript;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariable;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -35,12 +36,13 @@ public class PromotedJobGlobal extends GlobalVariable {
 
     public static final class PromotedJob {
 
-        private boolean promotion;
+        @Whitelisted private boolean promotion;
 
         public PromotedJob(List<PromoteRebuildCauseAction> result) {
             promotion = result.size()>0;
         }
 
+        @Whitelisted
         public boolean isPromotion() {
 
             return promotion;
