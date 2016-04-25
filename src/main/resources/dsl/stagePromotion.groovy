@@ -12,7 +12,7 @@ def call(body = {}) {
     def jenkinsUrl = "${env.JENKINS_URL}"
     def jobPath = currentBuild.getAbsoluteUrl().replace(jenkinsUrl, '/')
     def promoUrl = jobPath + "promoterebuild"
-    echo promoUrl
+    //echo promoUrl
 
     manager.addBadge('clock.png', config.message, promoUrl)
 
