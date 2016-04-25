@@ -408,11 +408,7 @@ public class RebuildAction implements Action {
         // handle 'rebuild on the same node' parameter
         if (REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME.equals(parameterName)) {
             if ("true".equals(jo.getString("value"))) {
-                String nodeName = ((AbstractBuild<?,?>) build).getBuiltOn().getNodeName();
-                if (StringUtils.isEmpty(nodeName)) {
-                    // was built on master
-                    nodeName = DEFAULT_NODE_NAME;
-                }
+                String nodeName = getPrevBuildNodeName();
                 return new NodeLabelParameterValue(nodeName); // nodeName used as a label
             } else {
                 return null; // do nothing
@@ -587,7 +583,12 @@ public class RebuildAction implements Action {
 
     @SuppressWarnings("unused") // used from parameterized.jelly
     public String getPrevBuildNodeName() {
-        return ((AbstractBuild<?, ?>) build).getBuiltOnStr();
+        String nodeName = ((AbstractBuild<?, ?>) build).getBuiltOnStr();
+        if (StringUtils.isEmpty(nodeName)) {
+            // was built on master
+            nodeName = DEFAULT_NODE_NAME;
+        }
+        return nodeName;
     }
 
     @SuppressWarnings("unused") // used from parameterized.jelly
