@@ -7,7 +7,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildAction;
 import org.jvnet.hudson.test.JenkinsRule;
-import jenkins.triggers.SCMTriggerItem;
 
 import static org.junit.Assert.assertEquals;
 

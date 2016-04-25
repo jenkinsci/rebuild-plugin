@@ -8,8 +8,6 @@ import org.jenkinsci.plugins.workflow.cps.CpsScript;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariable;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-import java.util.List;
-
 /**
  * Created by beazlr02 on 23/04/16.
  */

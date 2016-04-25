@@ -25,36 +25,17 @@
 package uk.co.bbc.mobileci.promoterebuild;
 
 import hudson.Extension;
-import hudson.model.Action;
-
-import javax.servlet.ServletException;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import hudson.matrix.MatrixRun;
-import hudson.model.BooleanParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.Item;
-import hudson.model.Job;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Queue;
-import hudson.model.Run;
-import hudson.model.SimpleParameterDefinition;
-import hudson.model.ParameterDefinition;
-import hudson.model.PasswordParameterValue;
-import hudson.model.RunParameterValue;
-import hudson.model.StringParameterValue;
+import hudson.model.*;
 import net.sf.json.JSONObject;
-
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule

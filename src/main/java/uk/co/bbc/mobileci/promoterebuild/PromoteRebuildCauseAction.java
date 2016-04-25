@@ -26,6 +26,11 @@ package uk.co.bbc.mobileci.promoterebuild;
 import hudson.model.Action;
 import hudson.model.Cause;
 import hudson.model.Run;
+import hudson.plugins.git.Revision;
+import hudson.plugins.git.util.BuildData;
+import org.eclipse.jgit.lib.ObjectId;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * A cause specifying that the build was a rebuild of another build. Extends
@@ -35,16 +40,6 @@ import hudson.model.Run;
  * @author Joel Johnson
  * @author Oleg Nenashev
  */
-
-import hudson.plugins.git.Revision;
-import hudson.plugins.git.util.BuildData;
-import org.eclipse.jgit.lib.ObjectId;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 @ExportedBean(defaultVisibility = 3)
 public class PromoteRebuildCauseAction implements Action {

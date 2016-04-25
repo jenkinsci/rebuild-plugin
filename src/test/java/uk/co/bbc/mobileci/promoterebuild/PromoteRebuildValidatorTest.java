@@ -24,22 +24,8 @@
 package uk.co.bbc.mobileci.promoterebuild;
 
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-
 import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.Action;
-import hudson.model.Build;
-import hudson.model.ParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Project;
-import hudson.model.StringParameterDefinition;
-import hudson.model.StringParameterValue;
-
+import hudson.model.*;
 import junit.framework.Assert;
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.kohsuke.stapler.DataBoundConstructor;

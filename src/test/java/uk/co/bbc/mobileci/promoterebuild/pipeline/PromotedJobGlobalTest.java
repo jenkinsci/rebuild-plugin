@@ -1,10 +1,7 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import hudson.model.FreeStyleBuild;
-import hudson.model.Result;
 import hudson.model.queue.QueueTaskFuture;
-import junit.framework.Assert;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;

@@ -23,13 +23,9 @@
  */
 package uk.co.bbc.mobileci.promoterebuild;
 
-import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;
-import hudson.model.Action;
-import hudson.model.Hudson;
-import hudson.model.Queue;
-import hudson.model.Run;
-import hudson.model.TransientBuildActionFactory;
+import hudson.matrix.MatrixConfiguration;
+import hudson.model.*;
 
 import java.util.Collection;
 

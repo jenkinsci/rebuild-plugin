@@ -1,8 +1,6 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
-import hudson.model.Action;
 import hudson.plugins.git.util.BuildData;
-import org.apache.commons.io.FileUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -14,9 +12,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Created by beazlr02 on 23/04/16.

@@ -1,8 +1,7 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.plugins.git.util.BuildData;
-import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
+import org.apache.commons.lang.RandomStringUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -13,8 +12,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.xml.sax.SAXException;
 
-import static org.junit.Assert.assertEquals;
+import java.io.IOException;
 
 /**
  * Created by beazlr02 on 23/04/16.
@@ -33,11 +33,10 @@ public class PromotedJobWithGITGlobalTest {
     @Test
     public void twoCommitsOneHash() throws Exception {
 
-        sampleRepo.init();
-        String script =
+        String scriptThatLogsAssertableStrings =
                 "node " +
                         "{\n" +
-                        "  if( promotedJob.promotion ) {" +
+                        "  if( promotedJob.isPromotion() ) {" +
                         "    echo 'PROMOTED:' + promotedJob.getHash()\n" +
                         "    echo 'BUILDNUMBER:' + promotedJob.getFromBuildNumber()\n" +
                         "    \n" +
@@ -47,48 +46,30 @@ public class PromotedJobWithGITGlobalTest {
                         "  }\n" +
                         "}";
 
-        sampleRepo.write("Jenkinsfile", script);
-        sampleRepo.git("add", "Jenkinsfile");
-        sampleRepo.git("commit", "--message=files");
-
-        WorkflowJob p = story.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsScmFlowDefinition(new GitStep(sampleRepo.toString()).createSCM(), "Jenkinsfile"));
-
+        commitJenkinsPipelineScript(scriptThatLogsAssertableStrings, sampleRepo);
+        WorkflowJob p = setupPipelineInJenkins(story, sampleRepo);
         story.waitForCompletion(p.scheduleBuild2(0).get());
 
-        sampleRepo.write("Jenkinsfile2", script);
-        sampleRepo.git("add", "Jenkinsfile2");
-        sampleRepo.git("commit", "--message=commitForTest");
+        commitSomething();
+        commitSomething();
 
-        sampleRepo.write("Jenkinsfile3", script);
-        sampleRepo.git("add", "Jenkinsfile3");
-        sampleRepo.git("commit", "--message=anotherCommitForTest");
+        WorkflowRun b = story.waitForCompletion(p.scheduleBuild2(0).get());
 
-        WorkflowRun b = p.scheduleBuild2(0).get();
-
-        story.waitForCompletion(b);
-
-        String masterHeadHash = b.getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
+        String masterHeadHash = workOutCommitHashOfBuild(b);
 
         // do a couple more builds
-        b = p.scheduleBuild2(0).get();
-        story.waitForCompletion(b);
-        b = p.scheduleBuild2(0).get();
-        story.waitForCompletion(b);
+        story.waitForCompletion(p.scheduleBuild2(0).get());
+        story.waitForCompletion(p.scheduleBuild2(0).get());
 
 
-        //PROMOTE build 2
-        b = p.getBuildByNumber(2);
-        story.createWebClient().getPage(b, "promoterebuild");
-        b = p.getLastBuild();
-        story.waitForCompletion(b);
-
+        b = promoteBuildNumber(p, 2);
         story.assertBuildStatusSuccess(b);
 
         story.assertLogContains("PROMOTED:"+masterHeadHash, b);
         story.assertLogContains("BUILDNUMBER:2", b);
-
     }
+
+
 
     @Test
     public void promotingCommitNotFromHead() throws Exception {
@@ -98,8 +79,8 @@ public class PromotedJobWithGITGlobalTest {
                 "node " +
                         "{\n" +
                         "  if( promotedJob.promotion ) {" +
-                        "    echo 'PROMOTED:' + promotedJob.getHash()\n" +
-                        "    echo 'BUILDNUMBER:' + promotedJob.getFromBuildNumber()\n" +
+                        "    echo 'PROMOTED:' + promotedJob.hash\n" +
+                        "    echo 'BUILDNUMBER:' + promotedJob.fromBuildNumber\n" +
                         "    \n" +
                         "  } else {\n" +
                         "    echo 'not a promotion'\n" +
@@ -107,56 +88,62 @@ public class PromotedJobWithGITGlobalTest {
                         "  }\n" +
                         "}";
 
-        sampleRepo.write("Jenkinsfile", script);
-        sampleRepo.git("add", "Jenkinsfile");
-        sampleRepo.git("commit", "--message=files");
-
-        WorkflowJob p = story.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsScmFlowDefinition(new GitStep(sampleRepo.toString()).createSCM(), "Jenkinsfile"));
-
+        commitJenkinsPipelineScript(script, sampleRepo);
+        WorkflowJob p = setupPipelineInJenkins(story, sampleRepo);
         story.waitForCompletion(p.scheduleBuild2(0).get());
 
-        sampleRepo.write("Jenkinsfile2", script);
-        sampleRepo.git("add", "Jenkinsfile2");
-        sampleRepo.git("commit", "--message=commitForTest");
+        commitSomething();
+        commitSomething();
 
-        sampleRepo.write("Jenkinsfile3", script);
-        sampleRepo.git("add", "Jenkinsfile3");
-        sampleRepo.git("commit", "--message=anotherCommitForTest");
-
-        WorkflowRun b = p.scheduleBuild2(0).get();
-
-        story.waitForCompletion(b);
-
-        String masterHeadHash = b.getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
+        WorkflowRun b = story.waitForCompletion(p.scheduleBuild2(0).get());
+        String masterHeadHash = workOutCommitHashOfBuild(b);
 
         // do a couple more builds with some commits
-        b = p.scheduleBuild2(0).get();
-        story.waitForCompletion(b);
-
-
-        sampleRepo.write("Jenkinsfile4", script);
-        sampleRepo.git("add", "Jenkinsfile4");
-        sampleRepo.git("commit", "--message=commitForTest4");
-
-        sampleRepo.write("Jenkinsfile5", script);
-        sampleRepo.git("add", "Jenkinsfile5");
-        sampleRepo.git("commit", "--message=anotherCommitForTest5");
-
-        b = p.scheduleBuild2(0).get();
-        story.waitForCompletion(b);
-
+        story.waitForCompletion(p.scheduleBuild2(0).get());
+        commitSomething();
+        commitSomething();story.waitForCompletion(p.scheduleBuild2(0).get());
 
         //PROMOTE build 2
-        b = p.getBuildByNumber(2);
-        story.createWebClient().getPage(b, "promoterebuild");
-        b = p.getLastBuild();
-        story.waitForCompletion(b);
-
+        b = promoteBuildNumber(p, 2);
         story.assertBuildStatusSuccess(b);
 
         story.assertLogContains("PROMOTED:"+masterHeadHash, b);
         story.assertLogContains("BUILDNUMBER:2", b);
+    }
 
+
+
+
+    private WorkflowJob setupPipelineInJenkins(JenkinsRule story, GitSampleRepoRule sampleRepo) throws java.io.IOException {
+        WorkflowJob p = story.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsScmFlowDefinition(new GitStep(sampleRepo.toString()).createSCM(), "Jenkinsfile"));
+        return p;
+    }
+
+    private String workOutCommitHashOfBuild(WorkflowRun b) {
+        return b.getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
+    }
+
+    private void commitSomething() throws Exception {
+        String randomFileName = RandomStringUtils.random(10);
+        sampleRepo.write(randomFileName, RandomStringUtils.random(10));
+        sampleRepo.git("add", randomFileName);
+        sampleRepo.git("commit", "--message=commitForTest"+randomFileName);
+    }
+
+    private void commitJenkinsPipelineScript(String scriptThatLogsAssertableStrings, GitSampleRepoRule sampleRepo) throws Exception {
+        sampleRepo.init();
+        sampleRepo.write("Jenkinsfile", scriptThatLogsAssertableStrings);
+        sampleRepo.git("add", "Jenkinsfile");
+        sampleRepo.git("commit", "--message=files");
+    }
+
+    private WorkflowRun promoteBuildNumber(WorkflowJob p, int buildNumber) throws IOException, SAXException, InterruptedException {
+        WorkflowRun b;
+        b = p.getBuildByNumber(buildNumber);
+        story.createWebClient().getPage(b, "promoterebuild");
+        b = p.getLastBuild();
+        story.waitForCompletion(b);
+        return b;
     }
 }
