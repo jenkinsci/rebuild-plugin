@@ -49,8 +49,8 @@ public class PromoteRebuildCauseAction implements Action {
     private final PromoteRebuildCause upstreamCause;
 
     @Exported(visibility=2)
-    public List<PromoteRebuildCause> getPromoteRebuildCause() {
-        return Collections.unmodifiableList(Arrays.asList(upstreamCause));
+    public PromoteRebuildCause getPromoteRebuildCause() {
+        return (upstreamCause);
     }
 
     /**

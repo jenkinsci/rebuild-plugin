@@ -40,24 +40,38 @@ public class PromotedJobGlobal extends GlobalVariable {
 
         private  String hash;
         @Whitelisted private boolean promotion;
+        private String fromBuildNumber;
 
         public PromotedJob(Run<?, ?> build) {
 
-            promotion = build.getActions(PromoteRebuildCauseAction.class).size()>0;
+            PromoteRebuildCauseAction action = build.getAction(PromoteRebuildCauseAction.class);
+            promotion = action!=null;
 
             Run<?, ?> previousBuild = build.getPreviousBuild();
             if(isPromotion() && previousBuild !=null) {
-                BuildData action = previousBuild.getAction(BuildData.class);
-                if(action!=null) {
-                    Revision lastBuiltRevision = action.getLastBuiltRevision();
-                    if(lastBuiltRevision!=null) {
-                        ObjectId sha1 = lastBuiltRevision.getSha1();
-                        if (sha1!=null) {
-                            this.hash = sha1.getName();
-                        }
+                this.hash = parseBuildHash(previousBuild);
+
+                // need to get data from cause, including commit hash
+                // write a test for commit hash
+                PromoteRebuildCauseAction.PromoteRebuildCause promoteRebuildCause = action.getPromoteRebuildCause();
+
+                this.fromBuildNumber = String.valueOf(promoteRebuildCause.getUpstreamBuild());
+            }
+        }
+
+        private String  parseBuildHash(Run<?, ?> previousBuild) {
+            String hash = null;
+            BuildData action = previousBuild.getAction(BuildData.class);
+            if(action!=null) {
+                Revision lastBuiltRevision = action.getLastBuiltRevision();
+                if(lastBuiltRevision!=null) {
+                    ObjectId sha1 = lastBuiltRevision.getSha1();
+                    if (sha1!=null) {
+                        hash = sha1.getName();
                     }
                 }
             }
+            return hash;
         }
 
         @Whitelisted
@@ -69,6 +83,15 @@ public class PromotedJobGlobal extends GlobalVariable {
         @Whitelisted
         public String getHash() {
             return hash;
+        }
+
+        @Whitelisted
+        public String getFromBuildNumber() {
+            return fromBuildNumber;
+        }
+
+        public String toString() {
+            return "PromotedJob: from: " +getFromBuildNumber() + " for:"+getHash();
         }
     }
 

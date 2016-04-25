@@ -39,6 +39,7 @@ public class PromotedJobWithGITGlobalTest {
                         "{\n" +
                         "  if( promotedJob.promotion ) {" +
                         "    echo 'PROMOTED:' + promotedJob.getHash()\n" +
+                        "    echo 'BUILDNUMBER:' + promotedJob.getFromBuildNumber()\n" +
                         "    \n" +
                         "  } else {\n" +
                         "    echo 'not a promotion'\n" +
@@ -69,17 +70,23 @@ public class PromotedJobWithGITGlobalTest {
 
         String masterHeadHash = b.getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
 
-
-        //PROMOTE
-        b = p.getLastBuild();
-        story.createWebClient().getPage(b, "promoterebuild");
-        b = p.getLastBuild();
-        assertEquals("Build number should have incremented", 3, b.getNumber());
-
+        // do a couple more builds
+        b = p.scheduleBuild2(0).get();
+        story.waitForCompletion(b);
+        b = p.scheduleBuild2(0).get();
         story.waitForCompletion(b);
 
 
+        //PROMOTE build 2
+        b = p.getBuildByNumber(2);
+        story.createWebClient().getPage(b, "promoterebuild");
+        b = p.getLastBuild();
+        story.waitForCompletion(b);
+
+        story.assertBuildStatusSuccess(b);
+
         story.assertLogContains("PROMOTED:"+masterHeadHash, b);
+        story.assertLogContains("BUILDNUMBER:2", b);
 
     }
 }
