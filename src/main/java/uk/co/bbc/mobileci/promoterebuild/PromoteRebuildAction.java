@@ -195,9 +195,8 @@ public class PromoteRebuildAction implements Action {
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
 
-            List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
             ParametersAction action = currentBuild.getAction(ParametersAction.class);
-            actions.add(action);
+            List<Action> actions = constructRebuildCause(build, action);
 
             new ParameterizedJobMixIn() {
                 @Override protected Job asJob() {
