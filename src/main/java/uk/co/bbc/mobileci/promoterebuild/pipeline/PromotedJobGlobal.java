@@ -49,12 +49,12 @@ public class PromotedJobGlobal extends GlobalVariable {
 
             Run<?, ?> previousBuild = build.getPreviousBuild();
             if(isPromotion() && previousBuild !=null) {
-                this.hash = parseBuildHash(previousBuild);
+
 
                 // need to get data from cause, including commit hash
                 // write a test for commit hash
                 PromoteRebuildCauseAction.PromoteRebuildCause promoteRebuildCause = action.getPromoteRebuildCause();
-
+                this.hash = promoteRebuildCause.getBuildHash();
                 this.fromBuildNumber = String.valueOf(promoteRebuildCause.getUpstreamBuild());
             }
         }

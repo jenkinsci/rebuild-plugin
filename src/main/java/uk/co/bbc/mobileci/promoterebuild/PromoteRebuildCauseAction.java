@@ -36,6 +36,9 @@ import hudson.model.Run;
  * @author Oleg Nenashev
  */
 
+import hudson.plugins.git.Revision;
+import hudson.plugins.git.util.BuildData;
+import org.eclipse.jgit.lib.ObjectId;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -83,9 +86,22 @@ public class PromoteRebuildCauseAction implements Action {
 
 
         private final Cause.UpstreamCause upstreamCause;
+        private Run<?, ?> up;
+        private String buildHash;
 
         public PromoteRebuildCause(Run<?, ?> up) {
+            this.up = up;
             upstreamCause = new Cause.UpstreamCause(up);
+            BuildData action = up.getAction(BuildData.class);
+            if(action!=null) {
+                Revision lastBuiltRevision = action.getLastBuiltRevision();
+                if(lastBuiltRevision!=null) {
+                    ObjectId sha1 = lastBuiltRevision.getSha1();
+                    if (sha1!=null) {
+                        this.buildHash = sha1.getName();
+                    }
+                }
+            }
         }
 
         @Exported(
@@ -116,5 +132,8 @@ public class PromoteRebuildCauseAction implements Action {
             return upstreamCause.getUpstreamUrl();
         }
 
+        public String getBuildHash() {
+            return this.buildHash;
+        }
     }
 }
