@@ -74,7 +74,6 @@ public class PromotedJobWithGITGlobalTest {
     @Test
     public void promotingCommitNotFromHead() throws Exception {
 
-        sampleRepo.init();
         String script =
                 "node " +
                         "{\n" +
@@ -101,7 +100,8 @@ public class PromotedJobWithGITGlobalTest {
         // do a couple more builds with some commits
         story.waitForCompletion(p.scheduleBuild2(0).get());
         commitSomething();
-        commitSomething();story.waitForCompletion(p.scheduleBuild2(0).get());
+        commitSomething();
+        story.waitForCompletion(p.scheduleBuild2(0).get());
 
         //PROMOTE build 2
         b = promoteBuildNumber(p, 2);
@@ -125,8 +125,8 @@ public class PromotedJobWithGITGlobalTest {
     }
 
     private void commitSomething() throws Exception {
-        String randomFileName = RandomStringUtils.random(10);
-        sampleRepo.write(randomFileName, RandomStringUtils.random(10));
+        String randomFileName = RandomStringUtils.randomAscii(10);
+        sampleRepo.write(randomFileName, RandomStringUtils.randomAscii(10));
         sampleRepo.git("add", randomFileName);
         sampleRepo.git("commit", "--message=commitForTest"+randomFileName);
     }
