@@ -125,8 +125,8 @@ public class PromotedJobWithGITGlobalTest {
     }
 
     private void commitSomething() throws Exception {
-        String randomFileName = RandomStringUtils.randomAscii(10);
-        sampleRepo.write(randomFileName, RandomStringUtils.randomAscii(10));
+        String randomFileName = RandomStringUtils.randomAlphabetic(10);
+        sampleRepo.write(randomFileName, RandomStringUtils.randomAlphabetic(10));
         sampleRepo.git("add", randomFileName);
         sampleRepo.git("commit", "--message=commitForTest"+randomFileName);
     }
