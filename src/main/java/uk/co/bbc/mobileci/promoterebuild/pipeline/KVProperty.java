@@ -1,6 +1,7 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
 import hudson.model.JobProperty;
+import hudson.model.JobPropertyDescriptor;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -27,5 +28,15 @@ public class KVProperty extends JobProperty<WorkflowJob> {
 
     public String retrieve(String key) {
         return map.get(key);
+    }
+
+    @Override
+    public JobPropertyDescriptor getDescriptor() {
+        return new JobPropertyDescriptor() {
+            @Override
+            public String getDisplayName() {
+                return "A Simple KV Store";
+            }
+        };
     }
 }
