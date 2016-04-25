@@ -27,6 +27,7 @@ package uk.co.bbc.mobileci.promoterebuild;
 import hudson.Extension;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
+import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
@@ -186,7 +187,7 @@ public class PromoteRebuildAction implements Action {
      * @param response StaplerResponse the response handler.
      * @throws IOException          in case of Stapler issues
      */
-    public void parameterizedRebuild(Run currentBuild, StaplerResponse response) throws IOException {
+    public void parameterizedRebuild(final Run currentBuild, StaplerResponse response) throws IOException {
         Job project = getProject();
         if (project == null) {
             return;
@@ -198,7 +199,11 @@ public class PromoteRebuildAction implements Action {
             ParametersAction action = currentBuild.getAction(ParametersAction.class);
             actions.add(action);
 
-            Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
+            new ParameterizedJobMixIn() {
+                @Override protected Job asJob() {
+                    return currentBuild.getParent();
+                }
+            }.scheduleBuild2(0, actions.toArray(new Action[actions.size()]));
             response.sendRedirect("../../");
         }
     }
@@ -212,12 +217,18 @@ public class PromoteRebuildAction implements Action {
      * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
+    public void nonParameterizedRebuild(final Run currentBuild, StaplerResponse
             response) throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildCause(build, null);
-        Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
+
+        new ParameterizedJobMixIn() {
+            @Override protected Job asJob() {
+                return currentBuild.getParent();
+            }
+        }.scheduleBuild2(0, actions.toArray(new Action[actions.size()]));
+
         response.sendRedirect("../../");
     }
 
