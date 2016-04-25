@@ -27,6 +27,7 @@ package uk.co.bbc.mobileci.promoterebuild;
 import hudson.Extension;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
+import hudson.plugins.git.RevisionParameterAction;
 import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
@@ -375,10 +376,16 @@ public class PromoteRebuildAction implements Action {
     private List<Action> constructRebuildCause(Run up, ParametersAction paramAction) {
         List<Action> actions = copyBuildCausesAndAddUserCause(up);
 
-        actions.add(new PromoteRebuildCauseAction(up));
+        PromoteRebuildCauseAction promoteRebuildCauseAction = new PromoteRebuildCauseAction(up);
+        actions.add(promoteRebuildCauseAction);
         if (paramAction != null) {
             actions.add(paramAction);
         }
+
+        String buildHash = promoteRebuildCauseAction.getPromoteRebuildCause().getBuildHash();
+        RevisionParameterAction revisionParameterAction = new RevisionParameterAction(buildHash);
+        actions.add(revisionParameterAction);
+
         return actions;
     }
 
