@@ -32,7 +32,8 @@ public class RebuildParameterPage {
     /**
      * @return the class for the view.
      */
-    public Class<?>  getClazz() {
+    @SuppressWarnings("unused") // used from parameterized.jelly
+    public Class<?> getClazz() {
         return clazz;
     }
     
