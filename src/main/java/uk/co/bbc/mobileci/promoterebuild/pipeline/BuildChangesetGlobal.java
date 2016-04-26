@@ -2,11 +2,17 @@ package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
 import hudson.Extension;
 import hudson.model.Run;
+import hudson.plugins.git.Branch;
+import hudson.plugins.git.Revision;
+import hudson.plugins.git.util.BuildData;
 import hudson.scm.ChangeLogSet;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.cps.CpsScript;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariable;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created by beazlr02 on 23/04/16.
@@ -61,6 +67,34 @@ public class BuildChangesetGlobal extends GlobalVariable {
             }
 
             return changeSet.toString();
+        }
+
+        @Whitelisted
+        public String getBranchName() {
+            String result="";
+            try {
+                BuildData action = workflowRun.getAction(BuildData.class);
+                Revision lastBuiltRevision = action.getLastBuiltRevision();
+                Collection<Branch> branches = lastBuiltRevision.getBranches();
+                Branch[] branchArray = branches.toArray(new Branch[]{});
+                Branch branch = branchArray[0];
+                result = branch.getName().replaceAll("refs/remotes/origin/", "");
+            }catch (Exception ignored){}
+            return result;
+        }
+
+        @Whitelisted
+        public Collection<String> getBranchNames() {
+            Collection<String> branchNames = new ArrayList<String>(0);
+            try {
+                BuildData action = workflowRun.getAction(BuildData.class);
+                Collection<Branch> branches = action.getLastBuiltRevision().getBranches();
+                for(Branch branch : branches) {
+                    String name = branch.getName().replaceAll("refs/remotes/origin/","");
+                    branchNames.add(name);
+                }
+            }catch (Exception ignored){ }
+            return branchNames;
         }
     }
 
