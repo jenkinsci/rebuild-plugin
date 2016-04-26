@@ -84,18 +84,44 @@ THE SOFTWARE.
                     </tbody>
                 </j:forEach>
                 <j:if test="${empty(parametersProperty.parameterDefinitions)}">
-                            <j:forEach var="parameterValue" items="${paramAction.parameters}">
-                                <j:scope>
-                                    <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
-                                    <st:include it="${parameterValue}" class="${page.clazz}"  page="${page.page}" />
-                                </j:scope>
-                             </j:forEach>
+                    <j:forEach var="parameterValue" items="${paramAction.parameters}">
+                        <j:if test="${!it.isNodeLabelParameterValue(parameterValue)}">
+                            <j:scope>
+                                <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
+                                <st:include it="${parameterValue}" class="${page.clazz}"  page="${page.page}" />
+                            </j:scope>
+                        </j:if>
+                     </j:forEach>
                 </j:if>
                 <br/>
                 <br/>
+
+                <j:set var="canBeBuiltOnTheSameNode" value="${it.canBeBuiltOnTheSameNode()}" />
                 <f:block>
                     <f:submit value="${%Rebuild}"/>
+                    <j:if test="${it.shouldShowRebuildOnTheSameNodeCheckbox(canBeBuiltOnTheSameNode)}">
+                        <span name="parameter">
+                            <f:checkbox name="value" checked="false" title="${%Rebuild on the same node that the original build}: "/>
+                            <a href="${rootURL}/${it.getPrevBuildNodeUrl()}" style="font-weight: bold;">${' ' + it.getPrevBuildNodeName()}</a>
+                            <input type="hidden" name="name" value="${it.REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME}" />
+                        </span>
+                    </j:if>
                 </f:block>
+
+                <j:if test="${it.shouldShowPrevNodeNotExistsWarning(canBeBuiltOnTheSameNode)}">
+                    <f:block >
+                        <br />
+                        <span class="warning">${%Original build's node doesn't exist anymore}:</span>
+                        <span style="font-weight: bold;">${' ' + it.getPrevBuildNodeName()}</span>
+                    </f:block>
+                </j:if>
+
+                <j:if test="${it.shouldShowNodeLabelParameterPluginUsedWarning(canBeBuiltOnTheSameNode)}">
+                    <f:block >
+                        <br />
+                        <div class="warning">${%'Rebuild on the same node' option not shown due to NodeLabel Parameter Plugin usage.}</div>
+                    </f:block>
+                </j:if>
             </f:form>
         </l:main-panel>
     </l:layout>
