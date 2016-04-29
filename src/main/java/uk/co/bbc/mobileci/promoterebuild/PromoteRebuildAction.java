@@ -57,11 +57,7 @@ public class PromoteRebuildAction implements Action {
     private transient String p = "parameter";
     private transient Run<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
-    /**
-     * Rebuild Descriptor.
-     */
-    @Extension
-    public static final PromoteRebuildDescriptor DESCRIPTOR = new PromoteRebuildDescriptor();
+
     /**
      * RebuildAction constructor.
      */
@@ -113,14 +109,6 @@ public class PromoteRebuildAction implements Action {
         return rebuildurl;
     }
 
-    /**
-     * True if the password fields should be pre-filled.
-     *
-     * @return True if the password fields should be pre-filled.
-     */
-    public boolean isRememberPasswordEnabled() {
-        return DESCRIPTOR.getRebuildConfiguration().isRememberPasswordEnabled();
-    }
 
     /**
      * Method will return current project.

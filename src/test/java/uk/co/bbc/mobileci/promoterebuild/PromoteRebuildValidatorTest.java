@@ -45,97 +45,6 @@ public class PromoteRebuildValidatorTest extends HudsonTestCase {
 	 */
 	public static final int DELAY = 100;
 
-	/**
-	 * Tests with no extensions.
-	 *
-	 * @throws IOException
-	 *             IOException
-	 * @throws InterruptedException
-	 *             InterruptedException
-	 * @throws ExecutionException
-	 *             ExecutionException
-	 */
-	public void testNoRebuildValidatorExtension() throws IOException,
-			InterruptedException, ExecutionException {
-		Project projectA = createFreeStyleProject("testFreeStyleA");
-		Build buildA = (Build) projectA.scheduleBuild2(
-				0,
-				new Cause.UserIdCause(),
-				new ParametersAction(new StringParameterValue("party",
-						"megaparty"))).get();
-		assertNotNull(buildA.getAction(PromoteRebuildAction.class));
-	}
-
-	/**
-	 * Tests with an extension returning isApplicable true.
-	 *
-	 * @throws IOException
-	 *             IOException
-	 * @throws InterruptedException
-	 *             InterruptedException
-	 * @throws ExecutionException
-	 *             ExecutionException
-	 */
-	public void testRebuildValidatorExtensionIsApplicableTrue()
-			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(PromoteRebuildValidator.class).add(0,
-				new ValidatorAlwaysApplicable());
-		Project projectA = createFreeStyleProject("testFreeStyleB");
-		Build buildA = (Build) projectA.scheduleBuild2(
-				0,
-				new Cause.UserIdCause(),
-				new ParametersAction(new StringParameterValue("party",
-						"megaparty"))).get();
-		assertNull(buildA.getAction(PromoteRebuildAction.class));
-	}
-
-	/**
-	 * Tests with an extension returning isApplicable false.
-	 *
-	 * @throws IOException
-	 *             IOException
-	 * @throws InterruptedException
-	 *             InterruptedException
-	 * @throws ExecutionException
-	 *             ExecutionException
-	 */
-	public void testRebuildValidatorExtensionIsApplicableFalse()
-			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(PromoteRebuildValidator.class).add(0,
-				new ValidatorNeverApplicable());
-		Project projectA = createFreeStyleProject("testFreeStyleC");
-		Build buildA = (Build) projectA.scheduleBuild2(
-				0,
-				new Cause.UserIdCause(),
-				new ParametersAction(new StringParameterValue("party",
-						"megaparty"))).get();
-		assertNotNull(buildA.getAction(PromoteRebuildAction.class));
-	}
-
-	/**
-	 * Tests with two extensions returning isApplicable true AND false.
-	 *
-	 * @throws IOException
-	 *             IOException
-	 * @throws InterruptedException
-	 *             InterruptedException
-	 * @throws ExecutionException
-	 *             ExecutionException
-	 */
-	public void testRebuildValidatorExtensionIsApplicableTrueFalse()
-			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(PromoteRebuildValidator.class).add(0,
-				new ValidatorAlwaysApplicable());
-		hudson.getExtensionList(PromoteRebuildValidator.class).add(0,
-				new ValidatorNeverApplicable());
-		Project projectA = createFreeStyleProject("testFreeStyleC");
-		Build buildA = (Build) projectA.scheduleBuild2(
-				0,
-				new Cause.UserIdCause(),
-				new ParametersAction(new StringParameterValue("party",
-						"megaparty"))).get();
-		assertNull(buildA.getAction(PromoteRebuildAction.class));
-	}
 
 
 
@@ -209,31 +118,8 @@ public class PromoteRebuildValidatorTest extends HudsonTestCase {
 
 
 	/**
-	 * Implementing an Extension always returning isApplicable false.
-	 */
-	public static class ValidatorNeverApplicable extends PromoteRebuildValidator {
-
-		@Override
-		public boolean isApplicable(AbstractBuild build) {
-			return false;
-		}
-	}
-
-	/**
-	 * Implementing an Extension always returning isApplicable true.
-	 */
-	public static class ValidatorAlwaysApplicable extends PromoteRebuildValidator {
-
-		@Override
-		public boolean isApplicable(AbstractBuild build) {
-			return true;
-		}
-	}
-
-	/**
 	 * Creates a new freestyle project and build with a parameter value whose
-	 * type is unknown to rebuild plugin. Verify that rebuild succeeds if that
-	 * parameter value supports {@link RebuildableParameterValue}.
+	 * type is unknown to rebuild plugin.
 	 *
 	 * @throws Exception
 	 *             Exception
@@ -277,52 +163,10 @@ public class PromoteRebuildValidatorTest extends HudsonTestCase {
         }
     }
 
-	/**
-	 * A parameter value rebuild plugin does not know.
-	 */
-	public static class UnsupportedUnknownParameterValue extends
-			StringParameterValue {
-		private static final long serialVersionUID = 3182218854913929L;
 
-		public UnsupportedUnknownParameterValue(String name, String value) {
-			super(name, value);
-		}
-	}
-
-	public static class UnsupportedUnknownParameterDefinition extends
-			StringParameterDefinition {
-		private static final long serialVersionUID = 1014662680565914672L;
-
-		@DataBoundConstructor
-		public UnsupportedUnknownParameterDefinition(String name,
-				String defaultValue) {
-			super(name, defaultValue);
-		}
-
-		@Override
-		public ParameterValue createValue(String value) {
-			return new UnsupportedUnknownParameterValue(this.getName(), value);
-		}
-
-		@Override
-		public StringParameterValue getDefaultParameterValue() {
-			return new UnsupportedUnknownParameterValue(this.getName(),
-					this.getDefaultValue());
-		}
-
-		@Extension
-		public static class DescriptorImpl extends ParameterDescriptor {
-			@Override
-			public String getDisplayName() {
-				return "UnsupportedUnknownParameterDefinition";
-			}
-		}
-
-	}
 
 	/**
-	 * A parameter value rebuild plugin does not know, but supported by
-	 * {@link TestRebuildParameterProvider}.
+	 * A parameter value rebuild plugin does not know, but supported by.
 	 */
 	public static class SupportedUnknownParameterValue extends
 			StringParameterValue {

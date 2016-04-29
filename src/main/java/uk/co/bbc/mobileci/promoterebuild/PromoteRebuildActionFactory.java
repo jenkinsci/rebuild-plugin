@@ -52,12 +52,7 @@ public class PromoteRebuildActionFactory extends TransientBuildActionFactory {
         if (hasRebuildAction) {
             return emptyList();
         }
-        for (PromoteRebuildValidator promoteRebuildValidator : Hudson.getInstance().
-                getExtensionList(PromoteRebuildValidator.class)) {
-            if (promoteRebuildValidator.isApplicable(build)) {
-                return emptyList();
-            }
-        }
+
         return singleton(new PromoteRebuildAction());
     }
 }
