@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<div>
+<h3>This polyfills pipeline support methods</h3>
+<p/>
+<p>mobileCiSupport.isPromotion()</p>
+<p>mobileCiSupport.getFromHash()</p>
+<p>mobileCiSupport.getFromBuildNumber()</p>
+<p>mobileCiSupport.store('valueKey', 'someValue')</p>
+<p>mobileCiSupport.retrieve('valueKey')</p>
+<p>mobileCiSupport.getChangeSet()</p>
+<p>mobileCiSupport.getBranchName()</p>
+<h4>For example</h4>
+<pre><code>
+node {
+
+    echo 'This build contains these changes ' + mobileCiSupport.getChangeSet()
+    echo 'This build is from branch: ' + mobileCiSupport.getBranchName()
+
+    if( mobileCiSupport.isPromotion()) {
+
+        def hash = mobileCiSupport.getFromHash()
+        def buildNum = mobileCiSupport.getFromBuildNumber()
+
+        def storedValue = mobileCiSupport.retrieve('valueKey')
+
+        def someReturnValue = doTheRelease( hash, buildNum, branchName )
+
+        mobileCiSupport.store('valueKey', someReturnValue)
+    }
+
+}
+</code></pre>
+
+</div>
