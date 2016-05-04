@@ -26,10 +26,26 @@ THE SOFTWARE.
 <?jelly escape-by-default='true'?>
 <!-- TODO add taglibs such as: xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:d="jelly:define" xmlns:i="jelly:fmt">
-   
+    <script>
+        // disable 'sameNodeWhenAuto' if 'autoRebuild' isn't checked
+        function autoRebuildClick(e) {
+            if (!e.checked) {
+                document.getElementById('sameNodeWhenAuto').disabled = 'disabled'
+            } else {
+                document.getElementById('sameNodeWhenAuto').disabled = ''
+            }
+        }
+
+        autoRebuildClick(document.getElementById('autoRebuild')) // define the initial state of 'sameNodeWhenAuto' row
+    </script>
+
     <f:entry field="autoRebuild" title="${%Rebuild options:}">
-        <f:checkbox default="false" checked="${it.autoRebuild}" 
-                    title="${%Rebuild Without Asking For Parameters}"/>
+        <f:checkbox default="false" checked="${it.autoRebuild}" id="autoRebuild"
+                    title="${%Rebuild Without Asking For Parameters}" onclick="autoRebuildClick(this);"/>
+    </f:entry>
+    <f:entry field="sameNodeWhenAuto">
+        <f:checkbox default="false" checked="${it.sameNodeWhenAuto}" id="sameNodeWhenAuto"
+                    title="${%Try to rebuild on the same node that the original build}"/>
     </f:entry>
     <f:entry field="rebuildDisabled">
     	<f:checkbox default="false" checked="${it.rebuildDisbaled}" 

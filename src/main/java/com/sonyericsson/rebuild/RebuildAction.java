@@ -59,6 +59,8 @@ import org.kohsuke.stapler.StaplerResponse;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.sonyericsson.rebuild.node.CanBeBuildOnTheSameNodeCheckResult.NODELABEL_PARAMETER_PLUGIN_USED;
@@ -222,12 +224,13 @@ public class RebuildAction implements Action {
                 // show parameterized.jelly page (even if the job is not parameterized):
                 // need to specify if the rebuild should be executed at the same node
                 response.sendRedirect(PARAMETERIZED_URL);
-            } else {
+            } else { // autoRebuild enabled
+                boolean rebuildOnTheSameNode = settings.isSameNodeWhenAuto() && (canBeBuiltOnTheSameNode() == OK);
                 // rebuild w/o showing parameterized.jelly page
                 if (currentBuild.getAction(ParametersAction.class) != null) {
-                    parameterizedRebuild(currentBuild, response);
+                    parameterizedRebuild(currentBuild, response, rebuildOnTheSameNode);
                 } else {
-                    nonParameterizedRebuild(currentBuild, response);
+                    nonParameterizedRebuild(currentBuild, response, rebuildOnTheSameNode);
                 }
             }
         }
@@ -238,9 +241,10 @@ public class RebuildAction implements Action {
      *
      * @param currentBuild the build.
      * @param response StaplerResponse the response handler.
+     * @param rebuildOnTheSameNode whether the rebuild should be executed on the same node that the prev build
      * @throws IOException          in case of Stapler issues
      */
-    public void parameterizedRebuild(Run<?,?> currentBuild, StaplerResponse response) throws IOException {
+    public void parameterizedRebuild(Run<?, ?> currentBuild, StaplerResponse response, boolean rebuildOnTheSameNode) throws IOException {
         Job project = getProject();
         if (project == null) {
             return;
@@ -249,11 +253,47 @@ public class RebuildAction implements Action {
         if (isRebuildAvailable()) {
             List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
             ParametersAction action = currentBuild.getAction(ParametersAction.class);
-            actions.add(action);
+            List<ParameterValue> params = new ArrayList<ParameterValue>();
+            if (action != null) {
+                params.addAll(action.getParameters());
+            }
+            removeNodeLabelParameter(params);
+            if (rebuildOnTheSameNode && !isNodeLabelParameterPluginUsed(action)) {
+                NodeLabelParameterValue paramValue = createNodeLabelParamValueForPrevNode();
+                params.add(paramValue);
+            }
+            if (!params.isEmpty()) {
+                action = new ParametersAction(params); // getParameters() is unmodifiable so create new ParametersAction
+            }
+            if (action != null) {
+                actions.add(action);
+            }
 
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
         }
+    }
+
+    private void removeNodeLabelParameter(List<ParameterValue> params) {
+        for (Iterator<ParameterValue> iterator = params.iterator(); iterator.hasNext(); ) {
+            ParameterValue param = iterator.next();
+            if (param instanceof NodeLabelParameterValue) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private boolean isNodeLabelParameterPluginUsed(ParametersAction paramAction) {
+        if (paramAction == null) {
+            return false;
+        }
+        for (ParameterValue parameterValue : paramAction.getParameters()) {
+            String clazz = parameterValue.getClass().getName();
+            if (clazz.equals(CLASS_LABEL_PARAMETER_VALUE) || clazz.equals(CLASS_NODE_PARAMETER_VALUE)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -262,16 +302,26 @@ public class RebuildAction implements Action {
      *
      * @param currentBuild current build.
      * @param response     current response object.
+     * @param rebuildOnTheSameNode whether the rebuild should be executed on the same node that the prev build
      * @throws ServletException     if something unfortunate happens.
      * @throws IOException          if something unfortunate happens.
      * @throws InterruptedException if something unfortunate happens.
      */
-    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse response)
+    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse response, boolean rebuildOnTheSameNode)
             throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(Item.BUILD);
-        List<Action> actions = constructRebuildCause(build, null);
+        ParametersAction action = null;
+        if (rebuildOnTheSameNode) {
+            NodeLabelParameterValue paramValue = createNodeLabelParamValueForPrevNode();
+            action = new ParametersAction(Collections.<ParameterValue>singletonList(paramValue));
+        }
+        List<Action> actions = constructRebuildCause(build, action);
         Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
+    }
+
+    private NodeLabelParameterValue createNodeLabelParamValueForPrevNode() {
+        return new NodeLabelParameterValue(getPrevBuildNodeName()); // nodeName used as a label
     }
 
     /**
@@ -408,8 +458,7 @@ public class RebuildAction implements Action {
         // handle 'rebuild on the same node' parameter
         if (REBUILD_ON_THE_SAME_NODE_PARAMETER_NAME.equals(parameterName)) {
             if ("true".equals(jo.getString("value"))) {
-                String nodeName = getPrevBuildNodeName();
-                return new NodeLabelParameterValue(nodeName); // nodeName used as a label
+                return createNodeLabelParamValueForPrevNode();
             } else {
                 return null; // do nothing
             }
@@ -536,23 +585,17 @@ public class RebuildAction implements Action {
     @SuppressWarnings("unused") // used from parameterized.jelly
     public CanBeBuildOnTheSameNodeCheckResult canBeBuiltOnTheSameNode() {
         AbstractBuild<?, ?> ab = (AbstractBuild<?, ?>) build;
-        ParametersAction paramAction = build.getAction(ParametersAction.class);
-        if (paramAction != null) {
-            // check if whether the job uses NodeLabel Parameter Plugin
-            for (ParameterValue parameterValue : paramAction.getParameters()) {
-                String parameterValueClass = parameterValue.getClass().getName();
-                if (parameterValueClass.equals(CLASS_LABEL_PARAMETER_VALUE) ||
-                        parameterValueClass.equals(CLASS_NODE_PARAMETER_VALUE)) {
-                    // if NodeLabel Parameter Plugin is used 'Rebuild on the same node' checkbox is not shown
-                    return NODELABEL_PARAMETER_PLUGIN_USED;
-                }
-            }
+        // check if whether the job uses NodeLabel Parameter Plugin
+        if (isNodeLabelParameterPluginUsed(build.getAction(ParametersAction.class))) {
+            // if NodeLabel Parameter Plugin is used 'Rebuild on the same node' checkbox is not shown
+            return NODELABEL_PARAMETER_PLUGIN_USED;
         }
 
         Node previousNode = ab.getBuiltOn();
         if (previousNode == null) {
             return NODE_NOT_EXISTS;
         }
+
         AbstractProject<?, ?> project = ab.getProject();
         Label assignedLabel = project.getAssignedLabel();
         if (assignedLabel == null) {
@@ -581,7 +624,6 @@ public class RebuildAction implements Action {
         return res == NODELABEL_PARAMETER_PLUGIN_USED;
     }
 
-    @SuppressWarnings("unused") // used from parameterized.jelly
     public String getPrevBuildNodeName() {
         String nodeName = ((AbstractBuild<?, ?>) build).getBuiltOnStr();
         if (StringUtils.isEmpty(nodeName)) {

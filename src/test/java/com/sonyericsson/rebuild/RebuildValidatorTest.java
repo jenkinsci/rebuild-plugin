@@ -289,7 +289,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 			throws Exception {
 		FreeStyleProject project = createFreeStyleProject();
 		project.scheduleBuild2(0);
-		RebuildSettings settings = new RebuildSettings(false, false);
+		RebuildSettings settings = new RebuildSettings(false, false, false);
 		project.addProperty(settings);
 		project.save();
 		HtmlPage projectPage = createWebClient().getPage(project);
@@ -308,7 +308,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 			throws Exception {
 		FreeStyleProject project = createFreeStyleProject();
 		project.scheduleBuild2(0);
-		RebuildSettings settings = new RebuildSettings(false, true);
+		RebuildSettings settings = new RebuildSettings(false, true, false);
 		project.addProperty(settings);
 		project.save();
 		HtmlPage projectPage = createWebClient().getPage(project);

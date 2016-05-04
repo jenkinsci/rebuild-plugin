@@ -42,15 +42,18 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
      */
     private boolean autoRebuild;
     private boolean rebuildDisabled;
+    private boolean sameNodeWhenAuto;
+
     /**
      * RebuildSettings constructor.
      *
      * @param autoRebuild boolean.
      */
     @DataBoundConstructor
-    public RebuildSettings(boolean autoRebuild, boolean rebuildDisabled) {
+    public RebuildSettings(boolean autoRebuild, boolean rebuildDisabled, boolean sameNodeWhenAuto) {
         this.autoRebuild = autoRebuild;
         this.rebuildDisabled = rebuildDisabled;
+        this.sameNodeWhenAuto = sameNodeWhenAuto;
     }
     /**
      * Method returns autoRebuild.
@@ -69,8 +72,12 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
     public boolean getRebuildDisabled() {
         return rebuildDisabled;
     }
-    
-   /**
+
+    public boolean isSameNodeWhenAuto() {
+        return sameNodeWhenAuto;
+    }
+
+    /**
     * DescriptorImpl class of JobPropertyDescriptor.
     */
     @Extension
