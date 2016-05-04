@@ -36,7 +36,7 @@ public class KVStoreTest {
                                 "}", true));
                 story.j.assertBuildStatusSuccess(p.scheduleBuild2(0));
 
-                KVProperty property = p.getProperty(KVProperty.class);
+                KVStore property = p.getProperty(KVStore.class);
                 assertEquals("KV Store value ", "value", property.retrieve("key"));
             }
         });
@@ -47,7 +47,7 @@ public class KVStoreTest {
         public void evaluate() throws Throwable {
             WorkflowJob p = story.j.jenkins.getItemByFullName("p", WorkflowJob.class);
 
-            KVProperty property = p.getProperty(KVProperty.class);
+            KVStore property = p.getProperty(KVStore.class);
             assertEquals("KV Store value ", "value", property.retrieve("key"));
 
         }
@@ -64,7 +64,7 @@ public class KVStoreTest {
 
             story.j.assertBuildStatusSuccess(p.scheduleBuild2(0));
 
-            KVProperty property = p.getProperty(KVProperty.class);
+            KVStore property = p.getProperty(KVStore.class);
             assertEquals("KV Store value ", "value2", property.retrieve("key"));
 
         }

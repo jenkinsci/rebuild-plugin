@@ -31,7 +31,7 @@ public class BuildChangesGlobalTest {
                 WorkflowJob p = story.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
                         "node {\n" +
-                                "  echo pipelineBuildChangeset.getChangeSet()\n" +
+                                "  echo promotedJob.getChangeSet()\n" +
                                 "}", true));
 
                 story.assertBuildStatusSuccess(p.scheduleBuild2(0));
@@ -44,7 +44,7 @@ public class BuildChangesGlobalTest {
         sampleRepo.init();
         String script;
         script = "node {\n" +
-                "  echo pipelineBuildChangeset.getChangeSet()\n" +
+                "  echo promotedJob.getChangeSet()\n" +
                 "}";
         sampleRepo.write("Jenkinsfile", script);
         sampleRepo.git("add", "Jenkinsfile");

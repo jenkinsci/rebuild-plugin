@@ -7,9 +7,11 @@ import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.cps.CpsScript;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariable;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import uk.co.bbc.mobileci.promoterebuild.PromoteRebuildCauseAction;
 
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * Created by beazlr02 on 23/04/16.
@@ -30,7 +32,12 @@ public class PromotedJobGlobal extends GlobalVariable {
             throw new IllegalStateException("cannot find associated build");
         }
 
-        return new PromotedJob(build);
+        WorkflowRun workflowRun = null;
+        if (build instanceof WorkflowRun) {
+            workflowRun = (WorkflowRun) build;
+        }
+        BuildChangeSet buildChangeSet = new BuildChangeSet(workflowRun);
+        return new PromotedJob(build, buildChangeSet);
     }
 
     public static final class PromotedJob {
@@ -39,9 +46,11 @@ public class PromotedJobGlobal extends GlobalVariable {
         @Whitelisted private boolean promotion;
         private String fromBuildNumber;
         private Run<?, ?> build;
+        private BuildChangeSet buildChangeSet;
 
-        public PromotedJob(Run<?, ?> build) {
+        public PromotedJob(Run<?, ?> build, BuildChangeSet buildChangeSet) {
             this.build = build;
+            this.buildChangeSet = buildChangeSet;
 
             PromoteRebuildCauseAction action = build.getAction(PromoteRebuildCauseAction.class);
             if(action!=null) {
@@ -75,11 +84,11 @@ public class PromotedJobGlobal extends GlobalVariable {
         public void store(String key, String value) throws IOException {
             Job<?, ?> parent = build.getParent();
             WorkflowJob wParent = (WorkflowJob) parent;
-            KVProperty property = wParent.getProperty(KVProperty.class);
+            KVStore property = wParent.getProperty(KVStore.class);
             if(property==null) {
-                property = new KVProperty();
+                property = new KVStore();
             } else {
-               wParent.removeProperty(KVProperty.class);
+               wParent.removeProperty(KVStore.class);
             }
             property.store(key, value);
             wParent.addProperty(property);
@@ -89,12 +98,28 @@ public class PromotedJobGlobal extends GlobalVariable {
         public String retrieve(String key) {
             Job<?, ?> parent = build.getParent();
             WorkflowJob wParent = (WorkflowJob) parent;
-            KVProperty property = wParent.getProperty(KVProperty.class);
+            KVStore property = wParent.getProperty(KVStore.class);
             String result = null;
             if(property!=null) {
                 result = property.retrieve(key);
             }
             return result;
+        }
+
+
+        @Whitelisted
+        public String getChangeSet() {
+            return buildChangeSet.getChangeSet();
+        }
+
+        @Whitelisted
+        public String getBranchName() {
+            return buildChangeSet.getBranchName();
+        }
+
+        @Whitelisted
+        public Collection<String> getBranchNames() {
+            return buildChangeSet.getBranchNames();
         }
     }
 

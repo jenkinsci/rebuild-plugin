@@ -13,12 +13,12 @@ import java.util.HashMap;
  */
 
 @ExportedBean(defaultVisibility=2)
-public class KVProperty extends JobProperty<WorkflowJob> {
+public class KVStore extends JobProperty<WorkflowJob> {
 
     @Whitelisted
     private HashMap<String, String> map;
 
-    public KVProperty() {
+    public KVStore() {
         map = new HashMap<String, String>();
     }
 
