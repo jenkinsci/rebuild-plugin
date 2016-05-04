@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by beazlr02 on 23/04/16.
  */
-public class PromotedJobGlobalTest {
+public class MobileCIGlobalBindingTest {
     @ClassRule
     public static BuildWatcher buildWatcher = new BuildWatcher();
 
@@ -29,7 +29,7 @@ public class PromotedJobGlobalTest {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition(
                 "node {\n" +
-                        "  promotedJob\n" +
+                        "  mobileCiSupport\n" +
                         "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
     }
@@ -39,7 +39,7 @@ public class PromotedJobGlobalTest {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition(
                 "node {\n" +
-                        "  if( ! promotedJob.isPromotion()) {" +
+                        "  if( ! mobileCiSupport.isPromotion()) {" +
                         "       manager.addWarningBadge 'stuff is broken'\n" +
                         "}\n" +
                         "}", true));
@@ -59,7 +59,7 @@ public class PromotedJobGlobalTest {
         String script =
                 "node " +
                         "{\n" +
-                        "  if( promotedJob.promotion ) {" +
+                        "  if( mobileCiSupport.promotion ) {" +
                         "    manager.addWarningBadge 'is a promotion'\n" +
                         "    \n" +
                         "  } else {\n" +

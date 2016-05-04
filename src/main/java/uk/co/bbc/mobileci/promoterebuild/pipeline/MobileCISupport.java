@@ -1,17 +1,11 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
-import hudson.model.Job;
-import hudson.model.Run;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import uk.co.bbc.mobileci.promoterebuild.PromoteRebuildCauseAction;
 
 import java.io.IOException;
 import java.util.Collection;
 
-/**
-* Created by beazlr02 on 04/05/16.
-*/
+
 public final class MobileCISupport {
 
     private BuildChangeSet buildChangeSet;
@@ -35,7 +29,7 @@ public final class MobileCISupport {
     }
 
     @Whitelisted
-    public String getHash() {
+    public String getFromHash() {
         return promotedJob.getHash();
     }
 
@@ -45,7 +39,7 @@ public final class MobileCISupport {
     }
 
     public String toString() {
-        return "PromotedJob: from: " +getFromBuildNumber() + " for:"+getHash();
+        return "PromotedJob: from: " +getFromBuildNumber() + " for:"+getFromHash();
     }
 
     @Whitelisted

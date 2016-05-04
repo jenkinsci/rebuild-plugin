@@ -6,16 +6,13 @@ import org.jenkinsci.plugins.workflow.cps.CpsScript;
 import org.jenkinsci.plugins.workflow.cps.GlobalVariable;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-/**
- * Created by beazlr02 on 23/04/16.
- */
 @Extension
-public class PromotedJobGlobal extends GlobalVariable {
+public class MobileCIGlobalBinding extends GlobalVariable {
 
 
     @Override
     public String getName() {
-        return "promotedJob";
+        return "mobileCiSupport";
     }
 
     @Override
@@ -29,6 +26,7 @@ public class PromotedJobGlobal extends GlobalVariable {
         if (build instanceof WorkflowRun) {
             workflowRun = (WorkflowRun) build;
         }
+
         BuildChangeSet buildChangeSet = new BuildChangeSet(workflowRun);
         PromotedJob promotedJob = new PromotedJob(build);
         KVStoreProxy kvStoreProxy = new KVStoreProxy(build);

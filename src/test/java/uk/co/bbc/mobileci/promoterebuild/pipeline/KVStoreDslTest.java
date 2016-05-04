@@ -36,7 +36,7 @@ public class KVStoreDslTest {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
                         "node {\n" +
-                                "  promotedJob.store('key','value')\n" +
+                                "  mobileCiSupport.store('key','value')\n" +
                                 "}", true));
                 doAnotherBuild(p);
             }
@@ -48,7 +48,7 @@ public class KVStoreDslTest {
                 WorkflowJob p = story.j.jenkins.getItemByFullName("p", WorkflowJob.class);
                 p.setDefinition(new CpsFlowDefinition(
                         "node {\n" +
-                                "  echo 'LOADED:' + promotedJob.retrieve('key')\n" +
+                                "  echo 'LOADED:' + mobileCiSupport.retrieve('key')\n" +
                                 "}", true));
 
                 WorkflowRun workflowRun = doAnotherBuild(p);
@@ -63,7 +63,7 @@ public class KVStoreDslTest {
                 WorkflowJob p = story.j.jenkins.getItemByFullName("p", WorkflowJob.class);
                 p.setDefinition(new CpsFlowDefinition(
                         "node {\n" +
-                                "  promotedJob.store('key','totallyDifferent')\n" +
+                                "  mobileCiSupport.store('key','totallyDifferent')\n" +
                                 "}", true));
 
                 doAnotherBuild(p);
@@ -76,7 +76,7 @@ public class KVStoreDslTest {
                 WorkflowJob p = story.j.jenkins.getItemByFullName("p", WorkflowJob.class);
                 p.setDefinition(new CpsFlowDefinition(
                         "node {\n" +
-                                "  echo 'LOADED:' + promotedJob.retrieve('key')\n" +
+                                "  echo 'LOADED:' + mobileCiSupport.retrieve('key')\n" +
                                 "}", true));
 
                 WorkflowRun workflowRun = doAnotherBuild(p);

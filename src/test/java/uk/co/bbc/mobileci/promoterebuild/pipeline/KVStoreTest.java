@@ -32,7 +32,7 @@ public class KVStoreTest {
                 WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, "p");
                 p.setDefinition(new CpsFlowDefinition(
                         "node {\n" +
-                                "  promotedJob.store('key','value')\n" +
+                                "  mobileCiSupport.store('key','value')\n" +
                                 "}", true));
                 story.j.assertBuildStatusSuccess(p.scheduleBuild2(0));
 
@@ -59,7 +59,7 @@ public class KVStoreTest {
             WorkflowJob p = story.j.jenkins.getItemByFullName("p", WorkflowJob.class);
             p.setDefinition(new CpsFlowDefinition(
                     "node {\n" +
-                            "  promotedJob.store('key','value2')\n" +
+                            "  mobileCiSupport.store('key','value2')\n" +
                             "}", true));
 
             story.j.assertBuildStatusSuccess(p.scheduleBuild2(0));

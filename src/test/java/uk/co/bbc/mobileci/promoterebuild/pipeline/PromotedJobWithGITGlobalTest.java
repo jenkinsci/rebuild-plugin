@@ -36,9 +36,9 @@ public class PromotedJobWithGITGlobalTest {
         String scriptThatLogsAssertableStrings =
                 "node " +
                         "{\n" +
-                        "  if( promotedJob.isPromotion() ) {" +
-                        "    echo 'PROMOTED:' + promotedJob.getHash()\n" +
-                        "    echo 'BUILDNUMBER:' + promotedJob.getFromBuildNumber()\n" +
+                        "  if( mobileCiSupport.isPromotion() ) {" +
+                        "    echo 'PROMOTED:' + mobileCiSupport.getFromHash()\n" +
+                        "    echo 'BUILDNUMBER:' + mobileCiSupport.getFromBuildNumber()\n" +
                         "    \n" +
                         "  } else {\n" +
                         "    echo 'not a promotion'\n" +
@@ -77,9 +77,9 @@ public class PromotedJobWithGITGlobalTest {
         String script =
                 "node " +
                         "{\n" +
-                        "  if( promotedJob.promotion ) {" +
-                        "    echo 'PROMOTED:' + promotedJob.hash\n" +
-                        "    echo 'BUILDNUMBER:' + promotedJob.fromBuildNumber\n" +
+                        "  if( mobileCiSupport.promotion ) {" +
+                        "    echo 'PROMOTED:' + mobileCiSupport.fromHash\n" +
+                        "    echo 'BUILDNUMBER:' + mobileCiSupport.fromBuildNumber\n" +
                         "    \n" +
                         "  } else {\n" +
                         "    echo 'not a promotion'\n" +
