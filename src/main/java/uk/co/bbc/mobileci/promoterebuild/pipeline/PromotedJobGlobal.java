@@ -31,7 +31,8 @@ public class PromotedJobGlobal extends GlobalVariable {
         }
         BuildChangeSet buildChangeSet = new BuildChangeSet(workflowRun);
         PromotedJob promotedJob = new PromotedJob(build);
-        return new MobileCISupport(build, buildChangeSet, promotedJob);
+        KVStoreProxy kvStoreProxy = new KVStoreProxy(build);
+        return new MobileCISupport(buildChangeSet, promotedJob, kvStoreProxy);
     }
 
 }

@@ -18,11 +18,8 @@ public final class PromotedJob {
     @Whitelisted
     private boolean promotion;
     private String fromBuildNumber;
-    private Run<?, ?> build;
 
     public PromotedJob(Run<?, ?> build) {
-        this.build = build;
-
         PromoteRebuildCauseAction action = build.getAction(PromoteRebuildCauseAction.class);
         if(action!=null) {
             promotion = true;

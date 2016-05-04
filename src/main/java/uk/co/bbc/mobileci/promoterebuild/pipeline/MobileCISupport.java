@@ -14,26 +14,19 @@ import java.util.Collection;
 */
 public final class MobileCISupport {
 
-    private  String hash;
-    @Whitelisted
-    private boolean promotion;
-    private String fromBuildNumber;
-    private Run<?, ?> build;
     private BuildChangeSet buildChangeSet;
     private PromotedJob promotedJob;
+    private KVStoreProxy kvStoreProxy;
 
-    public MobileCISupport(Run<?, ?> build, BuildChangeSet buildChangeSet, PromotedJob promotedJob) {
-        this.build = build;
+    public MobileCISupport(BuildChangeSet buildChangeSet, PromotedJob promotedJob, KVStoreProxy kvStoreProxy) {
         this.buildChangeSet = buildChangeSet;
         this.promotedJob = promotedJob;
+        this.kvStoreProxy = kvStoreProxy;
+    }
 
-        PromoteRebuildCauseAction action = build.getAction(PromoteRebuildCauseAction.class);
-        if(action!=null) {
-            promotion = true;
-            PromoteRebuildCauseAction.PromoteRebuildCause promoteRebuildCause = action.getPromoteRebuildCause();
-            this.hash = promoteRebuildCause.getBuildHash();
-            this.fromBuildNumber = String.valueOf(promoteRebuildCause.getUpstreamBuild());
-        }
+    @Whitelisted
+    public boolean getPromotion() {
+        return promotedJob.isPromotion();
     }
 
     @Whitelisted
@@ -57,30 +50,13 @@ public final class MobileCISupport {
 
     @Whitelisted
     public void store(String key, String value) throws IOException {
-        Job<?, ?> parent = build.getParent();
-        WorkflowJob wParent = (WorkflowJob) parent;
-        KVStore property = wParent.getProperty(KVStore.class);
-        if(property==null) {
-            property = new KVStore();
-        } else {
-           wParent.removeProperty(KVStore.class);
-        }
-        property.store(key, value);
-        wParent.addProperty(property);
+        kvStoreProxy.store(key,value);
     }
 
     @Whitelisted
     public String retrieve(String key) {
-        Job<?, ?> parent = build.getParent();
-        WorkflowJob wParent = (WorkflowJob) parent;
-        KVStore property = wParent.getProperty(KVStore.class);
-        String result = null;
-        if(property!=null) {
-            result = property.retrieve(key);
-        }
-        return result;
+        return kvStoreProxy.retrieve(key);
     }
-
 
     @Whitelisted
     public String getChangeSet() {
