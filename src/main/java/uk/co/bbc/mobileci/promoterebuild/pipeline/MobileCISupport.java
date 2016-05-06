@@ -38,6 +38,11 @@ public final class MobileCISupport {
         return promotedJob.getFromBuildNumber();
     }
 
+    @Whitelisted
+    public String getBuildTriggerHash() {
+        return buildChangeSet.getBuildTriggerHash();
+    }
+
     public String toString() {
         return "PromotedJob: from: " +getFromBuildNumber() + " for:"+getFromHash();
     }

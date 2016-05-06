@@ -68,4 +68,16 @@ public final class BuildChangeSet {
         }catch (Exception ignored){ }
         return branchNames;
     }
+
+    public String getBuildTriggerHash() {
+        String result="";
+        try {
+            BuildData action = workflowRun.getAction(BuildData.class);
+            Revision lastBuiltRevision = action.getLastBuiltRevision();
+            if (lastBuiltRevision!=null && lastBuiltRevision.getSha1() != null) {
+                result = lastBuiltRevision.getSha1().getName();
+            }
+        }catch (Exception ignored){}
+        return result;
+    }
 }
