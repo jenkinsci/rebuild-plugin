@@ -29,7 +29,7 @@ public class KVStoreDslTest {
     public GitSampleRepoRule sampleRepo = new GitSampleRepoRule();
 
     @Test
-    public void propertySurvivesJenkinsRestarts() throws Exception {
+    public void savesAndLoadsAValue() throws Exception {
         story.addStep(new Statement() {
             @Override
             public void evaluate() throws Throwable {
@@ -55,7 +55,12 @@ public class KVStoreDslTest {
                 story.j.assertLogContains("LOADED:value", workflowRun);
             }
         });
+    }
 
+    @Test
+    public void updatesAValue() throws Exception {
+
+        savesAndLoadsAValue();
 
         story.addStep(new Statement() {
             @Override
