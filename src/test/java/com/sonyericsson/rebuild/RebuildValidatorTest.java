@@ -47,6 +47,7 @@ import org.jvnet.hudson.test.TestExtension;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -415,6 +416,34 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	}
 
 	/**
+	 * Creates a new freestyle project and build with an non-parameter action.
+	 * Verify that rebuild has a copy of this action.
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testCopyingUnknownActionToNewBuild() throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+
+		Action action = new SupportedUnknownAction();
+		Build build = project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"), action).get();
+
+		while (project.isBuilding()) {
+			Thread.sleep(DELAY);
+		}
+
+		HtmlPage page = createWebClient().getPage(build);
+		page.getAnchorByText("Rebuild").click();
+
+		assertEquals(2, project.getBuilds().size());
+		assertBuildStatusSuccess(project.getLastBuild());
+
+		SupportedUnknownAction rebuildAction =
+				project.getLastBuild().getAction(SupportedUnknownAction.class);
+		assertNotNull(rebuildAction);
+	}
+
+	/**
 	 * A parameter value rebuild plugin does not know.
 	 */
 	public static class UnsupportedUnknownParameterValue extends
@@ -499,6 +528,14 @@ public class RebuildValidatorTest extends HudsonTestCase {
 			}
 		}
 
+	}
+
+	public static class SupportedUnknownAction implements Action {
+		private static final long serialVersionUID = 1014662680565914673L;
+
+		public String getUrlName() { return "/example"; }
+		public String getDisplayName() { return "unknown action"; }
+		public String getIconFileName() { return "icon.png"; }
 	}
 
 	/**

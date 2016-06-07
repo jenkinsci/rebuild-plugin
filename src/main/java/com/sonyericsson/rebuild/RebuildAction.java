@@ -254,6 +254,7 @@ public class RebuildAction implements Action {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildCause(build, null);
+        fillOtherBuildActions(currentBuild, actions);
         Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
@@ -298,6 +299,7 @@ public class RebuildAction implements Action {
             }
 
             List<Action> actions = constructRebuildCause(build, new ParametersAction(values));
+            fillOtherBuildActions(build, actions);
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
@@ -486,5 +488,19 @@ public class RebuildAction implements Action {
         // Else we return that we haven't found anything.
         // So Jelly fallback could occur.
         return null;
+    }
+
+    /**
+     * Method for copying of old build parameters (such as git revision from git plugin)
+     *
+     * @param build old build for parameters extraction
+     * @param actions list for filling
+     */
+    private void fillOtherBuildActions(Run build, List<Action> actions) {
+        for (Action a: build.getActions()) {
+            if (!(a instanceof CauseAction) && !(a instanceof ParametersAction)) {
+                actions.add(a);
+            }
+        }
     }
 }
