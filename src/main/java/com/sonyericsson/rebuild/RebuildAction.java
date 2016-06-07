@@ -204,7 +204,7 @@ public class RebuildAction implements Action {
         Run currentBuild = request.findAncestorObject(Run.class);
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
-            if (paramAction != null) {
+            if (paramAction != null && paramAction.getParameters().size() > 0) {
                 RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
                 if (settings != null && settings.getAutoRebuild()) {
                     parameterizedRebuild(currentBuild, response);

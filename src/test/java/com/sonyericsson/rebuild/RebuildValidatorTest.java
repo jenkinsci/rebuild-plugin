@@ -394,6 +394,27 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	}
 
 	/**
+	 * Treats build as non-parameterized if it has empty ParametersAction
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testStartRebuildWithEmptyParametersAction()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+
+		project.scheduleBuild2(0, new Cause.UserIdCause(),
+				new ParametersAction())
+				.get();
+		HtmlPage page = createWebClient().getPage(project,
+				"1");
+		page.getAnchorByText("Rebuild").click();
+
+		assertEquals(2, project.getBuilds().size());
+		assertBuildStatusSuccess(project.getLastBuild());
+	}
+
+	/**
 	 * A parameter value rebuild plugin does not know.
 	 */
 	public static class UnsupportedUnknownParameterValue extends
