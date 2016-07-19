@@ -209,7 +209,12 @@ public class RebuildAction implements Action {
                 if (settings != null && settings.getAutoRebuild()) {
                     parameterizedRebuild(currentBuild, response);
                 } else {
-                    response.sendRedirect(PARAMETERIZED_URL);
+                    Run lastRun = project.getLastCompletedBuild();
+                    if (null != lastRun){
+                    	parameterizedRebuild(lastRun, response);
+                    }else{
+                    	response.sendRedirect(PARAMETERIZED_URL);
+                    }
                 }
             } else {
                 nonParameterizedRebuild(currentBuild, response);
