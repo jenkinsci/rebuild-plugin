@@ -187,95 +187,8 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		project.scheduleBuild2(0, new Cause.UserIdCause(),
 				new ParametersAction(new StringParameterValue("name", "ABC")))
 				.get();
-		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
-				"1/rebuild");
-		WebAssert.assertElementPresentByXPath(rebuildConfigPage,
-				"//div[@name='parameter']/input[@value='ABC']");
-	}
-
-	/**
-	 * Creates a new freestyle project and builds the project with a string
-	 * parameter. If the build is succesful, a rebuild of the last build is
-	 * done. The rebuild on the project level should point to the last build
-	 *
-	 * @throws Exception
-	 *             Exception
-	 */
-	public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
-			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
-		project.addProperty(new ParametersDefinitionProperty(
-				new StringParameterDefinition("name", "defaultValue")));
-
-		// Build (#1)
-		project.scheduleBuild2(0, new Cause.UserIdCause(),
-				new ParametersAction(new StringParameterValue("name", "test")))
-				.get();
-		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
-				"1/rebuild");
-		// Rebuild (#2)
-		submit(rebuildConfigPage.getFormByName("config"));
-
-		HtmlPage projectPage = createWebClient().getPage(project);
-		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
-
-		HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
-		assertEquals("Rebuild Last should point to the second build", "/"
-				+ project.getUrl() + "lastCompletedBuild/rebuild",
-				rebuildHref.getHrefAttribute());
-	}
-
-	/**
-	 * Creates a new freestyle project and rebuild. Check that the RebuildCause
-	 * has been set to the new build. Check also that a UserIdCause is added.
-	 *
-	 * @throws Exception
-	 *             Exception
-	 */
-	public void testWhenProjectWithCauseThenCauseIsCopiedAndUserCauseAdded()
-			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
-		project.addProperty(new ParametersDefinitionProperty(
-				new StringParameterDefinition("name", "defaultValue")));
-
-		// Build (#1)
-		project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
-				new ParametersAction(new StringParameterValue("name", "test")))
-				.get();
-		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
-				"1/rebuild");
-		// Rebuild (#2)
-		submit(rebuildConfigPage.getFormByName("config"));
-
-		createWebClient().getPage(project).getAnchorByText("Rebuild Last")
-				.click();
-
-		while (project.isBuilding()) {
-			Thread.sleep(DELAY);
-		}
-		List<Action> actions = project.getLastCompletedBuild().getActions();
-		boolean hasRebuildCause = false;
-		boolean hasRemoteCause = false;
-		boolean hasUserIdCause = false;
-		for (Action action : actions) {
-			if (action instanceof CauseAction) {
-				CauseAction causeAction = (CauseAction) action;
-				if (causeAction.getCauses().get(0).getClass()
-						.equals(RebuildCause.class)) {
-					hasRebuildCause = true;
-				}
-				if (causeAction.getCauses().get(0).getClass()
-						.equals(Cause.RemoteCause.class)) {
-					hasRemoteCause = true;
-				}
-				if (causeAction.getCauses().get(0).getClass()
-						.equals(Cause.UserIdCause.class)) {
-					hasUserIdCause = true;
-				}
-			}
-		}
-		assertTrue("Build should have user, remote and rebuild causes",
-				hasRebuildCause && hasRemoteCause && hasUserIdCause);
+		HtmlPage rebuildConfigPage = createWebClient().getPage(project, "1/rebuild");
+		WebAssert.assertElementPresentByXPath(rebuildConfigPage, "//input[@name='q']");
 	}
 
 	/**
@@ -363,8 +276,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		// it is trying to fallback and use the
 		HtmlPage page = wc.getPage(build, "rebuild");
 		// Check the hardcoded description is showing properly.
-		assertTrue(page.asText().contains(
-				"Configuration page for UnsupportedUnknownParameterValue"));
+		assertTrue(page.asText().contains("test0"));
 	}
 
 	/**
@@ -389,8 +301,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 										"value1"))));
 		FreeStyleBuild build = project.getLastBuild();
 		HtmlPage page = wc.getPage(build, "rebuild");
-		assertTrue(page.asText(),
-				page.asText().contains("This is a mark for test"));
+		assertTrue(page.asText(), page.asText().contains("test0"));
 	}
 
 	/**
