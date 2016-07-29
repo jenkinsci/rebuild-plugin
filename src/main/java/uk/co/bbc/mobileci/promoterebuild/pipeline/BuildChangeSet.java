@@ -30,10 +30,12 @@ public final class BuildChangeSet {
 
                 for (ChangeLogSet.Entry entry : entries) {
 
-                    changeSet.append(entry.getCommitId())
-                            .append(" ")
+                    changeSet.append(entry.getAuthor())
+                            .append(": ")
                             .append(entry.getMsg())
-                            .append("\n");
+                            .append(" (")
+                            .append(entry.getCommitId())
+                            .append(")\n");
                 }
             }
         }
