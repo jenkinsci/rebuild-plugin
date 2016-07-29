@@ -1,6 +1,7 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
 import hudson.plugins.git.util.BuildData;
+import hudson.scm.ChangeLogSet;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -12,6 +13,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThat;
 
 /**
  * Created by beazlr02 on 23/04/16.
@@ -37,10 +41,31 @@ public class BuildChangesGlobalTest {
                 story.assertBuildStatusSuccess(p.scheduleBuild2(0));
     }
 
-
     @Test
     public void twoCommitsInChangeList() throws Exception {
+        WorkflowRun b = setupJenkins();
 
+        story.assertLogContains("commitForTest", b);
+        story.assertLogContains("anotherCommitForTest", b);
+
+        String masterHeadHash = b.getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
+        story.assertLogContains(masterHeadHash, b);
+    }
+
+    @Test
+    public void changesetShouldHaveTheCorrectFormat() throws Exception {
+        WorkflowRun wfr = setupJenkins();
+
+        BuildChangeSet buildChangeSet = new BuildChangeSet(wfr);
+        String changeSet = buildChangeSet.getChangeSet();
+
+        for (ChangeLogSet.Entry entry : wfr.getChangeSets().get(0)) {
+            String change = String.format("%s: %s (%s)", entry.getAuthor(), entry.getMsg(), entry.getCommitId());
+            assertThat(changeSet, containsString(change));
+        }
+    }
+
+    private WorkflowRun setupJenkins() throws Exception {
         sampleRepo.init();
         String script;
         script = "node {\n" +
@@ -50,10 +75,10 @@ public class BuildChangesGlobalTest {
         sampleRepo.git("add", "Jenkinsfile");
         sampleRepo.git("commit", "--message=files");
 
-        WorkflowJob p = story.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsScmFlowDefinition(new GitStep(sampleRepo.toString()).createSCM(), "Jenkinsfile"));
+        WorkflowJob wfj = story.jenkins.createProject(WorkflowJob.class, "p");
+        wfj.setDefinition(new CpsScmFlowDefinition(new GitStep(sampleRepo.toString()).createSCM(), "Jenkinsfile"));
 
-        story.waitForCompletion(p.scheduleBuild2(0).get());
+        story.waitForCompletion(wfj.scheduleBuild2(0).get());
 
         sampleRepo.write("Jenkinsfile2", script);
         sampleRepo.git("add", "Jenkinsfile2");
@@ -63,16 +88,10 @@ public class BuildChangesGlobalTest {
         sampleRepo.git("add", "Jenkinsfile3");
         sampleRepo.git("commit", "--message=anotherCommitForTest");
 
-        WorkflowRun b = p.scheduleBuild2(0).get();
+        WorkflowRun wfr = wfj.scheduleBuild2(0).get();
 
-        story.waitForCompletion(b);
+        story.waitForCompletion(wfr);
 
-
-        story.assertLogContains("commitForTest", b);
-        story.assertLogContains("anotherCommitForTest", b);
-
-
-        String masterHeadHash = b.getAction(BuildData.class).getLastBuiltRevision().getSha1().getName();
-        story.assertLogContains(masterHeadHash, b);
+        return wfr;
     }
 }
