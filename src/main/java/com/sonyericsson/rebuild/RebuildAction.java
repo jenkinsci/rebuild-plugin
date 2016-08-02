@@ -24,7 +24,9 @@
  */
 package com.sonyericsson.rebuild;
 
+import com.google.common.collect.Sets;
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.model.Action;
 
 import javax.servlet.ServletException;
@@ -32,6 +34,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import hudson.matrix.MatrixRun;
 import hudson.model.BooleanParameterValue;
@@ -337,6 +340,26 @@ public class RebuildAction implements Action {
     }
 
     /**
+     * Loops over all the RebuildActionDispatchers and adds any actions to the rebuild that they want included.
+     * Always copies the {@link hudson.model.ParametersAction} if it is present.
+     *
+     * @param fromBuild the build to copy the actions from
+     * @param actions the list to append additional copied actions
+     */
+    private void copyRebuildDispatcherActions(Run<?, ?> fromBuild, List<Action> actions) {
+        Set<Action> propagatingActions = Sets.newHashSet();
+
+        // Get all RebuildActionsDispatchers that implement our extension point
+        ExtensionList<RebuildActionDispatcher> rebuildActionDispatchers = RebuildActionDispatcher.all();
+
+        for (RebuildActionDispatcher dispatcher : rebuildActionDispatchers) {
+            propagatingActions.addAll(dispatcher.getPropagatingActions(fromBuild));
+        }
+
+        actions.addAll(propagatingActions);
+    }
+
+    /**
      * Method for checking whether current build is sub job(MatrixRun) of Matrix
      * build.
      *
@@ -354,7 +377,7 @@ public class RebuildAction implements Action {
     }
 
     /**
-     * Method for checking,whether the rebuild functionality would be available
+     * Method for checking whether the rebuild functionality would be available
      * for build.
      *
      * @return boolean
@@ -449,7 +472,7 @@ public class RebuildAction implements Action {
     /**
      * Method for constructing Rebuild actions.
      *
-     * @param up AbsstractBuild
+     * @param up AbstractBuild
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
@@ -457,6 +480,7 @@ public class RebuildAction implements Action {
         List<Cause> causes = constructRebuildCauses(up);
         List<Action> actions = new ArrayList<>();
         actions.add(new CauseAction(causes));
+        copyRebuildDispatcherActions(up, actions);
         if (paramAction != null) {
             actions.add(paramAction);
         }
