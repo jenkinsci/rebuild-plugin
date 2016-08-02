@@ -24,7 +24,9 @@
  */
 package com.sonyericsson.rebuild;
 
+import com.google.common.collect.Sets;
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.model.Action;
 
 import javax.servlet.ServletException;
@@ -32,6 +34,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import hudson.matrix.MatrixRun;
 import hudson.model.BooleanParameterValue;
@@ -56,9 +59,6 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-
-import com.sonyericsson.rebuild.RebuildParameterPage;
-import com.sonyericsson.rebuild.RebuildParameterProvider;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -223,17 +223,16 @@ public class RebuildAction implements Action {
      * @param response StaplerResponse the response handler.
      * @throws IOException          in case of Stapler issues
      */
-    public void parameterizedRebuild(Run currentBuild, StaplerResponse response) throws IOException {
+    public void parameterizedRebuild(Run<?, ?> currentBuild, StaplerResponse response) throws IOException {
         Job project = getProject();
         if (project == null) {
             return;
         }
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
+            ParametersAction parametersAction = currentBuild.getAction(ParametersAction.class);
 
-            List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
-            ParametersAction action = currentBuild.getAction(ParametersAction.class);
-            actions.add(action);
+            List<Action> actions = constructRebuildCause(currentBuild, parametersAction);
 
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
@@ -254,6 +253,7 @@ public class RebuildAction implements Action {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildCause(build, null);
+
         Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
@@ -313,9 +313,9 @@ public class RebuildAction implements Action {
      * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
      */
     private List<Action> copyBuildCausesAndAddUserCause(Run<?, ?> fromBuild) {
-        List currentBuildCauses = fromBuild.getCauses();
+        List<Cause> currentBuildCauses = fromBuild.getCauses();
 
-        List<Action> actions = new ArrayList<Action>(currentBuildCauses.size());
+        List<Action> actions = new ArrayList<Action>();
         boolean hasUserCause = false;
         for (Object buildCause : currentBuildCauses) {
             if (buildCause instanceof Cause.UserIdCause) {
@@ -330,6 +330,26 @@ public class RebuildAction implements Action {
         }
 
         return actions;
+    }
+
+    /**
+     * Loops over all the RebuildActionDispatchers and adds any actions to the rebuild that they want included.
+     * Always copies the {@link hudson.model.ParametersAction} if it is present.
+     *
+     * @param fromBuild the build to copy the actions from
+     * @param actions the list to append additional copied actions
+     */
+    private void copyRebuildDispatcherActions(Run<?, ?> fromBuild, List<Action> actions) {
+        Set<Action> propagatingActions = Sets.newHashSet();
+
+        // Get all RebuildActionsDispatchers that implement our extension point
+        ExtensionList<RebuildActionDispatcher> rebuildActionDispatchers = RebuildActionDispatcher.all();
+
+        for (RebuildActionDispatcher dispatcher : rebuildActionDispatchers) {
+            propagatingActions.addAll(dispatcher.getPropagatingActions(fromBuild));
+        }
+
+        actions.addAll(propagatingActions);
     }
 
     /**
@@ -350,7 +370,7 @@ public class RebuildAction implements Action {
     }
 
     /**
-     * Method for checking,whether the rebuild functionality would be available
+     * Method for checking whether the rebuild functionality would be available
      * for build.
      *
      * @return boolean
@@ -362,11 +382,11 @@ public class RebuildAction implements Action {
                 && project.isBuildable()
                 && project instanceof Queue.Task
                 && !isMatrixRun() 
-                && !isRebuildDisbaled();
+                && !isRebuildDisabled();
 
     }
 
-    private boolean isRebuildDisbaled() {
+    private boolean isRebuildDisabled() {
         RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
         
         if (settings != null && settings.getRebuildDisabled()) {
@@ -449,12 +469,13 @@ public class RebuildAction implements Action {
     /**
      * Method for constructing Rebuild cause.
      *
-     * @param up AbsstractBuild
+     * @param up AbstractBuild
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
-    private List<Action> constructRebuildCause(Run up, ParametersAction paramAction) {
+    private List<Action> constructRebuildCause(Run<?, ?> up, ParametersAction paramAction) {
         List<Action> actions = copyBuildCausesAndAddUserCause(up);
+        copyRebuildDispatcherActions(up, actions);
         actions.add(new CauseAction(new RebuildCause(up)));
         if (paramAction != null) {
             actions.add(paramAction);
