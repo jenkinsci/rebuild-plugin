@@ -63,4 +63,26 @@ public class StagePromotionDSLTest  {
 
         assertEquals("testing a release", run.getAction(GroovyPostbuildAction.class).getText());
     }
+
+    @Test
+    public void stagePromotionCanOccurInMoreThanOneStage() throws Exception {
+        WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsFlowDefinition(
+                "stage \"First Stage\" \n" +
+                "  node {\n" +
+                "    stagePromotion {\n" +
+                "      message 'testing a release'\n" +
+                "    }\n" +
+                "  }" +
+                "" +
+                "\n" +
+                "stage \"Second Stage\" \n" +
+                "  node {\n" +
+                "    stagePromotion {\n" +
+                "      message 'testing a release'\n" +
+                "    }\n" +
+                "  }"
+                , false));
+        p.scheduleBuild2(0);
+    }
 }
