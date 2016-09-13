@@ -8,3 +8,5 @@ work
 *.ipr
 *.iws
 .idea/
+mvnw
+.DS_Store
