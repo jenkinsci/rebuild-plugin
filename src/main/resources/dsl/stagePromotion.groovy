@@ -1,8 +1,5 @@
 package dsl
 
-/**
- * Created by beazlr02 on 23/04/16.
- */
 def call(body = {}) {
     def config = [:]
     body.resolveStrategy = Closure.DELEGATE_ONLY
@@ -18,7 +15,7 @@ def call(body = {}) {
 
 }
 
-class StagePromotionDelegate {
+class StagePromotionDelegate implements Serializable {
     def map
 
     StagePromotionDelegate(map) {
