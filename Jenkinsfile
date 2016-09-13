@@ -8,6 +8,9 @@ stage("Check out") {
 stage("Build") {
 	node("Linux") {
 		unstash "sources"
-		sh("./ci.sh")
+
+		withCredentials([[$class: 'StringBinding', credentialsId: '03a932ce-06c6-494e-9da2-809f9e797c18', variable: 'GITHUB_ACCESS_TOKEN']]) {
+            sh("./ci.sh -g $GITHUB_ACCESS_TOKEN")
+        }
 	}
 }
