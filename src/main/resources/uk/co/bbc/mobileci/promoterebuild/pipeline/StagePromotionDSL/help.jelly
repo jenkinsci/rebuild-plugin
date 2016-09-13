@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?jelly escape-by-default='true'?>
 <div>
+<p>Provided by PromoteRebuild plugin, github plugin location https://github.com/bbc/mobileci-jenkins-support</p>
 <p>This stages this build for promotion.</p>
 <p>A badge is added to the job which when clicked will rebuild linking back to this job. See global promotedJob for more information</p>
 <pre><code>

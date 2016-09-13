@@ -3,6 +3,7 @@
 <div>
 <h3>This polyfills pipeline support methods</h3>
 <p/>
+<p>Provided by PromoteRebuild plugin, github plugin location https://github.com/bbc/mobileci-jenkins-support</p>
 <p>mobileCiSupport.isPromotion(), this will be true if the build is run from stagePromotion() badge</p>
 <p>mobileCiSupport.getFromHash(), this will be set to the commit hash of the job that was promoted</p>
 <p>mobileCiSupport.getFromBuildNumber(), this will be set to the build number of the job that was promoted</p>
