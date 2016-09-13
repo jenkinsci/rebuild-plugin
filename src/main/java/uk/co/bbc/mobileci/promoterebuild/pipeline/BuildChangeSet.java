@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
-* Created by beazlr02 on 04/05/16.
-*/
+ * Created by beazlr02 on 04/05/16.
+ */
 public final class BuildChangeSet {
 
     private WorkflowRun workflowRun;
@@ -45,41 +45,51 @@ public final class BuildChangeSet {
 
     @Whitelisted
     public String getBranchName() {
-        String result="";
+        String result = "";
         try {
             BuildData action = workflowRun.getAction(BuildData.class);
             Revision lastBuiltRevision = action.getLastBuiltRevision();
-            Collection<Branch> branches = lastBuiltRevision.getBranches();
-            Branch[] branchArray = branches.toArray(new Branch[]{});
-            Branch branch = branchArray[0];
-            result = branch.getName().replaceAll("refs/remotes/origin/", "");
-        }catch (Exception ignored){}
+            if (lastBuiltRevision != null) {
+                Collection<Branch> branches = lastBuiltRevision.getBranches();
+                Branch[] branchArray = branches.toArray(new Branch[]{});
+                Branch branch = branchArray[0];
+                result = branch.getName().replaceAll("refs/remotes/origin/", "");
+            }
+        } catch (Exception ignored) {
+        }
         return result;
     }
 
     @Whitelisted
     public Collection<String> getBranchNames() {
-        Collection<String> branchNames = new ArrayList<String>(0);
+        Collection<String> branchNames = new ArrayList<>(0);
         try {
             BuildData action = workflowRun.getAction(BuildData.class);
-            Collection<Branch> branches = action.getLastBuiltRevision().getBranches();
-            for(Branch branch : branches) {
-                String name = branch.getName().replaceAll("refs/remotes/origin/","");
-                branchNames.add(name);
+            if (action != null) {
+                Revision lastBuiltRevision = action.getLastBuiltRevision();
+                if (lastBuiltRevision != null) {
+                    Collection<Branch> branches = lastBuiltRevision.getBranches();
+                    for (Branch branch : branches) {
+                        String name = branch.getName().replaceAll("refs/remotes/origin/", "");
+                        branchNames.add(name);
+                    }
+                }
             }
-        }catch (Exception ignored){ }
+        } catch (Exception ignored) {
+        }
         return branchNames;
     }
 
     public String getBuildTriggerHash() {
-        String result="";
+        String result = "";
         try {
             BuildData action = workflowRun.getAction(BuildData.class);
             Revision lastBuiltRevision = action.getLastBuiltRevision();
-            if (lastBuiltRevision!=null && lastBuiltRevision.getSha1() != null) {
+            if (lastBuiltRevision != null && lastBuiltRevision.getSha1() != null) {
                 result = lastBuiltRevision.getSha1().getName();
             }
-        }catch (Exception ignored){}
+        } catch (Exception ignored) {
+        }
         return result;
     }
 }

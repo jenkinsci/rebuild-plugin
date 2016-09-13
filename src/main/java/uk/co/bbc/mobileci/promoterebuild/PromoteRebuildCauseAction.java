@@ -81,11 +81,9 @@ public class PromoteRebuildCauseAction implements Action {
 
 
         private final Cause.UpstreamCause upstreamCause;
-        private Run<?, ?> up;
         private String buildHash;
 
         public PromoteRebuildCause(Run<?, ?> up) {
-            this.up = up;
             upstreamCause = new Cause.UpstreamCause(up);
             BuildData action = up.getAction(BuildData.class);
             if(action!=null) {
