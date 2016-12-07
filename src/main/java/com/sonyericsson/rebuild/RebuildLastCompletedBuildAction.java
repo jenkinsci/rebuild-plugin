@@ -53,6 +53,6 @@ public class RebuildLastCompletedBuildAction extends RebuildAction {
 
     @Override
     public String getDisplayName() {
-        return "Rebuild Last";
+        return "Rebuild Last Completed";
     }
 }
