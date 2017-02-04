@@ -46,6 +46,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
      * RebuildSettings constructor.
      *
      * @param autoRebuild boolean.
+     * @param rebuildDisabled whether to disable rebuild
      */
     @DataBoundConstructor
     public RebuildSettings(boolean autoRebuild, boolean rebuildDisabled) {
