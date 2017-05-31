@@ -26,11 +26,14 @@ package uk.co.bbc.mobileci.promoterebuild;
 import hudson.model.Action;
 import hudson.model.Cause;
 import hudson.model.Run;
-import hudson.plugins.git.Revision;
+import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.util.BuildData;
-import org.eclipse.jgit.lib.ObjectId;
+import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
+
+import java.util.*;
 
 /**
  * A cause specifying that the build was a rebuild of another build. Extends
@@ -81,19 +84,19 @@ public class PromoteRebuildCauseAction implements Action {
 
 
         private final Cause.UpstreamCause upstreamCause;
-        private String buildHash;
+        private Map<String, String> scmCommitHashes = new HashMap<>();
+        private String baseHash;
 
         public PromoteRebuildCause(Run<?, ?> up) {
             upstreamCause = new Cause.UpstreamCause(up);
-            BuildData action = up.getAction(BuildData.class);
-            if(action!=null) {
-                Revision lastBuiltRevision = action.getLastBuiltRevision();
-                if(lastBuiltRevision!=null) {
-                    ObjectId sha1 = lastBuiltRevision.getSha1();
-                    if (sha1!=null) {
-                        this.buildHash = sha1.getName();
-                    }
+            try {
+                GitSCM jobBaseSCM = (GitSCM) ((CpsScmFlowDefinition) ((WorkflowJob) up.getParent()).getDefinition()).getScm();
+                List<BuildData> actions = up.getActions(BuildData.class);
+                for (BuildData action : actions) {
+                    scmCommitHashes.put(action.getRemoteUrls().iterator().next(), action.getLastBuiltRevision().getSha1().getName());
                 }
+                baseHash = scmCommitHashes.get(jobBaseSCM.getUserRemoteConfigs().get(0).getUrl());
+            } catch(Exception e) {
             }
         }
 
@@ -125,8 +128,12 @@ public class PromoteRebuildCauseAction implements Action {
             return upstreamCause.getUpstreamUrl();
         }
 
-        public String getBuildHash() {
-            return this.buildHash;
+        public Map<String, String> getScmCommitHashes() {
+            return this.scmCommitHashes;
+        }
+
+        public String getBaseCommitHash() {
+            return this.baseHash;
         }
     }
 }
