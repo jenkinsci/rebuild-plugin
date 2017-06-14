@@ -1,9 +1,12 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
+import hudson.model.Job;
 import hudson.model.Run;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import uk.co.bbc.mobileci.promoterebuild.PromoteRebuildCauseAction;
 
+import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -11,17 +14,17 @@ import java.util.Collection;
 */
 public final class PromotedJob {
 
-    private String fromCommitHash;
+    private  String hash;
     @Whitelisted
     private boolean promotion;
     private String fromBuildNumber;
 
     public PromotedJob(Run<?, ?> build) {
         PromoteRebuildCauseAction action = build.getAction(PromoteRebuildCauseAction.class);
-        if(action != null) {
+        if(action!=null) {
             promotion = true;
             PromoteRebuildCauseAction.PromoteRebuildCause promoteRebuildCause = action.getPromoteRebuildCause();
-            this.fromCommitHash = promoteRebuildCause.getBaseCommitHash();
+            this.hash = promoteRebuildCause.getBuildHash();
             this.fromBuildNumber = String.valueOf(promoteRebuildCause.getUpstreamBuild());
         }
     }
@@ -32,8 +35,8 @@ public final class PromotedJob {
     }
 
     @Whitelisted
-    public String getFromCommitHash() {
-        return fromCommitHash;
+    public String getHash() {
+        return hash;
     }
 
     @Whitelisted
@@ -42,7 +45,7 @@ public final class PromotedJob {
     }
 
     public String toString() {
-        return "PromotedJob: from: " +getFromBuildNumber() + " for:"+ getFromCommitHash();
+        return "PromotedJob: from: " +getFromBuildNumber() + " for:"+getHash();
     }
 
 }

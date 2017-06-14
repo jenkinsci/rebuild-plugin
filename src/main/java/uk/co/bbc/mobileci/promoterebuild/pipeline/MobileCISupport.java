@@ -5,7 +5,6 @@ import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Set;
 
 
 public final class MobileCISupport {
@@ -35,7 +34,7 @@ public final class MobileCISupport {
     @NonCPS
     @Whitelisted
     public String getFromHash() {
-        return promotedJob.getFromCommitHash();
+        return promotedJob.getHash();
     }
 
     @NonCPS

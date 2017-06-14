@@ -1,15 +1,12 @@
 package uk.co.bbc.mobileci.promoterebuild.pipeline;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
-import hudson.plugins.git.GitSCM;
-import jenkins.plugins.git.GitSCMSource;
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.libs.FolderLibraries;
 import org.jenkinsci.plugins.workflow.libs.LibraryConfiguration;
 import org.jenkinsci.plugins.workflow.libs.SCMRetriever;
-import org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever;
 import org.jenkinsci.plugins.workflow.steps.scm.GitSampleRepoRule;
 import org.jenkinsci.plugins.workflow.steps.scm.GitStep;
 import org.junit.ClassRule;
@@ -21,9 +18,7 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
-import static org.junit.Assert.*;
 
 /**
  * Copyright © 2017 Media Applications Technologies. All rights reserved.
@@ -40,7 +35,7 @@ public class PromotedJobWithPipelineLibs {
     @Rule public GitSampleRepoRule sampleLibsRepo = new GitSampleRepoRule();
 
     @Test
-    public void dontFearTheHash() throws Exception {
+    public void jobWithPipelineLibsCanBePromoted() throws Exception {
 
         sampleLibsRepo.init();
         String libCode = "void printSomething() {\n" +

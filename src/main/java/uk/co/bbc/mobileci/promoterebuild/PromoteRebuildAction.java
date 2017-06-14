@@ -372,13 +372,14 @@ public class PromoteRebuildAction implements Action {
             actions.add(paramAction);
         }
 
-        Map<String, String> commitHashes = promoteRebuildCauseAction.getPromoteRebuildCause().getScmCommitHashes();
-        for (String scmRemoteUrl : commitHashes.keySet()) {
-            try {
-                actions.add(new RevisionParameterAction(commitHashes.get(scmRemoteUrl), new URIish(scmRemoteUrl)));
-            } catch (URISyntaxException ignored) {
-            }
+        String buildHash = promoteRebuildCauseAction.getPromoteRebuildCause().getBuildHash();
+        URIish buildRemote = null;
+        try {
+            buildRemote = new URIish(promoteRebuildCauseAction.getPromoteRebuildCause().getBuildRemote());
+        } catch (URISyntaxException ignored) {
         }
+        RevisionParameterAction revisionParameterAction = new RevisionParameterAction(buildHash, buildRemote);
+        actions.add(revisionParameterAction);
 
         return actions;
     }

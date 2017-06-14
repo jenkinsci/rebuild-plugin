@@ -84,20 +84,30 @@ public class PromoteRebuildCauseAction implements Action {
 
 
         private final Cause.UpstreamCause upstreamCause;
-        private Map<String, String> scmCommitHashes = new HashMap<>();
-        private String baseHash;
+        private String buildHash;
+        private String buildRemote;
 
         public PromoteRebuildCause(Run<?, ?> up) {
             upstreamCause = new Cause.UpstreamCause(up);
             try {
-                GitSCM jobBaseSCM = (GitSCM) ((CpsScmFlowDefinition) ((WorkflowJob) up.getParent()).getDefinition()).getScm();
+                GitSCM jobBaseSCM = getScm(up);
                 List<BuildData> actions = up.getActions(BuildData.class);
+                Map<String, String> commitHashes = new HashMap<>();
                 for (BuildData action : actions) {
-                    scmCommitHashes.put(action.getRemoteUrls().iterator().next(), action.getLastBuiltRevision().getSha1().getName());
+                    commitHashes.put(action.getRemoteUrls().iterator().next(), action.getLastBuiltRevision().getSha1().getName());
                 }
-                baseHash = scmCommitHashes.get(jobBaseSCM.getUserRemoteConfigs().get(0).getUrl());
-            } catch(Exception e) {
+                buildRemote = getBaseRemote(jobBaseSCM);
+                buildHash = commitHashes.get(buildRemote);
+            } catch(ClassCastException ignored) {
             }
+        }
+
+        private GitSCM getScm(Run<?, ?> up) throws ClassCastException {
+            return (GitSCM) ((CpsScmFlowDefinition) ((WorkflowJob) up.getParent()).getDefinition()).getScm();
+        }
+
+        private String getBaseRemote(GitSCM jobBaseSCM) {
+            return jobBaseSCM.getUserRemoteConfigs().get(0).getUrl();
         }
 
         @Exported(
@@ -128,12 +138,12 @@ public class PromoteRebuildCauseAction implements Action {
             return upstreamCause.getUpstreamUrl();
         }
 
-        public Map<String, String> getScmCommitHashes() {
-            return this.scmCommitHashes;
+        public String getBuildHash() {
+            return this.buildHash;
         }
 
-        public String getBaseCommitHash() {
-            return this.baseHash;
+        public String getBuildRemote() {
+            return this.buildRemote;
         }
     }
 }
