@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<div>
+<h3>This polyfills pipeline support methods</h3>
+<p/>
+<p>Provided by PromoteRebuild plugin, github plugin location https://github.com/bbc/mobileci-jenkins-support</p>
+<p>mobileCiSupport.isPromotion(), this will be true if the build is run from stagePromotion() badge</p>
+<p>mobileCiSupport.getFromHash(), this will be set to the commit hash of the job that was promoted</p>
+<p>mobileCiSupport.getFromBuildNumber(), this will be set to the build number of the job that was promoted</p>
+<p>mobileCiSupport.store('valueKey', 'someValue'), this can be used to store a string</p>
+<p>mobileCiSupport.retrieve('valueKey'), this can be used to retrieve a string</p>
+<p>mobileCiSupport.getChangeSet(), this will return the changes since the last build of the job</p>
+<p>mobileCiSupport.getBranchName(), this will be the branch name of the build being run</p>
+<h4>For example</h4>
+<pre><code>
+node {
+
+    echo 'This build contains these changes ' + mobileCiSupport.getChangeSet()
+    echo 'This build is from branch: ' + mobileCiSupport.getBranchName()
+
+    if( mobileCiSupport.isPromotion()) {
+
+        def hash = mobileCiSupport.getFromHash()
+        def buildNum = mobileCiSupport.getFromBuildNumber()
+
+        def storedValue = mobileCiSupport.retrieve('valueKey')
+
+        def someReturnValue = doTheRelease( hash, buildNum, branchName )
+
+        mobileCiSupport.store('valueKey', someReturnValue)
+    }
+
+}
+</code></pre>
+
+</div>
