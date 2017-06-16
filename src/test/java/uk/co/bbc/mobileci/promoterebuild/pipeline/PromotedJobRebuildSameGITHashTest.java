@@ -64,6 +64,44 @@ public class PromotedJobRebuildSameGITHashTest {
         story.assertLogContains("initial content", b);
     }
 
+    @Test
+    public void promotingCommitNotFromHeadUsesPipelineScriptNotFromHead() throws Exception {
+
+        String script =
+                "node " +
+                        "{\n" +
+                        "  checkout scm\n" +
+                        "  echo 'I am the first pipeline script'\n" +
+                        "}";
+
+        sampleRepo.init();
+        sampleRepo.write("Jenkinsfile", script);
+        sampleRepo.git("add", "Jenkinsfile");
+        sampleRepo.git("commit", "--message=Add Jenkinsfile");
+
+        WorkflowJob p = story.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsScmFlowDefinition(new GitStep(sampleRepo.toString()).createSCM(), "Jenkinsfile"));
+
+        WorkflowRun b = story.waitForCompletion(p.scheduleBuild2(0).get());
+        story.assertLogContains("I am the first pipeline script", b);
+
+        script =
+                "node " +
+                        "{\n" +
+                        "  checkout scm\n" +
+                        "  echo 'I am the second pipeline script'\n" +
+                        "}";
+
+        sampleRepo.write("Jenkinsfile", script);
+        sampleRepo.git("add", "Jenkinsfile");
+        sampleRepo.git("commit", "--message=Update Jenkinsfile");
+
+        b = story.waitForCompletion(p.scheduleBuild2(0).get());
+        story.assertLogContains("I am the second pipeline script", b);
+
+        b = promoteBuildNumber(p, 1);
+        story.assertLogContains("I am the first pipeline script", b);
+    }
 
     private WorkflowJob setupPipelineInJenkins(JenkinsRule story, GitSampleRepoRule sampleRepo) throws IOException {
         WorkflowJob p = story.jenkins.createProject(WorkflowJob.class, "p");
