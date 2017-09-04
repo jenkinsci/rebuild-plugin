@@ -57,9 +57,6 @@ import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import com.sonyericsson.rebuild.RebuildParameterPage;
-import com.sonyericsson.rebuild.RebuildParameterProvider;
-
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
  * the build with existing parameters.
@@ -296,6 +293,18 @@ public class RebuildAction implements Action {
                     }
                 }
             }
+            for (ParameterValue source : paramAction.getParameters()) {
+                boolean alreadyAdded = false;
+                for (ParameterValue dest : values) {
+                    if (source.getName().equals(dest.getName())) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    values.add(source);
+                }
+            }
 
             List<Action> actions = constructRebuildCause(build, new ParametersAction(values));
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
@@ -362,11 +371,11 @@ public class RebuildAction implements Action {
                 && project.isBuildable()
                 && project instanceof Queue.Task
                 && !isMatrixRun() 
-                && !isRebuildDisbaled();
+                && !isRebuildDisabled();
 
     }
 
-    private boolean isRebuildDisbaled() {
+    private boolean isRebuildDisabled() {
         RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
         
         if (settings != null && settings.getRebuildDisabled()) {
