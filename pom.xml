@@ -5,10 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <!-- Since rebuild plugin is using some functions available in
-        Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
-        <version>1.481</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>2.12</version>
     </parent>
 
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
@@ -17,14 +14,18 @@
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
 
+    <properties>
+        <!-- Since rebuild plugin is using some functions available in
+        Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
+        <jenkins.version>1.481</jenkins.version>
+        <jenkins-test-harness.version>1.481</jenkins-test-harness.version>
+        <java.level>5</java.level>
+    </properties>
+
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
             <url>http://repo.jenkins-ci.org/public/</url>
-        </repository>
-        <repository>
-            <id>maven.jenkins-ci.org</id>
-            <url>http://maven.jenkins-ci.org/content/repositories/releases</url>
         </repository>
     </repositories>
 
@@ -63,7 +64,7 @@
         <developer>
             <id>hagzag</id>
             <name>Haggai Philip Zagury</name>
-	    <email>hagzag@tikalk.com</email>
+            <email>hagzag@tikalk.com</email>
             <roles>
                 <role>maintainer</role>
             </roles>
@@ -73,8 +74,8 @@
 
     <pluginRepositories>
         <pluginRepository>
-            <id>maven.jenkins-ci.org</id>
-            <url>http://maven.jenkins-ci.org/content/repositories/releases</url>
+          <id>repo.jenkins-ci.org</id>
+          <url>http://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
     <build>
@@ -89,36 +90,53 @@
         </pluginManagement>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
+                <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <!-- jenkins-test-harness < 1.545 doesn't support concurrent tests. -->
+                    <forkCount>1</forkCount>
                 </configuration>
             </plugin>
+           <plugin>
+               <artifactId>maven-enforcer-plugin</artifactId>
+               <executions>
+                   <execution>
+                       <id>display-info</id>
+                       <configuration>
+                           <rules>
+                               <bannedDependencies>
+                                   <excludes>
+                                       <!-- <exclude>org.sonatype.sisu:sisu-guice</exclude> -->
+                                       <exclude>log4j:log4j:*:jar:compile</exclude>
+                                       <exclude>log4j:log4j:*:jar:runtime</exclude>
+                                       <exclude>commons-logging:commons-logging:*:jar:compile</exclude>
+                                       <exclude>commons-logging:commons-logging:*:jar:runtime</exclude>
+                                   </excludes>
+                               </bannedDependencies>
+                               <enforceBytecodeVersion>
+                                   <excludes combine.children="append">
+                                       <!-- dependencies via jenkins-core-1.481 -->
+                                       <exclude>org.kohsuke:asm3</exclude>
+                                       <exclude>org.mindrot:jbcrypt</exclude>
+                                   </excludes>
+                               </enforceBytecodeVersion>
+                           </rules>
+                       </configuration>
+                   </execution>
+               </executions>
+           </plugin>
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.1</version>
-                 <dependencies>
-          <dependency>
-            <groupId>org.apache.maven.scm</groupId>
-            <artifactId>maven-scm-provider-gitexe</artifactId>
-            <version>1.9.2</version>
-          </dependency>
-        </dependencies>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>1.9.2</version>
+                        </dependency>
+                    </dependencies>
                 <configuration>
                     <goals>-DskipTests deploy</goals>
                 </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
         <extensions>
@@ -129,12 +147,6 @@
             </extension>
         </extensions>
     </build>
-    <distributionManagement>
-        <repository>
-            <id>maven.jenkins-ci.org</id>
-            <url>http://maven.jenkins-ci.org:8081/content/repositories/releases</url>
-        </repository>
-    </distributionManagement>
     <reporting>
         <plugins>
             <plugin>
@@ -154,30 +166,12 @@
                 <artifactId>cobertura-maven-plugin</artifactId>
                 <version>2.4</version>
             </plugin>-->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>2.0.1</version>
-                <configuration>
-                    <xmlOutput>true</xmlOutput>
-                    <!-- Optional derectory to put findbugs xdoc xml report -->
-                    <!--<xmlOutputDirectory>target/site</xmlOutputDirectory>-->
-                </configuration>
-            </plugin>
         </plugins>
     </reporting>
-    <dependencies>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>12.0-rc1</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
     <scm>
         <connection>scm:git:ssh://github.com/jenkinsci/rebuild-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rebuild-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/rebuild-plugin</url>
-      <tag>rebuild-1.25</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 </project>

@@ -48,6 +48,7 @@ import hudson.model.ParameterValue;
  *       other than your custom {@link ParameterValue}.
  *       There are two recommended ways to set values to {@link RebuildParameterPage}:
  *       <table>
+ *           <caption>Recommended values for {@link RebuildParameterPage}</caption>
  *           <tr>
  *               <th>&nbsp;</th>
  *               <th>Recommended 1</th>
