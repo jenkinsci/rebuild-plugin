@@ -1,5 +1,6 @@
-
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Rebuild+Plugin</url>
     <parent>
@@ -10,20 +11,17 @@
         <version>1.481</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
     <version>1.28-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
-
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
             <url>http://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
-
     <licenses>
         <license>
             <name>MIT</name>
@@ -31,42 +29,17 @@
             <comments>Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.</comments>
         </license>
     </licenses>
-
     <developers>
         <developer>
-            <id>ragesh_nair</id>
-            <name>Ragesh Nair</name>
-            <email>ragesh.x.nair@sonyericsson.com</email>
-            <organization>Sony Ericsson</organization>
+            <id>gustafl</id>
+            <name>Gustaf Lundh</name>
+            <email>gustaf.lundh@gmail.com</email>
             <roles>
-                <role>architect</role>
                 <role>developer</role>
                 <role>maintainer</role>
             </roles>
-            <timezone>+1</timezone>
-        </developer>
-        <developer>
-            <id>shemeersulaiman</id>
-            <name>Shemeer Sulaiman</name>
-            <email>shemeer.x.sulaiman@sonyericsson.com</email>
-            <roles>
-                <role>architect</role>
-                <role>developer</role>
-                <role>maintainer</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
-        <developer>
-            <id>hagzag</id>
-            <name>Haggai Philip Zagury</name>
-	    <email>hagzag@tikalk.com</email>
-            <roles>
-                <role>maintainer</role>
-            </roles>
-            <timezone>+2</timezone>
         </developer>
     </developers>
-
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
@@ -95,13 +68,13 @@
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.1</version>
-                 <dependencies>
-          <dependency>
-            <groupId>org.apache.maven.scm</groupId>
-            <artifactId>maven-scm-provider-gitexe</artifactId>
-            <version>1.9.2</version>
-          </dependency>
-        </dependencies>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>1.9.2</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <goals>-DskipTests deploy</goals>
                 </configuration>
@@ -145,11 +118,6 @@
                     <!--<failsOnError>true</failsOnError>-->
                 </configuration>
             </plugin>
-            <!--<plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.4</version>
-            </plugin>-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
@@ -174,6 +142,5 @@
         <connection>scm:git:ssh://github.com/jenkinsci/rebuild-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rebuild-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/rebuild-plugin</url>
-      <tag>rebuild-1.25</tag>
-  </scm>
+    </scm>
 </project>
