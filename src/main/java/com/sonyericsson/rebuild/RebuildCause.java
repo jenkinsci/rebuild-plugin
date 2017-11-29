@@ -59,7 +59,7 @@ public class RebuildCause extends Cause.UpstreamCause {
      */
     public String getShortDescritptionHTML() {
         return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(),
-                Jenkins.getInstance().getRootUrlFromRequest() + getUpstreamUrl() + getUpstreamBuild());
+                Jenkins.getInstance().getRootUrl() + getUpstreamUrl() + getUpstreamBuild());
     }
     /**
      * Method calculate the indent.
