@@ -8,9 +8,13 @@
         <artifactId>plugin</artifactId>
         <!-- Since rebuild plugin is using some functions available in
         Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
-        <version>1.481</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>3.2</version>
+        <relativePath />
     </parent>
+    <properties>
+        <jenkins.version>1.642.3</jenkins.version>
+        <java.level>7</java.level>
+    </properties>
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
     <version>1.28-SNAPSHOT</version>
@@ -136,6 +140,11 @@
             <artifactId>guava</artifactId>
             <version>12.0-rc1</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>matrix-project</artifactId>
+            <version>1.12</version>
         </dependency>
     </dependencies>
     <scm>
