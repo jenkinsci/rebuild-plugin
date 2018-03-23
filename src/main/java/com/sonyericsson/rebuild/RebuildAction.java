@@ -51,6 +51,7 @@ import hudson.model.PasswordParameterValue;
 import hudson.model.RunParameterValue;
 import hudson.model.StringParameterValue;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.Stapler;
@@ -285,6 +286,9 @@ public class RebuildAction implements Action {
             if (!formData.isEmpty()) {
                 JSONArray a = JSONArray.fromObject(formData.get("parameter"));
                 for (Object o : a) {
+                    if (o instanceof JSONNull) {
+                        continue;
+                    }
                     JSONObject jo = (JSONObject)o;
                     String name = jo.getString("name");
                     ParameterValue parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
