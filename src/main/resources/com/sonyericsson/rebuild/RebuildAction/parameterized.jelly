@@ -24,72 +24,86 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
-
 <?jelly escape-by-default='true'?>
+
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
     <l:layout title="${%Rebuild}" norefresh="true" permission="${it.requiredPermission}">
         <l:side-panel>
             <l:tasks>
-                <l:task icon="images/24x24/up.gif" href="${rootURL}/" title="${%Back to Dashboard}"/>
+                <l:task icon="images/24x24/up.gif" href="${rootURL}/"
+                        title="${%Back to Dashboard}"/>
             </l:tasks>
         </l:side-panel>
         <l:main-panel>
-            <j:invokeStatic var="currentThread" className="java.lang.Thread" method="currentThread" />
+            <j:invokeStatic var="currentThread" className="java.lang.Thread"
+                            method="currentThread"/>
             <j:invoke var="buildClass" on="${currentThread.contextClassLoader}" method="loadClass">
                 <j:arg value="hudson.model.Run"/>
             </j:invoke>
 
-            <j:invoke var="parmactionClass" on="${currentThread.contextClassLoader}" method="loadClass">
-                <j:arg value="hudson.model.ParametersAction" />
+            <j:invoke var="parmactionClass" on="${currentThread.contextClassLoader}"
+                      method="loadClass">
+                <j:arg value="hudson.model.ParametersAction"/>
             </j:invoke>
-            <j:invoke var="parametersDefinitionPropertyClass" on="${currentThread.contextClassLoader}" method="loadClass">
-                <j:arg value="hudson.model.ParametersDefinitionProperty" />
+            <j:invoke var="parametersDefinitionPropertyClass"
+                      on="${currentThread.contextClassLoader}" method="loadClass">
+                <j:arg value="hudson.model.ParametersDefinitionProperty"/>
             </j:invoke>
-            <j:invoke var="passwordParameterValueClass" on="${currentThread.contextClassLoader}" method="loadClass">
-                <j:arg value="hudson.model.PasswordParameterValue" />
+            <j:invoke var="passwordParameterValueClass" on="${currentThread.contextClassLoader}"
+                      method="loadClass">
+                <j:arg value="hudson.model.PasswordParameterValue"/>
             </j:invoke>
 
             <j:set var="instance" value="${it}"/>
             <j:set var="descriptor" value="${it.descriptor}"/>
-            <j:set var="rememberPasswordEnabled" value="${it.DESCRIPTOR.rebuildConfiguration.rememberPasswordEnabled}" scope="parent"/>
-            <j:set var="build" value="${request.findAncestorObject(buildClass)}" />
-            <j:set var="paramAction" value="${build.getAction(parmactionClass)}" />
-            <j:set var="parametersProperty" value="${build.parent.getProperty(parametersDefinitionPropertyClass)}" />
+            <j:set var="rememberPasswordEnabled"
+                   value="${it.DESCRIPTOR.rebuildConfiguration.rememberPasswordEnabled}"
+                   scope="parent"/>
+            <j:set var="build" value="${request.findAncestorObject(buildClass)}"/>
+            <j:set var="paramAction" value="${build.getAction(parmactionClass)}"/>
+            <j:set var="parametersProperty"
+                   value="${build.parent.getProperty(parametersDefinitionPropertyClass)}"/>
             <f:form method="post" action="configSubmit" name="config" tableClass="parameters">
-            	<!-- Displaying the form based on current job parameter config with previous build values. -->
-                <j:forEach var="parameterDefinition" items="${parametersProperty.parameterDefinitions}">
+                <!-- Displaying the form based on current job parameter config with previous build values. -->
+                <j:forEach var="parameterDefinition"
+                           items="${parametersProperty.parameterDefinitions}">
                     <tbody>
-                    	<j:set var="parameterValue" value="${paramAction.getParameter(parameterDefinition.name)}" />
-                    	<j:if test="${parameterValue != null}">
-	                    	<j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
-                    		<j:if test="${page != null}"> 
-		                    	<j:scope>
-				                    <st:include it="${parameterValue}"
-    	        	                    class="${page.clazz}"  page="${page.page}" />
-        	        		    </j:scope>
-            	        	</j:if>
-                	    	<j:if test="${page == null}">
-                    			<!-- Let's fallback on the regular valuePage implementation -->
-                    			<st:include it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
-	                        		    page="${parameterDefinition.descriptor.valuePage}" />
-                    		</j:if>
+                        <j:set var="parameterValue"
+                               value="${paramAction.getParameter(parameterDefinition.name)}"/>
+                        <j:if test="${parameterValue != null}">
+                            <j:set var="page"
+                                   value="${it.getRebuildParameterPage(parameterValue)}"/>
+                            <j:if test="${page != null}">
+                                <j:scope>
+                                    <st:include it="${parameterValue}"
+                                                class="${page.clazz}" page="${page.page}"/>
+                                </j:scope>
+                            </j:if>
+                            <j:if test="${page == null}">
+                                <!-- Let's fallback on the regular valuePage implementation -->
+                                <st:include
+                                        it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
+                                        page="${parameterDefinition.descriptor.valuePage}"/>
+                            </j:if>
                         </j:if>
-                    	<j:if test="${parameterValue == null}">
-                    			<!-- No previous value in case of new property definition introduced in the config, 
-                    			     so let's use the default from parameter definition -->
-                    			<st:include it="${parameterDefinition}"
-	                        		    page="${parameterDefinition.descriptor.valuePage}" />
-                    	</j:if>
+                        <j:if test="${parameterValue == null}">
+                            <!-- No previous value in case of new property definition introduced in the config,
+                                 so let's use the default from parameter definition -->
+                            <st:include it="${parameterDefinition}"
+                                        page="${parameterDefinition.descriptor.valuePage}"/>
+                        </j:if>
                     </tbody>
                 </j:forEach>
                 <j:if test="${empty(parametersProperty.parameterDefinitions)}">
-                            <j:forEach var="parameterValue" items="${paramAction.parameters}">
-                                <j:scope>
-                                    <j:set var="page" value="${it.getRebuildParameterPage(parameterValue)}" />
-                                    <st:include it="${parameterValue}" class="${page.clazz}"  page="${page.page}" />
-                                </j:scope>
-                             </j:forEach>
+                    <j:forEach var="parameterValue" items="${paramAction.parameters}">
+                        <j:scope>
+                            <j:set var="page"
+                                   value="${it.getRebuildParameterPage(parameterValue)}"/>
+                            <st:include it="${parameterValue}" class="${page.clazz}"
+                                        page="${page.page}"/>
+                        </j:scope>
+                    </j:forEach>
                 </j:if>
                 <br/>
                 <br/>

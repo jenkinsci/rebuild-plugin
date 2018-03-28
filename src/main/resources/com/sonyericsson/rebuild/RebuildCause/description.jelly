@@ -22,9 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <!-- upstreamUrl added in 1.284, so handle missing value; also JENKINS-14816 (job/build may have been deleted) -->
-    <span><j:out value='${it.upstreamUrl!=null and
+    <span>
+        <j:out value='${it.upstreamUrl!=null and
                             app.getItemByFullName(it.upstreamProject)!=null and
                             app.getItemByFullName(it.upstreamProject).getBuildByNumber(it.upstreamBuild)!=null ?
                             it.shortDescritptionHTML : it.shortDescription}'/>
