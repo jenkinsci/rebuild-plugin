@@ -1,6 +1,4 @@
-<project
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Rebuild+Plugin</url>
     <parent>
@@ -17,7 +15,7 @@
     </properties>
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version>1.28-SNAPSHOT</version>
+    <version>1.28</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
     <repositories>
@@ -151,5 +149,6 @@
         <connection>scm:git:ssh://github.com/jenkinsci/rebuild-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rebuild-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/rebuild-plugin</url>
-    </scm>
+      <tag>rebuild-1.28</tag>
+  </scm>
 </project>
