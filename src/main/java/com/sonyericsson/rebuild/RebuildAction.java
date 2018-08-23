@@ -226,12 +226,11 @@ public class RebuildAction implements Action {
         if (project == null) {
             return;
         }
+        System.out.println("rbx: " + (currentBuild == build));
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
 
-            List<Action> actions = copyBuildCausesAndAddUserCause(currentBuild);
-            ParametersAction action = currentBuild.getAction(ParametersAction.class);
-            actions.add(action);
+            List<Action> actions = constructRebuildActions(build, currentBuild.getAction(ParametersAction.class));
 
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
@@ -251,7 +250,7 @@ public class RebuildAction implements Action {
             response) throws ServletException, IOException, InterruptedException {
         getProject().checkPermission(Item.BUILD);
 
-        List<Action> actions = constructRebuildCause(build, null);
+        List<Action> actions = constructRebuildActions(build, null);
         Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
@@ -310,7 +309,7 @@ public class RebuildAction implements Action {
                 }
             }
 
-            List<Action> actions = constructRebuildCause(build, new ParametersAction(values));
+            List<Action> actions = constructRebuildActions(build, new ParametersAction(values));
             Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
@@ -320,29 +319,27 @@ public class RebuildAction implements Action {
     /**
      * Extracts the build causes and adds or replaces the {@link hudson.model.Cause.UserIdCause}. The result is a
      * list of all build causes from the original build (might be an empty list), plus a
-     * {@link hudson.model.Cause.UserIdCause} for the user who started the rebuild.
+     * {@link hudson.model.Cause.UserIdCause} for the user who started the rebuild, plus a
+     * {@link RebuildCause} for this rebuild.
      *
      * @param fromBuild the build to copy the causes from.
      * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
      */
-    private List<Action> copyBuildCausesAndAddUserCause(Run<?, ?> fromBuild) {
-        List currentBuildCauses = fromBuild.getCauses();
+    private List<Cause> constructRebuildCauses(Run<?, ?> fromBuild) {
+        List<Cause> currentBuildCauses = new ArrayList<Cause>(fromBuild.getCauses());
 
-        List<Action> actions = new ArrayList<Action>(currentBuildCauses.size());
         boolean hasUserCause = false;
         for (Object buildCause : currentBuildCauses) {
             if (buildCause instanceof Cause.UserIdCause) {
                 hasUserCause = true;
-                actions.add(new CauseAction(new Cause.UserIdCause()));
-            } else {
-                actions.add(new CauseAction((Cause)buildCause));
             }
         }
         if (!hasUserCause) {
-            actions.add(new CauseAction(new Cause.UserIdCause()));
+            currentBuildCauses.add(new Cause.UserIdCause());
         }
+        currentBuildCauses.add(new RebuildCause(fromBuild));
 
-        return actions;
+        return currentBuildCauses;
     }
 
     /**
@@ -374,14 +371,14 @@ public class RebuildAction implements Action {
                 && project.hasPermission(Item.BUILD)
                 && project.isBuildable()
                 && project instanceof Queue.Task
-                && !isMatrixRun() 
+                && !isMatrixRun()
                 && !isRebuildDisabled();
 
     }
 
     private boolean isRebuildDisabled() {
         RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-        
+
         if (settings != null && settings.getRebuildDisabled()) {
 			return true;
 		}
@@ -460,15 +457,16 @@ public class RebuildAction implements Action {
         throw new IllegalArgumentException("Unrecognized parameter type: " + oldValue.getClass());
     }
     /**
-     * Method for constructing Rebuild cause.
+     * Method for constructing Rebuild actions.
      *
      * @param up AbsstractBuild
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
-    private List<Action> constructRebuildCause(Run up, ParametersAction paramAction) {
-        List<Action> actions = copyBuildCausesAndAddUserCause(up);
-        actions.add(new CauseAction(new RebuildCause(up)));
+    private List<Action> constructRebuildActions(Run up, ParametersAction paramAction) {
+        List<Cause> causes = constructRebuildCauses(up);
+        List<Action> actions = new ArrayList<Action>();
+        actions.add(new CauseAction(causes));
         if (paramAction != null) {
             actions.add(paramAction);
         }
