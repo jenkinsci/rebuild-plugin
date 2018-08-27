@@ -226,7 +226,6 @@ public class RebuildAction implements Action {
         if (project == null) {
             return;
         }
-        System.out.println("rbx: " + (currentBuild == build));
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
 
