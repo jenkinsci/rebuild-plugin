@@ -181,6 +181,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 */
 	public void testWhenProjectWithNoParamsDefinedThenRebuildofBuildWithParamsShouldShowParams()
 			throws Exception {
+		System.setProperty("hudson.model.ParametersAction.keepUndefinedParameters", "true");
 		FreeStyleProject project = createFreeStyleProject();
 
 		// Build (#1)

@@ -38,7 +38,8 @@ THE SOFTWARE.
     <j:set var="pdp" value="${build.parent.getProperty(paramDefPro)}"/>
     <j:set var="pname" value="${it.name}"/>
     <j:set var="pd" value="${pdp.getParameterDefinition(pname)}"/>
-    <f:entry title="${it.name}" description="${it.description}">
+    <j:set var="escapeEntryTitleAndDescription" value="false"/>
+    <f:entry title="${h.escape(it.name)}" description="${it.formattedDescription}">
         <div name="parameter" description="${it.description}">
             <input type="hidden" name="name" value="${it.name}"/>
             <select name="runId">
