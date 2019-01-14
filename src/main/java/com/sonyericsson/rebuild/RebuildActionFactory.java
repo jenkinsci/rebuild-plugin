@@ -23,14 +23,15 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;
+import hudson.matrix.MatrixConfiguration;
 import hudson.model.Action;
 import hudson.model.Queue;
 import hudson.model.Run;
-import hudson.model.TransientBuildActionFactory;
 import jenkins.model.Jenkins;
+import jenkins.model.TransientActionFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static java.util.Collections.emptyList;
@@ -40,28 +41,34 @@ import static java.util.Collections.singleton;
  * Enables rebuild for builds that ran before installing the rebuild plugin.
  */
 @Extension
-public class RebuildActionFactory extends TransientBuildActionFactory {
+public class RebuildActionFactory extends TransientActionFactory<Run> {
 
     @Override
-    public Collection<? extends Action> createFor(Run build) {
-        // TODO should this not just use RebuildAction.isRebuildAvailable? Or conversely, is that method needed if we are already filtering here?
-        if (build.getParent() instanceof MatrixConfiguration) {
-            return emptyList();
-        }
-        if (!(build.getParent() instanceof Queue.Task)) {
-            return emptyList();
-        }
+    public Class<Run> type() {
+        return Run.class;
+    }
 
-        boolean hasRebuildAction = build.getAction(RebuildAction.class) != null;
-        if (hasRebuildAction) {
+    @Nonnull
+    @Override
+    public Collection<? extends Action> createFor(@Nonnull Run run) {
+
+        // TODO should this not just use RebuildAction.isRebuildAvailable? Or conversely, is that method needed if we are already filtering here?
+        if (run.getParent() instanceof MatrixConfiguration) {
             return emptyList();
         }
-        for (RebuildValidator rebuildValidator : Jenkins.getInstance().
+        if (!(run.getParent() instanceof Queue.Task)) {
+            return emptyList();
+        }
+        
+        for (RebuildValidator rebuildValidator : Jenkins.getInstanceOrNull().
                 getExtensionList(RebuildValidator.class)) {
-            if (rebuildValidator.isApplicable(build)) {
+            if (rebuildValidator.isApplicable(run)) {
                 return emptyList();
             }
         }
+        
         return singleton(new RebuildAction());
     }
+    
+    
 }
