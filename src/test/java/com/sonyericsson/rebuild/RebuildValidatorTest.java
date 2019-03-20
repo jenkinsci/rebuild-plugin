@@ -47,7 +47,6 @@ import org.jvnet.hudson.test.TestExtension;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -253,25 +252,23 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		while (project.isBuilding()) {
 			Thread.sleep(DELAY);
 		}
-		List<Action> actions = project.getLastCompletedBuild().getActions();
 		boolean hasRebuildCause = false;
 		boolean hasRemoteCause = false;
 		boolean hasUserIdCause = false;
-		for (Action action : actions) {
+		for (Action action : project.getLastCompletedBuild().getAllActions()) {
 			if (action instanceof CauseAction) {
-				CauseAction causeAction = (CauseAction) action;
-				if (causeAction.getCauses().get(0).getClass()
-						.equals(RebuildCause.class)) {
-					hasRebuildCause = true;
+				for(Cause cause : ((CauseAction)action).getCauses()) {
+					if (cause.getClass().equals(RebuildCause.class)) {
+						hasRebuildCause = true;
+					}
+					if (cause.getClass().equals(Cause.RemoteCause.class)) {
+						hasRemoteCause = true;
+					}
+					if (cause.getClass().equals(Cause.UserIdCause.class)) {
+						hasUserIdCause = true;
+					}
 				}
-				if (causeAction.getCauses().get(0).getClass()
-						.equals(Cause.RemoteCause.class)) {
-					hasRemoteCause = true;
-				}
-				if (causeAction.getCauses().get(0).getClass()
-						.equals(Cause.UserIdCause.class)) {
-					hasUserIdCause = true;
-				}
+
 			}
 		}
 		assertTrue("Build should have user, remote and rebuild causes",
