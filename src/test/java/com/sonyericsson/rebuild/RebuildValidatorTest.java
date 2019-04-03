@@ -232,7 +232,7 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
-	public void testWhenProjectWithCauseThenCauseIsCopiedAndUserCauseAdded()
+	public void testWhenProjectWithCauseThenCauseIsCopiedAndUserIdCauseAdded()
 			throws Exception {
 		FreeStyleProject project = createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
@@ -275,6 +275,68 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		assertTrue("Build should have user, remote and rebuild causes",
 				hasRebuildCause && hasRemoteCause && hasUserIdCause);
 	}
+
+	/**
+	 * Creates a new freestyle project and rebuild, then rebuilds the rebuilt build run.
+	 * Check that there is a single instance of RebuildCause and UserIdCause
+	 *
+	 * @throws Exception
+	 *             Exception
+	 */
+	public void testWhenProjectWithChainedRebuildsThenSingleUserIdCauseAndReplayCause()
+			throws Exception {
+		FreeStyleProject project = createFreeStyleProject();
+		project.addProperty(new ParametersDefinitionProperty(
+				new StringParameterDefinition("name", "defaultValue")));
+
+		// Build (#1)
+		project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+				new ParametersAction(new StringParameterValue("name", "test")))
+				.get();
+
+		// Rebuild (#2)
+		WebClient webClient = createWebClient();
+		HtmlPage rebuildConfigPage1 = webClient.getPage(project, "1/rebuild");
+		submit(rebuildConfigPage1.getFormByName("config"));
+
+		createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+				.click();
+
+		while (project.isBuilding()) {
+			Thread.sleep(DELAY);
+		}
+
+		// Rebuild (#3)
+		HtmlPage rebuildConfigPage2 = webClient.getPage(project, "2/rebuild");
+		submit(rebuildConfigPage2.getFormByName("config"));
+
+		createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+				.click();
+
+		while (project.isBuilding()) {
+			Thread.sleep(DELAY);
+		}
+
+		int userIdCauseCount = 0, rebuildCauseCount = 0;
+
+		for (Action action : project.getLastCompletedBuild().getAllActions()) {
+			if (action instanceof CauseAction) {
+				for(Cause cause : ((CauseAction)action).getCauses()) {
+					if (cause instanceof Cause.UserIdCause) {
+						++userIdCauseCount;
+					} else if(cause instanceof RebuildCause) {
+						++rebuildCauseCount;
+					}
+				}
+			}
+		}
+
+		assertEquals("Multiple chained rebuilds should contain a single UserIdCause",
+					1, userIdCauseCount);
+		assertEquals("Multiple chained rebuilds should contain a single RebuildCause",
+					1, rebuildCauseCount);
+	}
+
 
 	/**
 	 * Creates a new freestyle project, builds it and ensures the rebuild action

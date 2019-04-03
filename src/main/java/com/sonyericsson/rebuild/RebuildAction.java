@@ -327,18 +327,18 @@ public class RebuildAction implements Action {
     private List<Cause> constructRebuildCauses(Run<?, ?> fromBuild) {
         List<Cause> currentBuildCauses = new ArrayList<Cause>(fromBuild.getCauses());
 
-        boolean hasUserCause = false;
-        for (Object buildCause : currentBuildCauses) {
-            if (buildCause instanceof Cause.UserIdCause) {
-                hasUserCause = true;
+        List<Cause> newBuildCauses = new ArrayList<Cause>();
+        for (Cause buildCause : currentBuildCauses) {
+            if (!(buildCause instanceof Cause.UserIdCause) &&
+                !(buildCause instanceof RebuildCause)) {
+                newBuildCauses.add(buildCause);
             }
         }
-        if (!hasUserCause) {
-            currentBuildCauses.add(new Cause.UserIdCause());
-        }
-        currentBuildCauses.add(new RebuildCause(fromBuild));
 
-        return currentBuildCauses;
+        newBuildCauses.add(new Cause.UserIdCause());
+        newBuildCauses.add(new RebuildCause(fromBuild));
+
+        return newBuildCauses;
     }
 
     /**
