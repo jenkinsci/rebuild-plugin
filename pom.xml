@@ -16,7 +16,7 @@
     </properties>
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version>1.31-SNAPSHOT</version>
+    <version>1.31</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
     <repositories>
@@ -150,6 +150,6 @@
         <connection>scm:git:ssh://github.com/jenkinsci/rebuild-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rebuild-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/rebuild-plugin</url>
-      <tag>HEAD</tag>
+      <tag>rebuild-1.31</tag>
   </scm>
 </project>
