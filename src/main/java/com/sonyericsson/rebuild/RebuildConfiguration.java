@@ -25,7 +25,7 @@ package com.sonyericsson.rebuild;
 
 import hudson.model.Describable;
 import hudson.model.Descriptor;
-import hudson.model.Hudson;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -57,7 +57,7 @@ public class RebuildConfiguration implements Describable {
 
     @Override
     public Descriptor getDescriptor() {
-        return Hudson.getInstance().getDescriptorOrDie(RebuildConfiguration.class);
+        return Jenkins.getInstance().getDescriptorOrDie(RebuildConfiguration.class);
     }
 
     /**

@@ -26,10 +26,10 @@ package com.sonyericsson.rebuild;
 import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;
 import hudson.model.Action;
-import hudson.model.Hudson;
 import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TransientBuildActionFactory;
+import jenkins.model.Jenkins;
 
 import java.util.Collection;
 
@@ -56,7 +56,7 @@ public class RebuildActionFactory extends TransientBuildActionFactory {
         if (hasRebuildAction) {
             return emptyList();
         }
-        for (RebuildValidator rebuildValidator : Hudson.getInstance().
+        for (RebuildValidator rebuildValidator : Jenkins.getInstance().
                 getExtensionList(RebuildValidator.class)) {
             if (rebuildValidator.isApplicable(build)) {
                 return emptyList();
