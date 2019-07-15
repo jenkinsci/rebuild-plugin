@@ -276,8 +276,7 @@ public class RebuildAction implements Action {
                 return;
             }
             build = req.findAncestorObject(Run.class);
-            ParametersDefinitionProperty paramDefProp = build.getParent().getProperty(
-                    ParametersDefinitionProperty.class);
+            ParametersDefinitionProperty paramDefProp = build.getParent().getProperty(ParametersDefinitionProperty.class);
             List<ParameterValue> values = new ArrayList<ParameterValue>();
             ParametersAction paramAction = build.getAction(ParametersAction.class);
             JSONObject formData = req.getSubmittedForm();
@@ -296,7 +295,14 @@ public class RebuildAction implements Action {
                 }
             }
             for (ParameterValue source : paramAction.getParameters()) {
-                if (!values.contains(source)) {
+                boolean alreadyAdded = false;
+                for (ParameterValue dest : values) {
+                    if (source.getName().equals(dest.getName())) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
                     values.add(source);
                 }
             }
