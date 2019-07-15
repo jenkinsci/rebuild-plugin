@@ -48,8 +48,7 @@ public class Rebuilder extends RunListener<Run> {
 
     @Override
     public void onCompleted(Run build, TaskListener listener) {
-        for (RebuildValidator rebuildValidator : Jenkins.getInstance().
-                getExtensionList(RebuildValidator.class)) {
+        for (RebuildValidator rebuildValidator : Jenkins.getInstance().getExtensionList(RebuildValidator.class)) {
             if (rebuildValidator.isApplicable(build)) {
                 return;
             }
