@@ -4,9 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <!-- Since rebuild plugin is using some functions available in
-        Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
-        <version>3.2</version>
+        <version>3.47</version>
         <relativePath />
     </parent>
     <properties>
@@ -22,13 +20,13 @@
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
+            <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
     <licenses>
         <license>
             <name>MIT</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <url>https://www.opensource.org/licenses/mit-license.php</url>
             <comments>Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.</comments>
         </license>
     </licenses>
@@ -46,7 +44,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
+            <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
     <build>
@@ -149,7 +147,7 @@
     <scm>
         <connection>scm:git:ssh://github.com/jenkinsci/rebuild-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rebuild-plugin.git</developerConnection>
-        <url>http://github.com/jenkinsci/rebuild-plugin</url>
+        <url>https://github.com/jenkinsci/rebuild-plugin</url>
       <tag>HEAD</tag>
   </scm>
 </project>
