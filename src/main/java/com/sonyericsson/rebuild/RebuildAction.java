@@ -37,7 +37,6 @@ import hudson.matrix.MatrixRun;
 import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
-import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.ParameterValue;
@@ -50,6 +49,7 @@ import hudson.model.ParameterDefinition;
 import hudson.model.PasswordParameterValue;
 import hudson.model.RunParameterValue;
 import hudson.model.StringParameterValue;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
@@ -231,7 +231,7 @@ public class RebuildAction implements Action {
 
             List<Action> actions = constructRebuildActions(build, currentBuild.getAction(ParametersAction.class));
 
-            Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
         }
     }
@@ -250,7 +250,7 @@ public class RebuildAction implements Action {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildActions(build, null);
-        Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
+        Jenkins.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
 
@@ -296,20 +296,13 @@ public class RebuildAction implements Action {
                 }
             }
             for (ParameterValue source : paramAction.getParameters()) {
-                boolean alreadyAdded = false;
-                for (ParameterValue dest : values) {
-                    if (source.getName().equals(dest.getName())) {
-                        alreadyAdded = true;
-                        break;
-                    }
-                }
-                if (!alreadyAdded) {
+                if (!values.contains(source)) {
                     values.add(source);
                 }
             }
 
             List<Action> actions = constructRebuildActions(build, new ParametersAction(values));
-            Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
         }
@@ -351,7 +344,7 @@ public class RebuildAction implements Action {
         StaplerRequest request = Stapler.getCurrentRequest();
         if (request != null) {
             build = request.findAncestorObject(Run.class);
-            if (build != null && build instanceof MatrixRun) {
+            if (build instanceof MatrixRun) {
                 return true;
             }
         }
