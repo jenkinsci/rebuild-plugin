@@ -26,10 +26,10 @@ package com.sonyericsson.rebuild;
 import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;
 import hudson.model.Action;
-import hudson.model.Hudson;
 import hudson.model.Queue;
 import hudson.model.Run;
-import hudson.model.TransientBuildActionFactory;
+import jenkins.model.Jenkins;
+import jenkins.model.TransientActionFactory;
 
 import java.util.Collection;
 
@@ -40,7 +40,7 @@ import static java.util.Collections.singleton;
  * Enables rebuild for builds that ran before installing the rebuild plugin.
  */
 @Extension
-public class RebuildActionFactory extends TransientBuildActionFactory {
+public class RebuildActionFactory extends TransientActionFactory<Run> {
 
     @Override
     public Collection<? extends Action> createFor(Run build) {
@@ -56,12 +56,17 @@ public class RebuildActionFactory extends TransientBuildActionFactory {
         if (hasRebuildAction) {
             return emptyList();
         }
-        for (RebuildValidator rebuildValidator : Hudson.getInstance().
+        for (RebuildValidator rebuildValidator : Jenkins.getInstance().
                 getExtensionList(RebuildValidator.class)) {
             if (rebuildValidator.isApplicable(build)) {
                 return emptyList();
             }
         }
         return singleton(new RebuildAction());
+    }
+
+    @Override
+    public Class<Run> type() {
+        return Run.class;
     }
 }
