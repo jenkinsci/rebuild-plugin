@@ -33,6 +33,8 @@ import jenkins.model.TransientActionFactory;
 
 import java.util.Collection;
 
+import javax.annotation.Nonnull;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -42,6 +44,7 @@ import static java.util.Collections.singleton;
 @Extension
 public class RebuildActionFactory extends TransientActionFactory<Run> {
 
+    @Nonnull
     @Override
     public Collection<? extends Action> createFor(Run build) {
         // TODO should this not just use RebuildAction.isRebuildAvailable? Or conversely, is that method needed if we are already filtering here?

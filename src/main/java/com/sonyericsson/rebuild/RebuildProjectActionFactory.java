@@ -43,8 +43,8 @@ import static java.util.Collections.emptyList;
 public class RebuildProjectActionFactory extends TransientActionFactory<Job> {
 
     @Override
-    public Collection<? extends Action> createFor(Job abstractProject) {
-        if (abstractProject instanceof MatrixConfiguration) {
+    public Collection<? extends Action> createFor(Job job) {
+        if (job instanceof MatrixConfiguration) {
             return emptyList();
         }
         return singleton(new RebuildLastCompletedBuildAction());

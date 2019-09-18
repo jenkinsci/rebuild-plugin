@@ -43,6 +43,7 @@ import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
 
 import org.junit.Rule;
+import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
@@ -65,7 +66,7 @@ public class RebuildValidatorTest {
 	public static final int DELAY = 100;
 
 	@Rule
-	JenkinsRule j = new JenkinsRule();
+	public JenkinsRule j = new JenkinsRule();
 
 	/**
 	 * Tests with no extensions.
@@ -77,6 +78,7 @@ public class RebuildValidatorTest {
 	 * @throws ExecutionException
 	 *             ExecutionException
 	 */
+    @Test
 	public void testNoRebuildValidatorExtension() throws IOException,
 			InterruptedException, ExecutionException {
 		Project projectA = j.createFreeStyleProject("testFreeStyleA");
@@ -98,6 +100,7 @@ public class RebuildValidatorTest {
 	 * @throws ExecutionException
 	 *             ExecutionException
 	 */
+    @Test
 	public void testRebuildValidatorExtensionIsApplicableTrue()
 			throws IOException, InterruptedException, ExecutionException {
 		j.getInstance().getExtensionList(RebuildValidator.class).add(0,
@@ -121,6 +124,7 @@ public class RebuildValidatorTest {
 	 * @throws ExecutionException
 	 *             ExecutionException
 	 */
+    @Test
 	public void testRebuildValidatorExtensionIsApplicableFalse()
 			throws IOException, InterruptedException, ExecutionException {
 		j.getInstance().getExtensionList(RebuildValidator.class).add(0,
@@ -144,6 +148,7 @@ public class RebuildValidatorTest {
 	 * @throws ExecutionException
 	 *             ExecutionException
 	 */
+    @Test
 	public void testRebuildValidatorExtensionIsApplicableTrueFalse()
 			throws IOException, InterruptedException, ExecutionException {
 		j.getInstance().getExtensionList(RebuildValidator.class).add(0,
@@ -166,6 +171,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithoutParamsThenRebuildProjectAvailable()
 			throws Exception {
 		FreeStyleProject project = j.createFreeStyleProject();
@@ -185,6 +191,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithNoParamsDefinedThenRebuildofBuildWithParamsShouldShowParams()
 			throws Exception {
 		System.setProperty("hudson.model.ParametersAction.keepUndefinedParameters", "true");
@@ -208,6 +215,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
 			throws Exception {
 		FreeStyleProject project = j.createFreeStyleProject();
@@ -239,6 +247,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithCauseThenCauseIsCopiedAndUserIdCauseAdded()
 			throws Exception {
 		FreeStyleProject project = j.createFreeStyleProject();
@@ -290,6 +299,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithChainedRebuildsThenSingleUserIdCauseAndReplayCause()
 			throws Exception {
 		FreeStyleProject project = j.createFreeStyleProject();
@@ -352,6 +362,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithoutParamsThenRebuildProjectEnabled()
 			throws Exception {
 		FreeStyleProject project = j.createFreeStyleProject();
@@ -371,6 +382,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithoutParamsThenRebuildProjectIsDisabled()
 			throws Exception {
 		FreeStyleProject project = j.createFreeStyleProject();
@@ -415,6 +427,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testRebuildUnsupportedUnknownParameterValue() throws Exception {
 		WebClient wc = j.createWebClient();
 		FreeStyleProject project = j.createFreeStyleProject();
@@ -442,6 +455,7 @@ public class RebuildValidatorTest {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testRebuildSupportedUnknownParameterValue() throws Exception {
 		WebClient wc = j.createWebClient();
 		FreeStyleProject project = j.createFreeStyleProject();
