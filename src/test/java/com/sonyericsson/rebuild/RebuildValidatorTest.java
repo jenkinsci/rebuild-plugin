@@ -42,8 +42,14 @@ import hudson.model.Project;
 import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
 
-import org.jvnet.hudson.test.HudsonTestCase;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
@@ -54,11 +60,15 @@ import java.util.concurrent.ExecutionException;
  *
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
-public class RebuildValidatorTest extends HudsonTestCase {
+public class RebuildValidatorTest {
 	/**
 	 * Sleep delay value.
 	 */
-	public static final int DELAY = 100;
+    public static final int DELAY = 100;
+    
+    @Rule
+    public JenkinsRule j = new JenkinsRule();
+
 
 	/**
 	 * Tests with no extensions.
@@ -70,9 +80,10 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws ExecutionException
 	 *             ExecutionException
 	 */
+    @Test
 	public void testNoRebuildValidatorExtension() throws IOException,
 			InterruptedException, ExecutionException {
-		Project projectA = createFreeStyleProject("testFreeStyleA");
+		Project projectA = j.createFreeStyleProject("testFreeStyleA");
 		Build buildA = (Build) projectA.scheduleBuild2(
 				0,
 				new Cause.UserIdCause(),
@@ -91,11 +102,12 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws ExecutionException
 	 *             ExecutionException
 	 */
+    @Test
 	public void testRebuildValidatorExtensionIsApplicableTrue()
 			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(RebuildValidator.class).add(0,
+		j.getInstance().getExtensionList(RebuildValidator.class).add(0,
 				new ValidatorAlwaysApplicable());
-		Project projectA = createFreeStyleProject("testFreeStyleB");
+		Project projectA = j.createFreeStyleProject("testFreeStyleB");
 		Build buildA = (Build) projectA.scheduleBuild2(
 				0,
 				new Cause.UserIdCause(),
@@ -114,11 +126,12 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws ExecutionException
 	 *             ExecutionException
 	 */
+    @Test
 	public void testRebuildValidatorExtensionIsApplicableFalse()
 			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(RebuildValidator.class).add(0,
+		j.getInstance().getExtensionList(RebuildValidator.class).add(0,
 				new ValidatorNeverApplicable());
-		Project projectA = createFreeStyleProject("testFreeStyleC");
+		Project projectA = j.createFreeStyleProject("testFreeStyleC");
 		Build buildA = (Build) projectA.scheduleBuild2(
 				0,
 				new Cause.UserIdCause(),
@@ -137,13 +150,14 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws ExecutionException
 	 *             ExecutionException
 	 */
+    @Test
 	public void testRebuildValidatorExtensionIsApplicableTrueFalse()
 			throws IOException, InterruptedException, ExecutionException {
-		hudson.getExtensionList(RebuildValidator.class).add(0,
+        j.getInstance().getExtensionList(RebuildValidator.class).add(0,
 				new ValidatorAlwaysApplicable());
-		hudson.getExtensionList(RebuildValidator.class).add(0,
+        j.getInstance().getExtensionList(RebuildValidator.class).add(0,
 				new ValidatorNeverApplicable());
-		Project projectA = createFreeStyleProject("testFreeStyleC");
+		Project projectA = j.createFreeStyleProject("testFreeStyleC");
 		Build buildA = (Build) projectA.scheduleBuild2(
 				0,
 				new Cause.UserIdCause(),
@@ -159,9 +173,10 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithoutParamsThenRebuildProjectAvailable()
 			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
+		FreeStyleProject project = j.createFreeStyleProject();
 
 		FreeStyleBuild build = project.scheduleBuild2(0).get();
 
@@ -178,16 +193,17 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithNoParamsDefinedThenRebuildofBuildWithParamsShouldShowParams()
 			throws Exception {
 		System.setProperty("hudson.model.ParametersAction.keepUndefinedParameters", "true");
-		FreeStyleProject project = createFreeStyleProject();
+		FreeStyleProject project = j.createFreeStyleProject();
 
 		// Build (#1)
 		project.scheduleBuild2(0, new Cause.UserIdCause(),
 				new ParametersAction(new StringParameterValue("name", "ABC")))
 				.get();
-		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+		HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
 				"1/rebuild");
 		WebAssert.assertElementPresentByXPath(rebuildConfigPage,
 				"//div[@name='parameter']/input[@value='ABC']");
@@ -201,9 +217,10 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
 			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
+		FreeStyleProject project = j.createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
 				new StringParameterDefinition("name", "defaultValue")));
 
@@ -211,12 +228,12 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		project.scheduleBuild2(0, new Cause.UserIdCause(),
 				new ParametersAction(new StringParameterValue("name", "test")))
 				.get();
-		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+		HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
 				"1/rebuild");
 		// Rebuild (#2)
-		submit(rebuildConfigPage.getFormByName("config"));
+		j.submit(rebuildConfigPage.getFormByName("config"));
 
-		HtmlPage projectPage = createWebClient().getPage(project);
+		HtmlPage projectPage = j.createWebClient().getPage(project);
 		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
 
 		HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
@@ -232,9 +249,10 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithCauseThenCauseIsCopiedAndUserIdCauseAdded()
 			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
+		FreeStyleProject project = j.createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
 				new StringParameterDefinition("name", "defaultValue")));
 
@@ -242,12 +260,12 @@ public class RebuildValidatorTest extends HudsonTestCase {
 		project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
 				new ParametersAction(new StringParameterValue("name", "test")))
 				.get();
-		HtmlPage rebuildConfigPage = createWebClient().getPage(project,
+		HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
 				"1/rebuild");
 		// Rebuild (#2)
-		submit(rebuildConfigPage.getFormByName("config"));
+		j.submit(rebuildConfigPage.getFormByName("config"));
 
-		createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+		j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
 				.click();
 
 		while (project.isBuilding()) {
@@ -283,9 +301,10 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithChainedRebuildsThenSingleUserIdCauseAndReplayCause()
 			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
+		FreeStyleProject project = j.createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
 				new StringParameterDefinition("name", "defaultValue")));
 
@@ -295,11 +314,11 @@ public class RebuildValidatorTest extends HudsonTestCase {
 				.get();
 
 		// Rebuild (#2)
-		WebClient webClient = createWebClient();
+		WebClient webClient = j.createWebClient();
 		HtmlPage rebuildConfigPage1 = webClient.getPage(project, "1/rebuild");
-		submit(rebuildConfigPage1.getFormByName("config"));
+		j.submit(rebuildConfigPage1.getFormByName("config"));
 
-		createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+		j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
 				.click();
 
 		while (project.isBuilding()) {
@@ -308,9 +327,9 @@ public class RebuildValidatorTest extends HudsonTestCase {
 
 		// Rebuild (#3)
 		HtmlPage rebuildConfigPage2 = webClient.getPage(project, "2/rebuild");
-		submit(rebuildConfigPage2.getFormByName("config"));
+		j.submit(rebuildConfigPage2.getFormByName("config"));
 
-		createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+		j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
 				.click();
 
 		while (project.isBuilding()) {
@@ -345,14 +364,15 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithoutParamsThenRebuildProjectEnabled()
 			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
+		FreeStyleProject project = j.createFreeStyleProject();
 		project.scheduleBuild2(0);
 		RebuildSettings settings = new RebuildSettings(false, false);
 		project.addProperty(settings);
 		project.save();
-		HtmlPage projectPage = createWebClient().getPage(project);
+		HtmlPage projectPage = j.createWebClient().getPage(project);
 		WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
 
 	}
@@ -364,14 +384,15 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testWhenProjectWithoutParamsThenRebuildProjectIsDisabled()
 			throws Exception {
-		FreeStyleProject project = createFreeStyleProject();
+		FreeStyleProject project = j.createFreeStyleProject();
 		project.scheduleBuild2(0);
 		RebuildSettings settings = new RebuildSettings(false, true);
 		project.addProperty(settings);
 		project.save();
-		HtmlPage projectPage = createWebClient().getPage(project);
+		HtmlPage projectPage = j.createWebClient().getPage(project);
 		WebAssert.assertLinkNotPresentWithText(projectPage, "Rebuild Last");
 
 	}
@@ -408,14 +429,15 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testRebuildUnsupportedUnknownParameterValue() throws Exception {
-		WebClient wc = createWebClient();
-		FreeStyleProject project = createFreeStyleProject();
+		WebClient wc = j.createWebClient();
+		FreeStyleProject project = j.createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
 				new UnsupportedUnknownParameterDefinition("param1",
 						"defaultValue")));
 
-		assertBuildStatusSuccess(project.scheduleBuild2(0,
+		j.assertBuildStatusSuccess(project.scheduleBuild2(0,
 				new Cause.RemoteCause("host", "note"),
 				new ParametersAction(new UnsupportedUnknownParameterValue(
 						"param1", "value1"))));
@@ -435,14 +457,15 @@ public class RebuildValidatorTest extends HudsonTestCase {
 	 * @throws Exception
 	 *             Exception
 	 */
+    @Test
 	public void testRebuildSupportedUnknownParameterValue() throws Exception {
-		WebClient wc = createWebClient();
-		FreeStyleProject project = createFreeStyleProject();
+		WebClient wc = j.createWebClient();
+		FreeStyleProject project = j.createFreeStyleProject();
 		project.addProperty(new ParametersDefinitionProperty(
 				new SupportedUnknownParameterDefinition("param1",
 						"defaultValue")));
 
-		assertBuildStatusSuccess(project
+		j.assertBuildStatusSuccess(project
 				.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
 						new ParametersAction(
 								new SupportedUnknownParameterValue("param1",
