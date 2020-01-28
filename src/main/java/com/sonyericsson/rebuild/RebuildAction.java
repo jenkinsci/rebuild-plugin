@@ -37,7 +37,6 @@ import hudson.matrix.MatrixRun;
 import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
-import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.ParameterValue;
@@ -50,6 +49,7 @@ import hudson.model.ParameterDefinition;
 import hudson.model.PasswordParameterValue;
 import hudson.model.RunParameterValue;
 import hudson.model.StringParameterValue;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
@@ -231,7 +231,7 @@ public class RebuildAction implements Action {
 
             List<Action> actions = constructRebuildActions(build, currentBuild.getAction(ParametersAction.class));
 
-            Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.getInstance().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
         }
     }
@@ -250,7 +250,7 @@ public class RebuildAction implements Action {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildActions(build, null);
-        Hudson.getInstance().getQueue().schedule((Queue.Task) currentBuild.getParent(), 0, actions);
+        Jenkins.getInstance().getQueue().schedule2((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
 
@@ -309,7 +309,7 @@ public class RebuildAction implements Action {
             }
 
             List<Action> actions = constructRebuildActions(build, new ParametersAction(values));
-            Hudson.getInstance().getQueue().schedule((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.getInstance().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
         }
@@ -327,18 +327,18 @@ public class RebuildAction implements Action {
     private List<Cause> constructRebuildCauses(Run<?, ?> fromBuild) {
         List<Cause> currentBuildCauses = new ArrayList<Cause>(fromBuild.getCauses());
 
-        boolean hasUserCause = false;
-        for (Object buildCause : currentBuildCauses) {
-            if (buildCause instanceof Cause.UserIdCause) {
-                hasUserCause = true;
+        List<Cause> newBuildCauses = new ArrayList<Cause>();
+        for (Cause buildCause : currentBuildCauses) {
+            if (!(buildCause instanceof Cause.UserIdCause) &&
+                !(buildCause instanceof RebuildCause)) {
+                newBuildCauses.add(buildCause);
             }
         }
-        if (!hasUserCause) {
-            currentBuildCauses.add(new Cause.UserIdCause());
-        }
-        currentBuildCauses.add(new RebuildCause(fromBuild));
 
-        return currentBuildCauses;
+        newBuildCauses.add(new Cause.UserIdCause());
+        newBuildCauses.add(new RebuildCause(fromBuild));
+
+        return newBuildCauses;
     }
 
     /**

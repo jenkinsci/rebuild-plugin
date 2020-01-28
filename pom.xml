@@ -1,34 +1,32 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <url>http://wiki.jenkins-ci.org/display/JENKINS/Rebuild+Plugin</url>
+    <url>https://wiki.jenkins.io/display/JENKINS/Rebuild+Plugin</url>
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <!-- Since rebuild plugin is using some functions available in
-        Jenkins version 1.405 ,version is updating from 1.400 to 1.405-->
-        <version>3.2</version>
+        <version>3.48</version>
         <relativePath />
     </parent>
     <properties>
-        <jenkins.version>2.32.2</jenkins.version>
-        <java.level>7</java.level>
+        <jenkins.version>2.60.3</jenkins.version>
+        <java.level>8</java.level>
         <findbugs.failOnError>false</findbugs.failOnError>
     </properties>
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version>1.31-SNAPSHOT</version>
+    <version>1.32-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
+            <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
     <licenses>
         <license>
             <name>MIT</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <url>https://www.opensource.org/licenses/mit-license.php</url>
             <comments>Copyright 2010 Sony Ericsson Mobile Communications. All rights reserved.</comments>
         </license>
     </licenses>
@@ -46,7 +44,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
+            <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
     <build>
@@ -147,9 +145,9 @@
         </dependency>
     </dependencies>
     <scm>
-        <connection>scm:git:ssh://github.com/jenkinsci/rebuild-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rebuild-plugin.git</developerConnection>
-        <url>http://github.com/jenkinsci/rebuild-plugin</url>
+        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
       <tag>HEAD</tag>
   </scm>
 </project>
