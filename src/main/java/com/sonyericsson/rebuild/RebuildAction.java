@@ -25,7 +25,7 @@
 package com.sonyericsson.rebuild;
 
 import hudson.Extension;
-import hudson.model.Action;
+import hudson.model.*;
 
 import javax.servlet.ServletException;
 
@@ -34,21 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hudson.matrix.MatrixRun;
-import hudson.model.BooleanParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Item;
-import hudson.model.Job;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Queue;
-import hudson.model.Run;
-import hudson.model.SimpleParameterDefinition;
-import hudson.model.ParameterDefinition;
-import hudson.model.PasswordParameterValue;
-import hudson.model.RunParameterValue;
-import hudson.model.StringParameterValue;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONNull;
@@ -402,6 +387,14 @@ public class RebuildAction implements Action {
         if (paramDefProp != null) {
             paramDef = paramDefProp.getParameterDefinition(parameterName);
             if (paramDef != null) {
+
+                // set correct upstreamBuild number
+                if (parameterName.equals("upstreamBuild"))
+                {
+                    String nr = ""+this.getBuild().getNumber();
+                    return new StringParameterValue("upstreamBuild", nr);
+                }
+
                 // The copy artifact plugin throws an exception when using createValue(req, jo)
                 // If the parameter comes from the copy artifact plugin, then use the single argument createValue
                 if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")) {
