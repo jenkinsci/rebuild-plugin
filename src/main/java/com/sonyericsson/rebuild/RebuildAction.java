@@ -388,20 +388,22 @@ public class RebuildAction implements Action {
             paramDef = paramDefProp.getParameterDefinition(parameterName);
             if (paramDef != null) {
 
-                // set correct upstreamBuild number
-                if (parameterName.equals("upstreamBuild"))
-                {
-                    String nr = ""+this.getBuild().getNumber();
-                    return new StringParameterValue("upstreamBuild", nr);
-                }
-
                 // The copy artifact plugin throws an exception when using createValue(req, jo)
                 // If the parameter comes from the copy artifact plugin, then use the single argument createValue
-                if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")) {
-                    SimpleParameterDefinition parameterDefinition =
-                            (SimpleParameterDefinition)paramDefProp.getParameterDefinition(parameterName);
-                    return parameterDefinition.createValue(jo.getString("value"));
+
+                if (paramDef instanceof SimpleParameterDefinition) {
+                    SimpleParameterDefinition simpleParamDef = (SimpleParameterDefinition) paramDef;
+                    if (jo.toString().matches("BuildSelector|WorkspaceSelector"))
+                        return simpleParamDef.createValue(jo.getString("value"));
                 }
+
+                // set correct upstreamBuild number
+                if (parameterName.equals("upstreamBuild")) {
+                    String nr = "" + this.getBuild().getNumber();
+                    jo.put("value",nr);
+                    return paramDef.createValue(req, jo);
+                }
+
                 return paramDef.createValue(req, jo);
             }
         }
