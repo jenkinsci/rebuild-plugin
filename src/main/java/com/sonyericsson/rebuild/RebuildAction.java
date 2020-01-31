@@ -188,7 +188,7 @@ public class RebuildAction implements Action {
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
-                RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+                RebuildSettings settings = GetRebuildSettings();
                 if (settings != null && settings.getAutoRebuild()) {
                     parameterizedRebuild(currentBuild, response);
                 } else {
@@ -199,6 +199,11 @@ public class RebuildAction implements Action {
             }
         }
     }
+
+    public RebuildSettings GetRebuildSettings() {
+        return (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+    }
+
     /**
      * Handles the rebuild request with parameter.
      *
@@ -361,7 +366,7 @@ public class RebuildAction implements Action {
     }
 
     private boolean isRebuildDisabled() {
-        RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+        RebuildSettings settings = GetRebuildSettings();
 
         if (settings != null && settings.getRebuildDisabled()) {
 			return true;
@@ -393,7 +398,7 @@ public class RebuildAction implements Action {
 
                 if (paramDef instanceof SimpleParameterDefinition) {
                     SimpleParameterDefinition simpleParamDef = (SimpleParameterDefinition) paramDef;
-                    if (jo.toString().matches("BuildSelector|WorkspaceSelector"))
+                    if (jo.toString().matches(".*(Build|Workspace)Selector.*"))
                         return simpleParamDef.createValue(jo.getString("value"));
                 }
 
@@ -479,14 +484,17 @@ public class RebuildAction implements Action {
             }
         }
 
+        // No provider available, use an existing view provided by rebuild plugin.
+        String jellyFile = value.getClass().getSimpleName() + ".jelly";
+        String readonlyJellyFile = "Readonly"+jellyFile;
+        String jellyFolder = "/"+getClass().getCanonicalName().replace('.', '/')+"/";
         // Check if we have a branched Jelly in the plugin.
-        if (getClass().getResource(String.format("/%s/%s.jelly", getClass().getCanonicalName().replace('.', '/'), value.getClass().getSimpleName())) != null) {
-            // No provider available, use an existing view provided by rebuild plugin.
-            return new RebuildParameterPage(
-                    getClass(),
-                    String.format("%s.jelly", value.getClass().getSimpleName())
-                    );
-
+        if (getClass().getResource(jellyFolder+jellyFile) != null) {
+            // use an existing readonly version of jelly file iff configured in project
+            RebuildSettings settings = GetRebuildSettings();
+            if (settings!=null && settings.readonlyParams() &&  getClass().getResource(jellyFolder+readonlyJellyFile)!=null)
+                jellyFile=readonlyJellyFile;
+            return new RebuildParameterPage(getClass(),jellyFile);
         }
         // Else we return that we haven't found anything.
         // So Jelly fallback could occur.

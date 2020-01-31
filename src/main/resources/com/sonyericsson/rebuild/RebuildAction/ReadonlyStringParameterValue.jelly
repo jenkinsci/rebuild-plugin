@@ -2,8 +2,8 @@
 The MIT License
 
 Copyright (c) 2004-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Tom Huybrechts
+
 Copyright 2010 Sony Ericsson Mobile Communications.All rights reserved.
-Copyright 2013 Rino Kadijk.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ THE SOFTWARE.
     <f:entry title="${h.escape(it.name)}" description="${it.formattedDescription}">
         <div name="parameter" description="${it.description}">
             <input type="hidden" name="name" value="${it.name}"/>
-            <f:textbox name="value"  value="${it.value}" />
+            <f:readOnlyTextbox name="value"  value="${it.value}" />  <!-- set regular choice+string paramter to readonly for rebuild -->
         </div>
     </f:entry>
 </j:jelly>
