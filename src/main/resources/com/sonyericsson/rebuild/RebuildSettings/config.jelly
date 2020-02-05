@@ -37,7 +37,7 @@ THE SOFTWARE.
     </f:entry>
     <f:entry field="readonlyParams">
         <f:checkbox default="false" checked="${it.readonlyParams}"
-                    title="${%String and Choice parameters should be readonly on rebuild}"/>
+                    title="${%String and Choice Parameters should be readonly on rebuild}"/>
     </f:entry>
 
 </j:jelly>

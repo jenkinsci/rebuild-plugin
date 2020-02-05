@@ -492,7 +492,7 @@ public class RebuildAction implements Action {
         if (getClass().getResource(jellyFolder+jellyFile) != null) {
             // use an existing readonly version of jelly file iff configured in project
             RebuildSettings settings = GetRebuildSettings();
-            if (settings!=null && settings.readonlyParams() &&  getClass().getResource(jellyFolder+readonlyJellyFile)!=null)
+            if (settings!=null && settings.isReadonlyParams() &&  getClass().getResource(jellyFolder+readonlyJellyFile)!=null)
                 jellyFile=readonlyJellyFile;
             return new RebuildParameterPage(getClass(),jellyFile);
         }

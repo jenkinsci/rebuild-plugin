@@ -79,7 +79,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
      *
      * @return readonlyParams boolean.
      */
-    public boolean readonlyParams() {
+    public boolean isReadonlyParams() {
         return readonlyParams;
     }
 
