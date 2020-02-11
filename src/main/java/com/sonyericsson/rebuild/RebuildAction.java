@@ -188,7 +188,7 @@ public class RebuildAction implements Action {
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
-                RebuildSettings settings = GetRebuildSettings();
+                RebuildSettings settings = getRebuildSettings();
                 if (settings != null && settings.getAutoRebuild()) {
                     parameterizedRebuild(currentBuild, response);
                 } else {
@@ -200,7 +200,7 @@ public class RebuildAction implements Action {
         }
     }
 
-    public RebuildSettings GetRebuildSettings() {
+    public RebuildSettings getRebuildSettings() {
         return (RebuildSettings)getProject().getProperty(RebuildSettings.class);
     }
 
@@ -366,7 +366,7 @@ public class RebuildAction implements Action {
     }
 
     private boolean isRebuildDisabled() {
-        RebuildSettings settings = GetRebuildSettings();
+        RebuildSettings settings = getRebuildSettings();
 
         if (settings != null && settings.getRebuildDisabled()) {
 			return true;
@@ -491,7 +491,7 @@ public class RebuildAction implements Action {
         // Check if we have a branched Jelly in the plugin.
         if (getClass().getResource(jellyFolder+jellyFile) != null) {
             // use an existing readonly version of jelly file iff configured in project
-            RebuildSettings settings = GetRebuildSettings();
+            RebuildSettings settings = getRebuildSettings();
             if (settings!=null && settings.isReadonlyParams() &&  getClass().getResource(jellyFolder+readonlyJellyFile)!=null)
                 jellyFile=readonlyJellyFile;
             return new RebuildParameterPage(getClass(),jellyFile);
