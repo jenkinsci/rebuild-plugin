@@ -68,32 +68,30 @@ THE SOFTWARE.
                 <!-- Displaying the form based on current job parameter config with previous build values. -->
                 <j:forEach var="parameterDefinition"
                            items="${parametersProperty.parameterDefinitions}">
-                    <tbody>
-                        <j:set var="parameterValue"
-                               value="${paramAction.getParameter(parameterDefinition.name)}"/>
-                        <j:if test="${parameterValue != null}">
-                            <j:set var="page"
-                                   value="${it.getRebuildParameterPage(parameterValue)}"/>
-                            <j:if test="${page != null}">
-                                <j:scope>
-                                    <st:include it="${parameterValue}"
-                                                class="${page.clazz}" page="${page.page}"/>
-                                </j:scope>
-                            </j:if>
-                            <j:if test="${page == null}">
-                                <!-- Let's fallback on the regular valuePage implementation -->
-                                <st:include
-                                        it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
-                                        page="${parameterDefinition.descriptor.valuePage}"/>
-                            </j:if>
+                    <j:set var="parameterValue"
+                           value="${paramAction.getParameter(parameterDefinition.name)}"/>
+                    <j:if test="${parameterValue != null}">
+                        <j:set var="page"
+                               value="${it.getRebuildParameterPage(parameterValue)}"/>
+                        <j:if test="${page != null}">
+                            <j:scope>
+                                <st:include it="${parameterValue}"
+                                            class="${page.clazz}" page="${page.page}"/>
+                            </j:scope>
                         </j:if>
-                        <j:if test="${parameterValue == null}">
-                            <!-- No previous value in case of new property definition introduced in the config,
-                                 so let's use the default from parameter definition -->
-                            <st:include it="${parameterDefinition}"
-                                        page="${parameterDefinition.descriptor.valuePage}"/>
+                        <j:if test="${page == null}">
+                            <!-- Let's fallback on the regular valuePage implementation -->
+                            <st:include
+                                    it="${parameterDefinition.copyWithDefaultValue(parameterValue)}"
+                                    page="${parameterDefinition.descriptor.valuePage}"/>
                         </j:if>
-                    </tbody>
+                    </j:if>
+                    <j:if test="${parameterValue == null}">
+                        <!-- No previous value in case of new property definition introduced in the config,
+                             so let's use the default from parameter definition -->
+                        <st:include it="${parameterDefinition}"
+                                    page="${parameterDefinition.descriptor.valuePage}"/>
+                    </j:if>
                 </j:forEach>
                 <j:if test="${empty(parametersProperty.parameterDefinitions)}">
                     <j:forEach var="parameterValue" items="${paramAction.parameters}">
