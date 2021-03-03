@@ -4,11 +4,11 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.50</version>
+        <version>4.15</version>
         <relativePath />
     </parent>
     <properties>
-        <jenkins.version>2.60.3</jenkins.version>
+        <jenkins.version>2.176.4</jenkins.version>
         <java.level>8</java.level>
     </properties>
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
