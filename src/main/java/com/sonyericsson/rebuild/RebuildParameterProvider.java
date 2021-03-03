@@ -1,18 +1,18 @@
 /*
  * The MIT License
- * 
+ *
  * Copyright (c) 2013 IKEDA Yasuyuki
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,7 +32,7 @@ import hudson.model.ParameterValue;
 
 /**
  * Extension point to provide views to show parameters in rebuild page.
- * 
+ *
  * If you want your custom {@link ParameterValue} to work with rebuild plugin,
  * do as followings:
  * <ol>
@@ -47,7 +47,8 @@ import hudson.model.ParameterValue;
  *       Don't forget to return <code>null</code> for parameter values
  *       other than your custom {@link ParameterValue}.
  *       There are two recommended ways to set values to {@link RebuildParameterPage}:
- *       <table summary="Recommended ways to set values">
+ *       <table>
+            <caption>Recommended way to set values</caption>
  *           <tr>
  *               <th>&nbsp;</th>
  *               <th>Recommended 1</th>
@@ -72,17 +73,17 @@ public abstract class RebuildParameterProvider implements ExtensionPoint {
     // If defined as an interface, developers might carelessly apply this
     // to mandatory class in their plugin and their plugins get not to work
     // without rebuild plugin.
-    
+
     /**
      * Provide a view for specified {@link ParameterValue}.
-     * 
+     *
      * Return null if cannot handle specified {@link ParameterValue}.
-     * 
+     *
      * @param value a value to be shown in a rebuild page.
      * @return page for the parameter value. null for parameter values cannot be handled.
      */
     public abstract RebuildParameterPage getRebuildPage(ParameterValue value);
-    
+
     /**
      * @return all {@link RebuildParameterProvider} registered to Jenkins.
      */

@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <url>https://wiki.jenkins.io/display/JENKINS/Rebuild+Plugin</url>
     <parent>
@@ -59,44 +60,12 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.1</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.scm</groupId>
-                        <artifactId>maven-scm-provider-gitexe</artifactId>
-                        <version>1.9.2</version>
-                    </dependency>
-                </dependencies>
                 <configuration>
-                    <goals>-DskipTests deploy</goals>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
                 </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
-        <extensions>
-            <extension>
-                <groupId>org.jvnet.wagon-svn</groupId>
-                <artifactId>wagon-svn</artifactId>
-                <version>1.9</version>
-            </extension>
-        </extensions>
     </build>
     <distributionManagement>
         <repository>
@@ -140,13 +109,13 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>matrix-project</artifactId>
-            <version>1.12</version>
+            <version>1.18</version>
         </dependency>
     </dependencies>
     <scm>
-        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-      <tag>HEAD</tag>
-  </scm>
+        <connection>scm:git:https://github.com/jenkinsci/rebuild-plugin</connection>
+        <developerConnection>scm:git:https://github.com/jenkinsci/rebuild-plugin</developerConnection>
+        <url>https://github.com/jenkinsci/rebuild-plugin</url>
+        <tag>HEAD</tag>
+    </scm>
 </project>
