@@ -369,7 +369,7 @@ public class RebuildValidatorTest {
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.scheduleBuild2(0);
-        RebuildSettings settings = new RebuildSettings(false, false);
+        RebuildSettings settings = new RebuildSettings(false, false, false);
         project.addProperty(settings);
         project.save();
         HtmlPage projectPage = j.createWebClient().getPage(project);
@@ -389,7 +389,7 @@ public class RebuildValidatorTest {
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.scheduleBuild2(0);
-        RebuildSettings settings = new RebuildSettings(false, true);
+        RebuildSettings settings = new RebuildSettings(false, true, false);
         project.addProperty(settings);
         project.save();
         HtmlPage projectPage = j.createWebClient().getPage(project);

@@ -32,7 +32,7 @@ THE SOFTWARE.
     <f:entry title="${h.escape(it.name)}" description="${it.formattedDescription}">
         <div name="parameter" description="${it.description}">
             <input type="hidden" name="name" value="${it.name}"/>
-            <f:textbox name="value"  value="${it.value}" />
+            <f:readOnlyTextbox name="value"  value="${it.value}" />
         </div>
     </f:entry>
 </j:jelly>
