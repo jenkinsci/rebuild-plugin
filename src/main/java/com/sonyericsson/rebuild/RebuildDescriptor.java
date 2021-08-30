@@ -1,5 +1,6 @@
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
@@ -17,15 +18,16 @@ public final class RebuildDescriptor extends GlobalConfiguration {
         load();
     }
 
+    @NonNull
     @Override
     public String getDisplayName() {
         return "Rebuild";
     }
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+    public boolean configure(StaplerRequest req, JSONObject formData) {
         this.rebuildConfiguration.setRememberPasswordEnabled(
-                Boolean.valueOf(formData.getString("rememberPasswordEnabled")));
+                Boolean.parseBoolean(formData.getString("rememberPasswordEnabled")));
         save();
         return true;
     }

@@ -27,6 +27,7 @@ import com.gargoylesoftware.htmlunit.WebAssert;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
@@ -511,6 +512,7 @@ public class RebuildValidatorTest {
 
         @Extension
         public static class DescriptorImpl extends ParameterDescriptor {
+            @NonNull
             @Override
             public String getDisplayName() {
                 return "UnsupportedUnknownParameterDefinition";
@@ -555,6 +557,7 @@ public class RebuildValidatorTest {
 
         @Extension
         public static class DescriptorImpl extends ParameterDescriptor {
+            @NonNull
             @Override
             public String getDisplayName() {
                 return "SupportedUnknownParameterDefinition";
@@ -575,9 +578,7 @@ public class RebuildValidatorTest {
             if (!(value instanceof SupportedUnknownParameterValue)) {
                 return null;
             }
-            RebuildParameterPage page = new RebuildParameterPage(
-                    SupportedUnknownParameterValue.class, "rebuild.groovy");
-            return page;
+            return new RebuildParameterPage(SupportedUnknownParameterValue.class, "rebuild.groovy");
         }
     }
 }

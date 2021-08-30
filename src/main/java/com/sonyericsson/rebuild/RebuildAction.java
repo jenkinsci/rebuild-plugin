@@ -195,10 +195,8 @@ public class RebuildAction implements Action {
      * @param request  StaplerRequest the request.
      * @param response StaplerResponse the response handler.
      * @throws IOException          in case of Stapler issues
-     * @throws ServletException     if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
-    public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException, ServletException, InterruptedException {
+    public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException {
         Run currentBuild = request.findAncestorObject(Run.class);
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
@@ -241,12 +239,10 @@ public class RebuildAction implements Action {
      *
      * @param currentBuild current build.
      * @param response     current response object.
-     * @throws ServletException     if something unfortunate happens.
      * @throws IOException          if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
     public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
-            response) throws ServletException, IOException, InterruptedException {
+            response) throws IOException {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildActions(build, null);
@@ -261,9 +257,8 @@ public class RebuildAction implements Action {
      * @param rsp StaplerResponse
      * @throws ServletException     if something unfortunate happens.
      * @throws IOException          if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
-    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException, InterruptedException {
+    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException {
         Job project = getProject();
         if (project == null) {
             return;
@@ -278,7 +273,7 @@ public class RebuildAction implements Action {
             build = req.findAncestorObject(Run.class);
             ParametersDefinitionProperty paramDefProp = build.getParent().getProperty(
                     ParametersDefinitionProperty.class);
-            List<ParameterValue> values = new ArrayList<ParameterValue>();
+            List<ParameterValue> values = new ArrayList<>();
             ParametersAction paramAction = build.getAction(ParametersAction.class);
             JSONObject formData = req.getSubmittedForm();
             if (!formData.isEmpty()) {
@@ -325,9 +320,9 @@ public class RebuildAction implements Action {
      * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
      */
     private List<Cause> constructRebuildCauses(Run<?, ?> fromBuild) {
-        List<Cause> currentBuildCauses = new ArrayList<Cause>(fromBuild.getCauses());
+        List<Cause> currentBuildCauses = new ArrayList<>(fromBuild.getCauses());
 
-        List<Cause> newBuildCauses = new ArrayList<Cause>();
+        List<Cause> newBuildCauses = new ArrayList<>();
         for (Cause buildCause : currentBuildCauses) {
             if (!(buildCause instanceof Cause.UserIdCause) &&
                 !(buildCause instanceof RebuildCause)) {
@@ -377,12 +372,8 @@ public class RebuildAction implements Action {
 
     private boolean isRebuildDisabled() {
         RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-
-        if (settings != null && settings.getRebuildDisabled()) {
-			return true;
-		}
-		return false;
-	}
+        return settings != null && settings.getRebuildDisabled();
+    }
 
 	/**
      * Method for getting the ParameterValue instance from ParameterDefinition
@@ -440,7 +431,7 @@ public class RebuildAction implements Action {
         if (oldValue instanceof StringParameterValue) {
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
         } else if (oldValue instanceof BooleanParameterValue) {
-            return new BooleanParameterValue(oldValue.getName(), Boolean.valueOf(newValue),
+            return new BooleanParameterValue(oldValue.getName(), Boolean.parseBoolean(newValue),
                     oldValue.getDescription());
         } else if (oldValue instanceof RunParameterValue) {
             return new RunParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
@@ -448,7 +439,7 @@ public class RebuildAction implements Action {
             return new PasswordParameterValue(oldValue.getName(), newValue,
                     oldValue.getDescription());
         } else if (oldValue.getClass().getName().equals(SVN_TAG_PARAM_CLASS)) {
-            /**
+            /*
              * getClass().getName() to avoid dependency on svn plugin.
              */
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
@@ -464,7 +455,7 @@ public class RebuildAction implements Action {
      */
     private List<Action> constructRebuildActions(Run up, ParametersAction paramAction) {
         List<Cause> causes = constructRebuildCauses(up);
-        List<Action> actions = new ArrayList<Action>();
+        List<Action> actions = new ArrayList<>();
         actions.add(new CauseAction(causes));
         if (paramAction != null) {
             actions.add(paramAction);
