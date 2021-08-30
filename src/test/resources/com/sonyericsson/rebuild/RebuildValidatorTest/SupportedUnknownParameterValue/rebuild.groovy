@@ -1,4 +1,4 @@
-package com.sonyericsson.rebuild.RebuildValidatorTest.SupportedUnknownParameterValue;
+package com.sonyericsson.rebuild.RebuildValidatorTest.SupportedUnknownParameterValue
 
 f = namespace("lib/form")
 

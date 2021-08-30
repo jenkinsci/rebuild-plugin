@@ -377,12 +377,8 @@ public class RebuildAction implements Action {
 
     private boolean isRebuildDisabled() {
         RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-
-        if (settings != null && settings.getRebuildDisabled()) {
-			return true;
-		}
-		return false;
-	}
+        return settings != null && settings.getRebuildDisabled();
+    }
 
 	/**
      * Method for getting the ParameterValue instance from ParameterDefinition
