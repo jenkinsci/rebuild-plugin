@@ -92,8 +92,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
 
         @Override
         public JobProperty<?> newInstance(@NonNull StaplerRequest req, JSONObject formdata) {
-            RebuildSettings prop = req.bindJSON(RebuildSettings.class, formdata);
-            return prop;
+            return req.bindJSON(RebuildSettings.class, formdata);
         }
     }
 }
