@@ -195,10 +195,8 @@ public class RebuildAction implements Action {
      * @param request  StaplerRequest the request.
      * @param response StaplerResponse the response handler.
      * @throws IOException          in case of Stapler issues
-     * @throws ServletException     if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
-    public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException, ServletException, InterruptedException {
+    public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException {
         Run currentBuild = request.findAncestorObject(Run.class);
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
@@ -241,12 +239,10 @@ public class RebuildAction implements Action {
      *
      * @param currentBuild current build.
      * @param response     current response object.
-     * @throws ServletException     if something unfortunate happens.
      * @throws IOException          if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
     public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
-            response) throws ServletException, IOException, InterruptedException {
+            response) throws IOException {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildActions(build, null);
@@ -261,9 +257,8 @@ public class RebuildAction implements Action {
      * @param rsp StaplerResponse
      * @throws ServletException     if something unfortunate happens.
      * @throws IOException          if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
-    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException, InterruptedException {
+    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException {
         Job project = getProject();
         if (project == null) {
             return;
