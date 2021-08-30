@@ -439,7 +439,7 @@ public class RebuildAction implements Action {
             return new PasswordParameterValue(oldValue.getName(), newValue,
                     oldValue.getDescription());
         } else if (oldValue.getClass().getName().equals(SVN_TAG_PARAM_CLASS)) {
-            /**
+            /*
              * getClass().getName() to avoid dependency on svn plugin.
              */
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
