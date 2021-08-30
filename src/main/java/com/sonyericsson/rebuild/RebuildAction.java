@@ -273,7 +273,7 @@ public class RebuildAction implements Action {
             build = req.findAncestorObject(Run.class);
             ParametersDefinitionProperty paramDefProp = build.getParent().getProperty(
                     ParametersDefinitionProperty.class);
-            List<ParameterValue> values = new ArrayList<ParameterValue>();
+            List<ParameterValue> values = new ArrayList<>();
             ParametersAction paramAction = build.getAction(ParametersAction.class);
             JSONObject formData = req.getSubmittedForm();
             if (!formData.isEmpty()) {
@@ -320,9 +320,9 @@ public class RebuildAction implements Action {
      * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
      */
     private List<Cause> constructRebuildCauses(Run<?, ?> fromBuild) {
-        List<Cause> currentBuildCauses = new ArrayList<Cause>(fromBuild.getCauses());
+        List<Cause> currentBuildCauses = new ArrayList<>(fromBuild.getCauses());
 
-        List<Cause> newBuildCauses = new ArrayList<Cause>();
+        List<Cause> newBuildCauses = new ArrayList<>();
         for (Cause buildCause : currentBuildCauses) {
             if (!(buildCause instanceof Cause.UserIdCause) &&
                 !(buildCause instanceof RebuildCause)) {
@@ -431,7 +431,7 @@ public class RebuildAction implements Action {
         if (oldValue instanceof StringParameterValue) {
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
         } else if (oldValue instanceof BooleanParameterValue) {
-            return new BooleanParameterValue(oldValue.getName(), Boolean.valueOf(newValue),
+            return new BooleanParameterValue(oldValue.getName(), Boolean.parseBoolean(newValue),
                     oldValue.getDescription());
         } else if (oldValue instanceof RunParameterValue) {
             return new RunParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
@@ -455,7 +455,7 @@ public class RebuildAction implements Action {
      */
     private List<Action> constructRebuildActions(Run up, ParametersAction paramAction) {
         List<Cause> causes = constructRebuildCauses(up);
-        List<Action> actions = new ArrayList<Action>();
+        List<Action> actions = new ArrayList<>();
         actions.add(new CauseAction(causes));
         if (paramAction != null) {
             actions.add(paramAction);
