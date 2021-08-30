@@ -1,5 +1,6 @@
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
@@ -17,6 +18,7 @@ public final class RebuildDescriptor extends GlobalConfiguration {
         load();
     }
 
+    @NonNull
     @Override
     public String getDisplayName() {
         return "Rebuild";

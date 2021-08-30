@@ -24,6 +24,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -46,7 +47,7 @@ public class Rebuilder extends RunListener<Run> {
     }
 
     @Override
-    public void onCompleted(Run build, TaskListener listener) {
+    public void onCompleted(Run build, @NonNull TaskListener listener) {
             for (RebuildValidator rebuildValidator : Jenkins.getInstance().
                     getExtensionList(RebuildValidator.class)) {
                 if (rebuildValidator.isApplicable(build)) {

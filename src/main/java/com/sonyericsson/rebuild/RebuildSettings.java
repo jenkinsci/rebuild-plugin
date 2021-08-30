@@ -23,13 +23,12 @@
  */
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import net.sf.json.JSONObject;
-
-import javax.annotation.Nonnull;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -80,6 +79,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
     @Extension
     public static final class DescriptorImpl extends JobPropertyDescriptor {
 
+        @NonNull
         @Override
         public String getDisplayName() {
             return "Rebuild Settings";
@@ -91,7 +91,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
         }
 
         @Override
-        public JobProperty<?> newInstance(@Nonnull StaplerRequest req, JSONObject formdata) {
+        public JobProperty<?> newInstance(@NonNull StaplerRequest req, JSONObject formdata) {
             RebuildSettings prop = req.bindJSON(RebuildSettings.class, formdata);
             return prop;
         }
