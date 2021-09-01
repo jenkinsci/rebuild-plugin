@@ -88,6 +88,6 @@ public abstract class RebuildParameterProvider implements ExtensionPoint {
      * @return all {@link RebuildParameterProvider} registered to Jenkins.
      */
     public static ExtensionList<RebuildParameterProvider> all() {
-        return Jenkins.getInstance().getExtensionList(RebuildParameterProvider.class);
+        return Jenkins.get().getExtensionList(RebuildParameterProvider.class);
     }
 }

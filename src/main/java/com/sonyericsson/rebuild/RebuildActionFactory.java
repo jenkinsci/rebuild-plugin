@@ -56,7 +56,7 @@ public class RebuildActionFactory extends TransientBuildActionFactory {
         if (hasRebuildAction) {
             return emptyList();
         }
-        for (RebuildValidator rebuildValidator : Jenkins.getInstance().
+        for (RebuildValidator rebuildValidator : Jenkins.get().
                 getExtensionList(RebuildValidator.class)) {
             if (rebuildValidator.isApplicable(build)) {
                 return emptyList();
