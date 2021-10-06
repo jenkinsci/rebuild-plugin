@@ -55,6 +55,7 @@ import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -501,9 +502,8 @@ public class RebuildValidatorTest {
         while (project.isBuilding()) {
             Thread.sleep(DELAY);
         }
-        List<Action> actions = project.getLastCompletedBuild().getActions();
         boolean hasRebuildDispatcherTestAction = false;
-        for (Action action : actions) {
+        for (Action action : project.getLastCompletedBuild().getAllActions()) {
             if (action instanceof RebuildDispatcherTestAction) {
                 hasRebuildDispatcherTestAction = true;
             }
@@ -532,9 +532,9 @@ public class RebuildValidatorTest {
         while (project.isBuilding()) {
             Thread.sleep(DELAY);
         }
-        List<Action> actions = project.getLastCompletedBuild().getActions();
+
         boolean hasRebuildDispatcherTestAction = false;
-        for (Action action : actions) {
+        for (Action action : project.getLastCompletedBuild().getAllActions()) {
             if (action instanceof RebuildDispatcherTestAction) {
                 hasRebuildDispatcherTestAction = true;
             }
@@ -672,9 +672,9 @@ public class RebuildValidatorTest {
     public static class RebuildActionDispatcherTestImpl extends RebuildActionDispatcher {
         @Override
         public Set<Action> getPropagatingActions(Run r) {
-            Set<Action> dispatcherActions = Sets.newHashSet();
+            Set<Action> dispatcherActions = new HashSet<>();
 
-            for (Action action : r.getActions()) {
+            for (Action action : r.getAllActions()) {
                 if (RebuildDispatcherTestAction.class.isInstance(action)) {
                     RebuildDispatcherTestAction testAction = (RebuildDispatcherTestAction) action;
 

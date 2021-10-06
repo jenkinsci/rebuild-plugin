@@ -24,7 +24,6 @@
  */
 package com.sonyericsson.rebuild;
 
-import com.google.common.collect.Sets;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.Action;
@@ -33,6 +32,7 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -347,7 +347,7 @@ public class RebuildAction implements Action {
      * @param actions the list to append additional copied actions
      */
     private void copyRebuildDispatcherActions(Run<?, ?> fromBuild, List<Action> actions) {
-        Set<Action> propagatingActions = Sets.newHashSet();
+        Set<Action> propagatingActions = new HashSet<>();
 
         // Get all RebuildActionsDispatchers that implement our extension point
         ExtensionList<RebuildActionDispatcher> rebuildActionDispatchers = RebuildActionDispatcher.all();
