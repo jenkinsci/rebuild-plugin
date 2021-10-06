@@ -229,7 +229,7 @@ public class RebuildAction implements Action {
 
             List<Action> actions = constructRebuildActions(build, currentBuild.getAction(ParametersAction.class));
 
-            Jenkins.getInstance().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.get().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
         }
     }
@@ -246,7 +246,7 @@ public class RebuildAction implements Action {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildActions(build, null);
-        Jenkins.getInstance().getQueue().schedule2((Queue.Task) currentBuild.getParent(), 0, actions);
+        Jenkins.get().getQueue().schedule2((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
 
@@ -304,7 +304,7 @@ public class RebuildAction implements Action {
             }
 
             List<Action> actions = constructRebuildActions(build, new ParametersAction(values));
-            Jenkins.getInstance().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.get().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
         }
