@@ -40,6 +40,7 @@ import hudson.model.FreeStyleProject;
 import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Project;
+import hudson.model.Run;
 import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
 
@@ -54,6 +55,9 @@ import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -477,6 +481,67 @@ public class RebuildValidatorTest {
                 page.asText().contains("This is a mark for test"));
     }
 
+    public void testRebuildDispatcherExtensionActionIsCopied() throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.addProperty(new ParametersDefinitionProperty(
+                new StringParameterDefinition("name", "defaultValue")));
+
+        // Build (#1)
+        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+                new ParametersAction(new StringParameterValue("name", "test")),
+                new RebuildDispatcherTestAction(true))
+                .get();
+        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
+                "1/rebuild");
+        // Rebuild (#2)
+        j.submit(rebuildConfigPage.getFormByName("config"));
+
+        j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+                .click();
+
+        while (project.isBuilding()) {
+            Thread.sleep(DELAY);
+        }
+        boolean hasRebuildDispatcherTestAction = false;
+        for (Action action : project.getLastCompletedBuild().getAllActions()) {
+            if (action instanceof RebuildDispatcherTestAction) {
+                hasRebuildDispatcherTestAction = true;
+            }
+        }
+        assertTrue("Build should have rebuildDispatcherTestAction", hasRebuildDispatcherTestAction);
+    }
+
+    public void testRebuildDispatcherExtensionActionIsNotCopied() throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.addProperty(new ParametersDefinitionProperty(
+                new StringParameterDefinition("name", "defaultValue")));
+
+        // Build (#1)
+        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+                new ParametersAction(new StringParameterValue("name", "test")),
+                new RebuildDispatcherTestAction(false))
+                .get();
+        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
+                "1/rebuild");
+        // Rebuild (#2)
+        j.submit(rebuildConfigPage.getFormByName("config"));
+
+        j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+                .click();
+
+        while (project.isBuilding()) {
+            Thread.sleep(DELAY);
+        }
+
+        boolean hasRebuildDispatcherTestAction = false;
+        for (Action action : project.getLastCompletedBuild().getAllActions()) {
+            if (action instanceof RebuildDispatcherTestAction) {
+                hasRebuildDispatcherTestAction = true;
+            }
+        }
+        assertFalse("Build should not have rebuildDispatcherTestAction", hasRebuildDispatcherTestAction);
+    }
+
     /**
      * A parameter value rebuild plugin does not know.
      */
@@ -579,6 +644,47 @@ public class RebuildValidatorTest {
                 return null;
             }
             return new RebuildParameterPage(SupportedUnknownParameterValue.class, "rebuild.groovy");
+        }
+    }
+
+    public static class RebuildDispatcherTestAction implements Action {
+        public final boolean shouldBeCopied;
+
+        public RebuildDispatcherTestAction(boolean shouldBeCopied) {
+            this.shouldBeCopied = shouldBeCopied;
+        }
+
+        @Override
+        public String getIconFileName() {
+            return null;
+        }
+        @Override
+        public String getDisplayName() {
+            return null;
+        }
+        @Override
+        public String getUrlName() {
+            return null;
+        }
+    }
+
+    @Extension
+    public static class RebuildActionDispatcherTestImpl extends RebuildActionDispatcher {
+        @Override
+        public Set<Action> getPropagatingActions(Run r) {
+            Set<Action> dispatcherActions = new HashSet<>();
+
+            for (Action action : r.getAllActions()) {
+                if (RebuildDispatcherTestAction.class.isInstance(action)) {
+                    RebuildDispatcherTestAction testAction = (RebuildDispatcherTestAction) action;
+
+                    if (testAction.shouldBeCopied) {
+                        dispatcherActions.add(action);
+                    }
+                }
+            }
+
+            return dispatcherActions;
         }
     }
 }
