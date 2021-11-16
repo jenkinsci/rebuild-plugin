@@ -24,6 +24,8 @@
  */
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.Action;
@@ -409,6 +411,7 @@ public class RebuildAction implements Action {
      * @param jo            JSONObject
      * @return ParameterValue instance of subclass of ParameterValue
      */
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE") // see https://github.com/spotbugs/spotbugs/issues/651
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
             String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
         ParameterDefinition paramDef;
