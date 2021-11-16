@@ -56,7 +56,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -450,7 +449,7 @@ public class RebuildValidatorTest {
         // it is trying to fallback and use the
         HtmlPage page = wc.getPage(build, "rebuild");
         // Check the hardcoded description is showing properly.
-        assertTrue(page.asText().contains(
+        assertTrue(page.asNormalizedText().contains(
                 "Configuration page for UnsupportedUnknownParameterValue"));
     }
 
@@ -477,10 +476,11 @@ public class RebuildValidatorTest {
                                         "value1"))));
         FreeStyleBuild build = project.getLastBuild();
         HtmlPage page = wc.getPage(build, "rebuild");
-        assertTrue(page.asText(),
-                page.asText().contains("This is a mark for test"));
+        assertTrue(page.asNormalizedText(),
+                page.asNormalizedText().contains("This is a mark for test"));
     }
 
+    @Test
     public void testRebuildDispatcherExtensionActionIsCopied() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
@@ -511,6 +511,7 @@ public class RebuildValidatorTest {
         assertTrue("Build should have rebuildDispatcherTestAction", hasRebuildDispatcherTestAction);
     }
 
+    @Test
     public void testRebuildDispatcherExtensionActionIsNotCopied() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
@@ -675,7 +676,7 @@ public class RebuildValidatorTest {
             Set<Action> dispatcherActions = new HashSet<>();
 
             for (Action action : r.getAllActions()) {
-                if (RebuildDispatcherTestAction.class.isInstance(action)) {
+                if (action instanceof RebuildDispatcherTestAction) {
                     RebuildDispatcherTestAction testAction = (RebuildDispatcherTestAction) action;
 
                     if (testAction.shouldBeCopied) {

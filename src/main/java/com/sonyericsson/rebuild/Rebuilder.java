@@ -56,7 +56,7 @@ public class Rebuilder extends RunListener<Run> {
             }
             RebuildAction rebuildAction = new RebuildAction();
             // TODO what is the purpose of this? If eligible, RebuildActionFactory would already be adding it anyway (without saving anything to XML).
-            build.getActions().add(rebuildAction);
+            build.addAction(rebuildAction);
     }
 
 }
