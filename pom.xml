@@ -1,19 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <url>https://github.com/jenkinsci/rebuild-plugin</url>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.25</version>
+        <version>4.31</version>
         <relativePath />
     </parent>
     <properties>
-        <jenkins.version>2.176.4</jenkins.version>
+        <revision>1.33</revision>
+        <changelist>-SNAPSHOT</changelist>
+        <jenkins.version>2.222.4</jenkins.version>
         <java.level>8</java.level>
+        <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     </properties>
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version>1.33-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
     <repositories>
@@ -106,9 +110,9 @@
         </dependency>
     </dependencies>
     <scm>
-        <connection>scm:git:https://github.com/jenkinsci/rebuild-plugin</connection>
-        <developerConnection>scm:git:https://github.com/jenkinsci/rebuild-plugin</developerConnection>
-        <url>https://github.com/jenkinsci/rebuild-plugin</url>
-        <tag>HEAD</tag>
+        <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
+        <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+        <url>https://github.com/${gitHubRepo}</url>
+        <tag>${scmTag}</tag>
     </scm>
 </project>

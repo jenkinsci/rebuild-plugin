@@ -4,7 +4,6 @@ import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Action;
 import hudson.model.Run;
-import jenkins.model.Jenkins;
 
 import java.util.Collection;
 
@@ -20,10 +19,8 @@ public abstract class RebuildActionDispatcher implements ExtensionPoint {
 
     /**
      * All registered {@link RebuildActionDispatcher}s.
-     * TODO: use ExtensionList.lookup() once the Jenkins dependency is upgraded >= 1.572
      */
     public static ExtensionList<RebuildActionDispatcher> all() {
-        Jenkins j = Jenkins.getInstance();
-        return j == null ? ExtensionList.create((Jenkins) null, RebuildActionDispatcher.class) : j.getExtensionList(RebuildActionDispatcher.class);
+        return ExtensionList.lookup(RebuildActionDispatcher.class);
     }
 }
