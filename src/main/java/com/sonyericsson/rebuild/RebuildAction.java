@@ -169,7 +169,7 @@ public class RebuildAction implements Action {
     @Override
     public String getIconFileName() {
         if (isRebuildAvailable()) {
-            return "clock.gif";
+            return "clock.png";
         } else {
             return null;
         }
