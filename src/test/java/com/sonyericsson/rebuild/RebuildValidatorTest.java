@@ -215,6 +215,35 @@ public class RebuildValidatorTest {
 
     /**
      * Creates a new freestyle project and builds the project with a string
+     * parameter. If the build is successful, a rebuild of the last build is
+     * done, with autorebuild. The rebuild should have the same parameter values
+     * as the original build.
+     *
+     * @throws Exception
+     *             Exception
+     */
+    @Test
+    public void testAutoRebuildAsRequestParameter()
+            throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.addProperty(new ParametersDefinitionProperty(
+                new StringParameterDefinition("name", "defaultValue")));
+
+        // Build (#1)
+        project.scheduleBuild2(0, new Cause.UserIdCause(),
+                new ParametersAction(new StringParameterValue("name", "ABC")))
+                .get();
+        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
+                "1/rebuild?autorebuild");
+        Run r = project.getBuild("2");
+        assertNotNull(r);
+        ParametersAction paramAction = r.getAction(ParametersAction.class);
+        assertNotNull(paramAction);
+        assertEquals("ABC", paramAction.getParameter("name").getValue());
+    }
+
+    /**
+     * Creates a new freestyle project and builds the project with a string
      * parameter. If the build is succesful, a rebuild of the last build is
      * done. The rebuild on the project level should point to the last build
      *
