@@ -207,7 +207,8 @@ public class RebuildAction implements Action {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
                 RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-                if (settings != null && settings.getAutoRebuild()) {
+                if (settings != null && settings.getAutoRebuild() ||
+                        request.getParameter("autorebuild") != null) {
                     parameterizedRebuild(currentBuild, response);
                 } else {
                     response.sendRedirect(PARAMETERIZED_URL);
