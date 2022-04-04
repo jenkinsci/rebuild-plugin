@@ -65,6 +65,7 @@ THE SOFTWARE.
                    value="${build.parent.getProperty(parametersDefinitionPropertyClass)}"/>
             <f:form method="post" action="configSubmit" name="config" tableClass="parameters">
                 <!-- Displaying the form based on current job parameter config with previous build values. -->
+                <j:set var="escapeEntryTitleAndDescription" value="true"/>
                 <j:forEach var="parameterDefinition"
                            items="${parametersProperty.parameterDefinitions}">
                     <j:set var="parameterValue"
