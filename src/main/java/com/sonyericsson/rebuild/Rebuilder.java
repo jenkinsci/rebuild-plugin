@@ -24,6 +24,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -46,8 +47,8 @@ public class Rebuilder extends RunListener<Run> {
     }
 
     @Override
-    public void onCompleted(Run build, TaskListener listener) {
-            for (RebuildValidator rebuildValidator : Jenkins.getInstance().
+    public void onCompleted(Run build, @NonNull TaskListener listener) {
+            for (RebuildValidator rebuildValidator : Jenkins.get().
                     getExtensionList(RebuildValidator.class)) {
                 if (rebuildValidator.isApplicable(build)) {
                     return;
@@ -55,7 +56,7 @@ public class Rebuilder extends RunListener<Run> {
             }
             RebuildAction rebuildAction = new RebuildAction();
             // TODO what is the purpose of this? If eligible, RebuildActionFactory would already be adding it anyway (without saving anything to XML).
-            build.getActions().add(rebuildAction);
+            build.addAction(rebuildAction);
     }
 
 }

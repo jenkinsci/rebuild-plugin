@@ -28,6 +28,8 @@ import hudson.model.Cause;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
+import jenkins.model.Jenkins;
+
 /**
  * A cause specifying that the build was a rebuild of another build. Extends
  * UpstreamCause so that a lot of the magic that Jenkins does with Upstream
@@ -36,9 +38,6 @@ import hudson.model.TaskListener;
  * @author Joel Johnson
  * @author Oleg Nenashev
  */
-
-import jenkins.model.Jenkins;
-
 public class RebuildCause extends Cause.UpstreamCause {
     /**
      * RebuildCause constructor.
@@ -59,7 +58,7 @@ public class RebuildCause extends Cause.UpstreamCause {
      */
     public String getShortDescritptionHTML() {
         return Messages.Cause_RebuildCause_ShortDescriptionHTML(getUpstreamBuild(),
-                Jenkins.getInstance().getRootUrl() + getUpstreamUrl() + getUpstreamBuild());
+                Jenkins.get().getRootUrl() + getUpstreamUrl() + getUpstreamBuild());
     }
     /**
      * Method calculate the indent.

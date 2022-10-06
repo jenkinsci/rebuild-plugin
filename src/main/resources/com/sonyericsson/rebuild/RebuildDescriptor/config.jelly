@@ -2,15 +2,32 @@
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson"
-         xmlns:f="/lib/form">
+         xmlns:f="/lib/form"
+         xmlns:local="local">
+    <d:taglib uri="local">
+        <d:tag name="blockWrapperTable">
+            <j:choose>
+                <j:when test="${divBasedFormLayout}">
+                    <div>
+                        <d:invokeBody/>
+                    </div>
+                </j:when>
+                <j:otherwise>
+                    <table width="100%">
+                        <d:invokeBody/>
+                    </table>
+                </j:otherwise>
+            </j:choose>
+        </d:tag>
+    </d:taglib>
     <f:section title="Rebuild">
         <f:entry title="Rebuild Configuration">
-            <table width="100%">
+            <local:blockWrapperTable>
                 <f:entry title="Remember Password Enabled" field="rememberPasswordEnabled">
                     <f:checkbox
                             checked="${descriptor.rebuildConfiguration.rememberPasswordEnabled}"/>
                 </f:entry>
-            </table>
+            </local:blockWrapperTable>
         </f:entry>
     </f:section>
 </j:jelly>
