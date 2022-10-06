@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Set;
 
 import hudson.matrix.MatrixRun;
-import jenkins.model.Jenkins;
+import jenkins.model.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
