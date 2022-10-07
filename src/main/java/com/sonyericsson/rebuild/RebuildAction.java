@@ -28,7 +28,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import hudson.Extension;
 import hudson.ExtensionList;
-import hudson.model.Action;
+import hudson.matrix.MatrixRun;
+import hudson.model.*;
+import jenkins.model.Jenkins;
 
 import javax.servlet.ServletException;
 
@@ -38,8 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import hudson.matrix.MatrixRun;
-import jenkins.model.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
