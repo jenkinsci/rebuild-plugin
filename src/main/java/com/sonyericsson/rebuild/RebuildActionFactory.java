@@ -66,7 +66,7 @@ public class RebuildActionFactory extends TransientActionFactory<Run> {
             }
         }
 
-        return singleton(new RebuildAction());
+        return singleton(new RebuildAction(true));
     }
 
 }
