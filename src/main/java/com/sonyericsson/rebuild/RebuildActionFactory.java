@@ -23,6 +23,7 @@
  */
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.model.Action;
@@ -30,8 +31,6 @@ import hudson.model.Queue;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 import jenkins.model.TransientActionFactory;
-
-import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static java.util.Collections.emptyList;
@@ -48,9 +47,9 @@ public class RebuildActionFactory extends TransientActionFactory<Run> {
         return Run.class;
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    public Collection<? extends Action> createFor(@Nonnull Run run) {
+    public Collection<? extends Action> createFor(@NonNull Run run) {
 
         // TODO should this not just use RebuildAction.isRebuildAvailable? Or conversely, is that method needed if we are already filtering here?
         if (run.getParent() instanceof MatrixConfiguration) {
@@ -59,16 +58,15 @@ public class RebuildActionFactory extends TransientActionFactory<Run> {
         if (!(run.getParent() instanceof Queue.Task)) {
             return emptyList();
         }
-        
-        for (RebuildValidator rebuildValidator : Jenkins.getInstanceOrNull().
+
+        for (RebuildValidator rebuildValidator : Jenkins.get().
                 getExtensionList(RebuildValidator.class)) {
             if (rebuildValidator.isApplicable(run)) {
                 return emptyList();
             }
         }
-        
+
         return singleton(new RebuildAction());
     }
-    
-    
+
 }

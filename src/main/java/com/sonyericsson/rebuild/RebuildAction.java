@@ -24,14 +24,19 @@
  */
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.model.Action;
 
 import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import hudson.matrix.MatrixRun;
 import hudson.model.BooleanParameterValue;
@@ -164,7 +169,7 @@ public class RebuildAction implements Action {
     @Override
     public String getIconFileName() {
         if (isRebuildAvailable()) {
-            return "clock.gif";
+            return "clock.png";
         } else {
             return null;
         }
@@ -195,16 +200,15 @@ public class RebuildAction implements Action {
      * @param request  StaplerRequest the request.
      * @param response StaplerResponse the response handler.
      * @throws IOException          in case of Stapler issues
-     * @throws ServletException     if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
-    public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException, ServletException, InterruptedException {
+    public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException {
         Run currentBuild = request.findAncestorObject(Run.class);
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
                 RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-                if (settings != null && settings.getAutoRebuild()) {
+                if (settings != null && settings.getAutoRebuild() ||
+                        request.getParameter("autorebuild") != null) {
                     parameterizedRebuild(currentBuild, response);
                 } else {
                     response.sendRedirect(PARAMETERIZED_URL);
@@ -231,7 +235,7 @@ public class RebuildAction implements Action {
 
             List<Action> actions = constructRebuildActions(build, currentBuild.getAction(ParametersAction.class));
 
-            Jenkins.getInstance().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.get().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
             response.sendRedirect("../../");
         }
     }
@@ -241,16 +245,14 @@ public class RebuildAction implements Action {
      *
      * @param currentBuild current build.
      * @param response     current response object.
-     * @throws ServletException     if something unfortunate happens.
      * @throws IOException          if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
     public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
-            response) throws ServletException, IOException, InterruptedException {
+            response) throws IOException {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildActions(build, null);
-        Jenkins.getInstance().getQueue().schedule2((Queue.Task) currentBuild.getParent(), 0, actions);
+        Jenkins.get().getQueue().schedule2((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
 
@@ -261,9 +263,8 @@ public class RebuildAction implements Action {
      * @param rsp StaplerResponse
      * @throws ServletException     if something unfortunate happens.
      * @throws IOException          if something unfortunate happens.
-     * @throws InterruptedException if something unfortunate happens.
      */
-    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException, InterruptedException {
+    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException {
         Job project = getProject();
         if (project == null) {
             return;
@@ -278,7 +279,7 @@ public class RebuildAction implements Action {
             build = req.findAncestorObject(Run.class);
             ParametersDefinitionProperty paramDefProp = build.getParent().getProperty(
                     ParametersDefinitionProperty.class);
-            List<ParameterValue> values = new ArrayList<ParameterValue>();
+            List<ParameterValue> values = new ArrayList<>();
             ParametersAction paramAction = build.getAction(ParametersAction.class);
             JSONObject formData = req.getSubmittedForm();
             if (!formData.isEmpty()) {
@@ -309,7 +310,7 @@ public class RebuildAction implements Action {
             }
 
             List<Action> actions = constructRebuildActions(build, new ParametersAction(values));
-            Jenkins.getInstance().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.get().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
         }
@@ -325,9 +326,9 @@ public class RebuildAction implements Action {
      * @return list with all original causes and a {@link hudson.model.Cause.UserIdCause}.
      */
     private List<Cause> constructRebuildCauses(Run<?, ?> fromBuild) {
-        List<Cause> currentBuildCauses = new ArrayList<Cause>(fromBuild.getCauses());
+        List<Cause> currentBuildCauses = new ArrayList<>(fromBuild.getCauses());
 
-        List<Cause> newBuildCauses = new ArrayList<Cause>();
+        List<Cause> newBuildCauses = new ArrayList<>();
         for (Cause buildCause : currentBuildCauses) {
             if (!(buildCause instanceof Cause.UserIdCause) &&
                 !(buildCause instanceof RebuildCause)) {
@@ -339,6 +340,26 @@ public class RebuildAction implements Action {
         newBuildCauses.add(new RebuildCause(fromBuild));
 
         return newBuildCauses;
+    }
+
+    /**
+     * Loops over all the RebuildActionDispatchers and adds any actions to the rebuild that they want included.
+     * Always copies the {@link hudson.model.ParametersAction} if it is present.
+     *
+     * @param fromBuild the build to copy the actions from
+     * @param actions the list to append additional copied actions
+     */
+    private void copyRebuildDispatcherActions(Run<?, ?> fromBuild, List<Action> actions) {
+        Set<Action> propagatingActions = new HashSet<>();
+
+        // Get all RebuildActionsDispatchers that implement our extension point
+        ExtensionList<RebuildActionDispatcher> rebuildActionDispatchers = RebuildActionDispatcher.all();
+
+        for (RebuildActionDispatcher dispatcher : rebuildActionDispatchers) {
+            propagatingActions.addAll(dispatcher.getPropagatingActions(fromBuild));
+        }
+
+        actions.addAll(propagatingActions);
     }
 
     /**
@@ -359,7 +380,7 @@ public class RebuildAction implements Action {
     }
 
     /**
-     * Method for checking,whether the rebuild functionality would be available
+     * Method for checking whether the rebuild functionality would be available
      * for build.
      *
      * @return boolean
@@ -377,12 +398,8 @@ public class RebuildAction implements Action {
 
     private boolean isRebuildDisabled() {
         RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-
-        if (settings != null && settings.getRebuildDisabled()) {
-			return true;
-		}
-		return false;
-	}
+        return settings != null && settings.getRebuildDisabled();
+    }
 
 	/**
      * Method for getting the ParameterValue instance from ParameterDefinition
@@ -395,6 +412,7 @@ public class RebuildAction implements Action {
      * @param jo            JSONObject
      * @return ParameterValue instance of subclass of ParameterValue
      */
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE") // see https://github.com/spotbugs/spotbugs/issues/651
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
             String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
         ParameterDefinition paramDef;
@@ -440,7 +458,7 @@ public class RebuildAction implements Action {
         if (oldValue instanceof StringParameterValue) {
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
         } else if (oldValue instanceof BooleanParameterValue) {
-            return new BooleanParameterValue(oldValue.getName(), Boolean.valueOf(newValue),
+            return new BooleanParameterValue(oldValue.getName(), Boolean.parseBoolean(newValue),
                     oldValue.getDescription());
         } else if (oldValue instanceof RunParameterValue) {
             return new RunParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
@@ -448,7 +466,7 @@ public class RebuildAction implements Action {
             return new PasswordParameterValue(oldValue.getName(), newValue,
                     oldValue.getDescription());
         } else if (oldValue.getClass().getName().equals(SVN_TAG_PARAM_CLASS)) {
-            /**
+            /*
              * getClass().getName() to avoid dependency on svn plugin.
              */
             return new StringParameterValue(oldValue.getName(), newValue, oldValue.getDescription());
@@ -458,14 +476,15 @@ public class RebuildAction implements Action {
     /**
      * Method for constructing Rebuild actions.
      *
-     * @param up AbsstractBuild
+     * @param up AbstractBuild
      * @param paramAction ParametersAction.
      * @return actions List<Action>
      */
     private List<Action> constructRebuildActions(Run up, ParametersAction paramAction) {
         List<Cause> causes = constructRebuildCauses(up);
-        List<Action> actions = new ArrayList<Action>();
+        List<Action> actions = new ArrayList<>();
         actions.add(new CauseAction(causes));
+        copyRebuildDispatcherActions(up, actions);
         if (paramAction != null) {
             actions.add(paramAction);
         }

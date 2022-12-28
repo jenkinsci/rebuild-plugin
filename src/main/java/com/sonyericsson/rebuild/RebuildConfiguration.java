@@ -58,7 +58,7 @@ public class RebuildConfiguration implements Describable {
 
     @Override
     public Descriptor getDescriptor() {
-        return Jenkins.getInstance().getDescriptorOrDie(RebuildConfiguration.class);
+        return Jenkins.get().getDescriptorOrDie(RebuildConfiguration.class);
     }
 
     /**

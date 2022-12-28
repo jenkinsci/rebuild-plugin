@@ -27,6 +27,7 @@ import com.gargoylesoftware.htmlunit.WebAssert;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
@@ -39,6 +40,7 @@ import hudson.model.FreeStyleProject;
 import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Project;
+import hudson.model.Run;
 import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
 
@@ -53,6 +55,8 @@ import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -207,6 +211,35 @@ public class RebuildValidatorTest {
                 "1/rebuild");
         WebAssert.assertElementPresentByXPath(rebuildConfigPage,
                 "//div[@name='parameter']/input[@value='ABC']");
+    }
+
+    /**
+     * Creates a new freestyle project and builds the project with a string
+     * parameter. If the build is successful, a rebuild of the last build is
+     * done, with autorebuild. The rebuild should have the same parameter values
+     * as the original build.
+     *
+     * @throws Exception
+     *             Exception
+     */
+    @Test
+    public void testAutoRebuildAsRequestParameter()
+            throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.addProperty(new ParametersDefinitionProperty(
+                new StringParameterDefinition("name", "defaultValue")));
+
+        // Build (#1)
+        project.scheduleBuild2(0, new Cause.UserIdCause(),
+                new ParametersAction(new StringParameterValue("name", "ABC")))
+                .get();
+        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
+                "1/rebuild?autorebuild");
+        Run r = project.getBuild("2");
+        assertNotNull(r);
+        ParametersAction paramAction = r.getAction(ParametersAction.class);
+        assertNotNull(paramAction);
+        assertEquals("ABC", paramAction.getParameter("name").getValue());
     }
 
     /**
@@ -445,7 +478,7 @@ public class RebuildValidatorTest {
         // it is trying to fallback and use the
         HtmlPage page = wc.getPage(build, "rebuild");
         // Check the hardcoded description is showing properly.
-        assertTrue(page.asText().contains(
+        assertTrue(page.asNormalizedText().contains(
                 "Configuration page for UnsupportedUnknownParameterValue"));
     }
 
@@ -472,8 +505,71 @@ public class RebuildValidatorTest {
                                         "value1"))));
         FreeStyleBuild build = project.getLastBuild();
         HtmlPage page = wc.getPage(build, "rebuild");
-        assertTrue(page.asText(),
-                page.asText().contains("This is a mark for test"));
+        assertTrue(page.asNormalizedText(),
+                page.asNormalizedText().contains("This is a mark for test"));
+    }
+
+    @Test
+    public void testRebuildDispatcherExtensionActionIsCopied() throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.addProperty(new ParametersDefinitionProperty(
+                new StringParameterDefinition("name", "defaultValue")));
+
+        // Build (#1)
+        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+                new ParametersAction(new StringParameterValue("name", "test")),
+                new RebuildDispatcherTestAction(true))
+                .get();
+        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
+                "1/rebuild");
+        // Rebuild (#2)
+        j.submit(rebuildConfigPage.getFormByName("config"));
+
+        j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+                .click();
+
+        while (project.isBuilding()) {
+            Thread.sleep(DELAY);
+        }
+        boolean hasRebuildDispatcherTestAction = false;
+        for (Action action : project.getLastCompletedBuild().getAllActions()) {
+            if (action instanceof RebuildDispatcherTestAction) {
+                hasRebuildDispatcherTestAction = true;
+            }
+        }
+        assertTrue("Build should have rebuildDispatcherTestAction", hasRebuildDispatcherTestAction);
+    }
+
+    @Test
+    public void testRebuildDispatcherExtensionActionIsNotCopied() throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.addProperty(new ParametersDefinitionProperty(
+                new StringParameterDefinition("name", "defaultValue")));
+
+        // Build (#1)
+        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+                new ParametersAction(new StringParameterValue("name", "test")),
+                new RebuildDispatcherTestAction(false))
+                .get();
+        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
+                "1/rebuild");
+        // Rebuild (#2)
+        j.submit(rebuildConfigPage.getFormByName("config"));
+
+        j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
+                .click();
+
+        while (project.isBuilding()) {
+            Thread.sleep(DELAY);
+        }
+
+        boolean hasRebuildDispatcherTestAction = false;
+        for (Action action : project.getLastCompletedBuild().getAllActions()) {
+            if (action instanceof RebuildDispatcherTestAction) {
+                hasRebuildDispatcherTestAction = true;
+            }
+        }
+        assertFalse("Build should not have rebuildDispatcherTestAction", hasRebuildDispatcherTestAction);
     }
 
     /**
@@ -511,6 +607,7 @@ public class RebuildValidatorTest {
 
         @Extension
         public static class DescriptorImpl extends ParameterDescriptor {
+            @NonNull
             @Override
             public String getDisplayName() {
                 return "UnsupportedUnknownParameterDefinition";
@@ -555,6 +652,7 @@ public class RebuildValidatorTest {
 
         @Extension
         public static class DescriptorImpl extends ParameterDescriptor {
+            @NonNull
             @Override
             public String getDisplayName() {
                 return "SupportedUnknownParameterDefinition";
@@ -575,9 +673,48 @@ public class RebuildValidatorTest {
             if (!(value instanceof SupportedUnknownParameterValue)) {
                 return null;
             }
-            RebuildParameterPage page = new RebuildParameterPage(
-                    SupportedUnknownParameterValue.class, "rebuild.groovy");
-            return page;
+            return new RebuildParameterPage(SupportedUnknownParameterValue.class, "rebuild.groovy");
+        }
+    }
+
+    public static class RebuildDispatcherTestAction implements Action {
+        public final boolean shouldBeCopied;
+
+        public RebuildDispatcherTestAction(boolean shouldBeCopied) {
+            this.shouldBeCopied = shouldBeCopied;
+        }
+
+        @Override
+        public String getIconFileName() {
+            return null;
+        }
+        @Override
+        public String getDisplayName() {
+            return null;
+        }
+        @Override
+        public String getUrlName() {
+            return null;
+        }
+    }
+
+    @Extension
+    public static class RebuildActionDispatcherTestImpl extends RebuildActionDispatcher {
+        @Override
+        public Set<Action> getPropagatingActions(Run r) {
+            Set<Action> dispatcherActions = new HashSet<>();
+
+            for (Action action : r.getAllActions()) {
+                if (action instanceof RebuildDispatcherTestAction) {
+                    RebuildDispatcherTestAction testAction = (RebuildDispatcherTestAction) action;
+
+                    if (testAction.shouldBeCopied) {
+                        dispatcherActions.add(action);
+                    }
+                }
+            }
+
+            return dispatcherActions;
         }
     }
 }

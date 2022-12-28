@@ -23,13 +23,12 @@
  */
 package com.sonyericsson.rebuild;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.model.Action;
 import hudson.model.Job;
 import jenkins.model.TransientActionFactory;
-
-import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static java.util.Collections.emptyList;
@@ -47,9 +46,9 @@ public class RebuildProjectActionFactory extends TransientActionFactory<Job> {
         return Job.class;
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    public Collection<? extends Action> createFor(@Nonnull Job job) {
+    public Collection<? extends Action> createFor(@NonNull Job job) {
         if (job instanceof MatrixConfiguration) {
             return emptyList();
         }
