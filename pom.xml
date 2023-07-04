@@ -5,18 +5,17 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.40</version>
+        <version>4.66</version>
         <relativePath />
     </parent>
     <properties>
-        <revision>1.35</revision>
-        <changelist>-SNAPSHOT</changelist>
-        <jenkins.version>2.289.1</jenkins.version>
+        <changelist>999999-SNAPSHOT</changelist>
+        <jenkins.version>2.361.4</jenkins.version>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     </properties>
     <groupId>com.sonyericsson.hudson.plugins.rebuild</groupId>
     <artifactId>rebuild</artifactId>
-    <version>${revision}${changelist}</version>
+    <version>${changelist}</version>
     <packaging>hpi</packaging>
     <name>Rebuilder</name>
     <repositories>
@@ -96,8 +95,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.289.x</artifactId>
-                <version>1289.v5c4b_1c43511b_</version>
+                <artifactId>bom-2.361.x</artifactId>
+                <version>2000.v4677a_6e0ffea</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

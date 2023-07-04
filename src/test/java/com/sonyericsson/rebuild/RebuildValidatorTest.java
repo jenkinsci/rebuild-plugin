@@ -23,9 +23,9 @@
  */
 package com.sonyericsson.rebuild;
 
-import com.gargoylesoftware.htmlunit.WebAssert;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.WebAssert;
+import org.htmlunit.html.HtmlAnchor;
+import org.htmlunit.html.HtmlPage;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
