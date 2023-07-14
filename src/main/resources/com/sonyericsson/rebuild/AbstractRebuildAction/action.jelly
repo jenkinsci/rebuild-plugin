@@ -1,0 +1,6 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
+    <j:if test="${action.rebuildAvailable and action.urlName != null}">
+        <l:task icon="${action.iconFileName}" title="${action.displayName}" href="${action.taskUrl}" post="${action.requiresPOST}"/>
+    </j:if>
+</j:jelly>

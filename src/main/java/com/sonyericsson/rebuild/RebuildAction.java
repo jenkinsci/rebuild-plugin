@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import hudson.matrix.MatrixRun;
 import hudson.model.BooleanParameterValue;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
@@ -55,13 +54,14 @@ import hudson.model.PasswordParameterValue;
 import hudson.model.RunParameterValue;
 import hudson.model.StringParameterValue;
 import jenkins.model.Jenkins;
+import jenkins.model.RunAction2;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 
-import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 /**
  * Rebuild RootAction implementation class. This class will basically reschedule
@@ -69,18 +69,14 @@ import org.kohsuke.stapler.StaplerResponse;
  *
  * @author Shemeer S;
  */
-public class RebuildAction implements Action {
+public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
 
     private static final String SVN_TAG_PARAM_CLASS = "hudson.scm.listtagsparameter.ListSubversionTagsParameterValue";
+    private /* quasi-final */ Run<?, ?> run;
     /*
      * All the below transient variables are declared only for backward
      * compatibility of the rebuild plugin.
      */
-    private transient String rebuildurl = "rebuild";
-    private transient String parameters = "rebuildParam";
-    private transient String p = "parameter";
-    private transient Run<?, ?> build;
-    private transient ParametersDefinitionProperty pdp;
     private static final String PARAMETERIZED_URL = "parameterized";
     /**
      * Rebuild Descriptor.
@@ -90,52 +86,8 @@ public class RebuildAction implements Action {
     /**
      * RebuildAction constructor.
      */
-    public RebuildAction() {
-    }
-
-    /**
-     * Getter method for pdp.
-     *
-     * @return pdp.
-     */
-    public ParametersDefinitionProperty getPdp() {
-        return pdp;
-    }
-
-    /**
-     * Getter method for build.
-     *
-     * @return build.
-     */
-    public Run<?, ?> getBuild() {
-        return build;
-    }
-
-    /**
-     * Getter method for p.
-     *
-     * @return p.
-     */
-    public String getP() {
-        return p;
-    }
-
-    /**
-     * Getter method for parameters.
-     *
-     * @return parameters.
-     */
-    public String getParameters() {
-        return parameters;
-    }
-
-    /**
-     * Getter method for rebuildurl.
-     *
-     * @return rebuildurl.
-     */
-    public String getRebuildurl() {
-        return rebuildurl;
+    public RebuildAction(Run<?, ?> run) {
+        this.run = run;
     }
 
     /**
@@ -145,34 +97,6 @@ public class RebuildAction implements Action {
      */
     public boolean isRememberPasswordEnabled() {
         return DESCRIPTOR.getRebuildConfiguration().isRememberPasswordEnabled();
-    }
-
-    /**
-     * Method will return current project.
-     *
-     * @return currentProject.
-     */
-    public Job getProject() {
-        if (build != null) {
-            return build.getParent();
-        }
-
-        Job currentProject = null;
-        StaplerRequest request = Stapler.getCurrentRequest();
-        if (request != null) {
-            currentProject = request.findAncestorObject(Job.class);
-        }
-
-        return currentProject;
-    }
-
-    @Override
-    public String getIconFileName() {
-        if (isRebuildAvailable()) {
-            return "clock.png";
-        } else {
-            return null;
-        }
     }
 
     @Override
@@ -186,11 +110,44 @@ public class RebuildAction implements Action {
 
     @Override
     public String getUrlName() {
+        return "rebuild";
+    }
+
+    @Override
+    public Run<?, ?> getRun() {
+        return run;
+    }
+
+    /**
+     * Decouple {@link #getUrlName()} from the actual URL, otherwise we cannot customize the target.
+     * @return
+     */
+    @Override
+    public String getTaskUrl() {
         if (isRebuildAvailable()) {
-            return "rebuild";
+            if (!isRequiresPOST()) {
+                return "rebuild/parameterized";
+            }
+            return "rebuild/"; // trailing / needed to prevent redirect to 405
         } else {
             return null;
         }
+    }
+
+    @Override
+    public Job<?, ?> getProject() {
+        return run.getParent();
+    }
+
+    public boolean isRequiresPOST() {
+        if (run != null) {
+            ParametersAction paramAction = run.getAction(ParametersAction.class);
+            if (paramAction != null) {
+                RebuildSettings settings = getProject().getProperty(RebuildSettings.class);
+                return settings != null && settings.getAutoRebuild();
+            }
+        }
+        return true;
     }
 
     /**
@@ -199,22 +156,22 @@ public class RebuildAction implements Action {
      *
      * @param request  StaplerRequest the request.
      * @param response StaplerResponse the response handler.
-     * @throws IOException          in case of Stapler issues
+     * @throws java.io.IOException          in case of Stapler issues
      */
+    @RequirePOST
     public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException {
-        Run currentBuild = request.findAncestorObject(Run.class);
-        if (currentBuild != null) {
-            ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
+        if (run != null) {
+            ParametersAction paramAction = run.getAction(ParametersAction.class);
             if (paramAction != null) {
-                RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+                RebuildSettings settings = getProject().getProperty(RebuildSettings.class);
                 if (settings != null && settings.getAutoRebuild() ||
                         request.getParameter("autorebuild") != null) {
-                    parameterizedRebuild(currentBuild, response);
+                    parameterizedRebuild(run, response);
                 } else {
                     response.sendRedirect(PARAMETERIZED_URL);
                 }
             } else {
-                nonParameterizedRebuild(currentBuild, response);
+                nonParameterizedRebuild(run, response);
             }
         }
     }
@@ -233,9 +190,9 @@ public class RebuildAction implements Action {
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
 
-            List<Action> actions = constructRebuildActions(build, currentBuild.getAction(ParametersAction.class));
+            List<Action> actions = constructRebuildActions(run, currentBuild.getAction(ParametersAction.class));
 
-            Jenkins.get().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
+            Jenkins.get().getQueue().schedule2((Queue.Task) run.getParent(), 0, actions);
             response.sendRedirect("../../");
         }
     }
@@ -251,7 +208,7 @@ public class RebuildAction implements Action {
             response) throws IOException {
         getProject().checkPermission(Item.BUILD);
 
-        List<Action> actions = constructRebuildActions(build, null);
+        List<Action> actions = constructRebuildActions(run, null);
         Jenkins.get().getQueue().schedule2((Queue.Task) currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
@@ -276,11 +233,10 @@ public class RebuildAction implements Action {
                 req.getView(this, "index.jelly").forward(req, rsp);
                 return;
             }
-            build = req.findAncestorObject(Run.class);
-            ParametersDefinitionProperty paramDefProp = build.getParent().getProperty(
+            ParametersDefinitionProperty paramDefProp = run.getParent().getProperty(
                     ParametersDefinitionProperty.class);
             List<ParameterValue> values = new ArrayList<>();
-            ParametersAction paramAction = build.getAction(ParametersAction.class);
+            ParametersAction paramAction = run.getAction(ParametersAction.class);
             JSONObject formData = req.getSubmittedForm();
             if (!formData.isEmpty()) {
                 JSONArray a = JSONArray.fromObject(formData.get("parameter"));
@@ -309,8 +265,8 @@ public class RebuildAction implements Action {
                 }
             }
 
-            List<Action> actions = constructRebuildActions(build, new ParametersAction(values));
-            Jenkins.get().getQueue().schedule2((Queue.Task) build.getParent(), 0, actions);
+            List<Action> actions = constructRebuildActions(run, new ParametersAction(values));
+            Jenkins.get().getQueue().schedule2((Queue.Task) run.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
         }
@@ -360,45 +316,6 @@ public class RebuildAction implements Action {
         }
 
         actions.addAll(propagatingActions);
-    }
-
-    /**
-     * Method for checking whether current build is sub job(MatrixRun) of Matrix
-     * build.
-     *
-     * @return boolean
-     */
-    public boolean isMatrixRun() {
-        StaplerRequest request = Stapler.getCurrentRequest();
-        if (request != null) {
-            build = request.findAncestorObject(Run.class);
-            if (build != null && build instanceof MatrixRun) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Method for checking whether the rebuild functionality would be available
-     * for build.
-     *
-     * @return boolean
-     */
-    public boolean isRebuildAvailable() {
-        Job project = getProject();
-        return project != null
-                && project.hasPermission(Item.BUILD)
-                && project.isBuildable()
-                && project instanceof Queue.Task
-                && !isMatrixRun()
-                && !isRebuildDisabled();
-
-    }
-
-    private boolean isRebuildDisabled() {
-        RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
-        return settings != null && settings.getRebuildDisabled();
     }
 
 	/**
@@ -515,5 +432,15 @@ public class RebuildAction implements Action {
         // Else we return that we haven't found anything.
         // So Jelly fallback could occur.
         return null;
+    }
+
+    @Override
+    public void onAttached(Run<?, ?> r) {
+        this.run = r;
+    }
+
+    @Override
+    public void onLoad(Run<?, ?> r) {
+        this.run = r;
     }
 }

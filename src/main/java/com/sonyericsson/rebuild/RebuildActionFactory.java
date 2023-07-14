@@ -28,10 +28,10 @@ import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Queue;
 import hudson.model.Run;
-import hudson.model.TransientBuildActionFactory;
 import jenkins.model.Jenkins;
 
 import java.util.Collection;
+import jenkins.model.TransientActionFactory;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
@@ -40,7 +40,12 @@ import static java.util.Collections.singleton;
  * Enables rebuild for builds that ran before installing the rebuild plugin.
  */
 @Extension
-public class RebuildActionFactory extends TransientBuildActionFactory {
+public class RebuildActionFactory extends TransientActionFactory<Run> {
+
+    @Override
+    public Class<Run> type() {
+        return Run.class;
+    }
 
     @Override
     public Collection<? extends Action> createFor(Run build) {
@@ -52,7 +57,10 @@ public class RebuildActionFactory extends TransientBuildActionFactory {
             return emptyList();
         }
 
-        boolean hasRebuildAction = build.getAction(RebuildAction.class) != null;
+
+        // These actions used to be permanently attached to the Run
+        // Build#getActions is deprecated but the only way to prevent a stack overflow here
+        boolean hasRebuildAction = build.getActions().stream().anyMatch(it -> it instanceof RebuildAction);
         if (hasRebuildAction) {
             return emptyList();
         }
@@ -62,6 +70,6 @@ public class RebuildActionFactory extends TransientBuildActionFactory {
                 return emptyList();
             }
         }
-        return singleton(new RebuildAction());
+        return singleton(new RebuildAction(build));
     }
 }
