@@ -184,9 +184,6 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
      */
     public void parameterizedRebuild(Run currentBuild, StaplerResponse response) throws IOException {
         Job project = getProject();
-        if (project == null) {
-            return;
-        }
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
 
@@ -223,9 +220,6 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
      */
     public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException {
         Job project = getProject();
-        if (project == null) {
-            return;
-        }
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
             if (!req.getMethod().equals("POST")) {
