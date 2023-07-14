@@ -23,7 +23,11 @@
  */
 package com.sonyericsson.rebuild;
 
+import java.net.URL;
+import org.htmlunit.HttpMethod;
+import org.htmlunit.Page;
 import org.htmlunit.WebAssert;
+import org.htmlunit.WebRequest;
 import org.htmlunit.html.HtmlAnchor;
 import org.htmlunit.html.HtmlPage;
 
@@ -204,11 +208,12 @@ public class RebuildValidatorTest {
         FreeStyleProject project = j.createFreeStyleProject();
 
         // Build (#1)
-        project.scheduleBuild2(0, new Cause.UserIdCause(),
-                new ParametersAction(new StringParameterValue("name", "ABC")))
+        final FreeStyleBuild freeStyleBuild = project.scheduleBuild2(0, new Cause.UserIdCause(),
+                        new ParametersAction(new StringParameterValue("name", "ABC")))
                 .get();
-        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
-                "1/rebuild");
+        final WebClient webClient = j.createWebClient();
+        final HtmlPage buildPage = webClient.getPage(freeStyleBuild);
+        final HtmlPage rebuildConfigPage = buildPage.getAnchorByText("Rebuild").click();
         WebAssert.assertElementPresentByXPath(rebuildConfigPage,
                 "//div[@name='parameter']/input[@value='ABC']");
     }
@@ -233,8 +238,12 @@ public class RebuildValidatorTest {
         project.scheduleBuild2(0, new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("name", "ABC")))
                 .get();
-        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
-                "1/rebuild?autorebuild");
+        try (WebClient webClient = j.createWebClient()) {
+            final WebRequest webRequest = new WebRequest(
+                    webClient.createCrumbedUrl(project.getUrl() + "1/rebuild/?autorebuild"),
+                    HttpMethod.POST);
+            webClient.getPage(webRequest);
+        }
         Run r = project.getBuild("2");
         assertNotNull(r);
         ParametersAction paramAction = r.getAction(ParametersAction.class);
@@ -258,11 +267,11 @@ public class RebuildValidatorTest {
                 new StringParameterDefinition("name", "defaultValue")));
 
         // Build (#1)
-        project.scheduleBuild2(0, new Cause.UserIdCause(),
-                new ParametersAction(new StringParameterValue("name", "test")))
+        final FreeStyleBuild freeStyleBuild = project.scheduleBuild2(0, new Cause.UserIdCause(),
+                        new ParametersAction(new StringParameterValue("name", "test")))
                 .get();
-        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
-                "1/rebuild");
+        final HtmlPage buildPage = j.createWebClient().getPage(freeStyleBuild);
+        HtmlPage rebuildConfigPage = buildPage.getAnchorByText("Rebuild").click();
         // Rebuild (#2)
         j.submit(rebuildConfigPage.getFormByName("config"));
 
@@ -270,8 +279,8 @@ public class RebuildValidatorTest {
         WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
 
         HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
-        assertEquals("Rebuild Last should point to the second build", "/jenkins/"
-                + project.getUrl() + "lastCompletedBuild/rebuild",
+        assertEquals("Rebuild Last should point to the second build",
+                "lastCompletedBuild/rebuild/parameterized",
                 rebuildHref.getHrefAttribute());
     }
 
@@ -290,11 +299,11 @@ public class RebuildValidatorTest {
                 new StringParameterDefinition("name", "defaultValue")));
 
         // Build (#1)
-        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
-                new ParametersAction(new StringParameterValue("name", "test")))
+        final FreeStyleBuild freeStyleBuild = project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+                        new ParametersAction(new StringParameterValue("name", "test")))
                 .get();
-        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
-                "1/rebuild");
+        final HtmlPage buildPage = j.createWebClient().getPage(freeStyleBuild);
+        HtmlPage rebuildConfigPage = buildPage.getAnchorByText("Rebuild").click();
         // Rebuild (#2)
         j.submit(rebuildConfigPage.getFormByName("config"));
 
@@ -342,13 +351,13 @@ public class RebuildValidatorTest {
                 new StringParameterDefinition("name", "defaultValue")));
 
         // Build (#1)
-        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
-                new ParametersAction(new StringParameterValue("name", "test")))
+        final FreeStyleBuild freeStyleBuild = project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+                        new ParametersAction(new StringParameterValue("name", "test")))
                 .get();
 
         // Rebuild (#2)
         WebClient webClient = j.createWebClient();
-        HtmlPage rebuildConfigPage1 = webClient.getPage(project, "1/rebuild");
+        HtmlPage rebuildConfigPage1 = webClient.getPage(freeStyleBuild).getAnchorByText("Rebuild").click();
         j.submit(rebuildConfigPage1.getFormByName("config"));
 
         j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
@@ -359,7 +368,7 @@ public class RebuildValidatorTest {
         }
 
         // Rebuild (#3)
-        HtmlPage rebuildConfigPage2 = webClient.getPage(project, "2/rebuild");
+        HtmlPage rebuildConfigPage2 = webClient.getPage(project.getBuildByNumber(2)).getAnchorByText("Rebuild").click();
         j.submit(rebuildConfigPage2.getFormByName("config"));
 
         j.createWebClient().getPage(project).getAnchorByText("Rebuild Last")
@@ -456,8 +465,6 @@ public class RebuildValidatorTest {
      * Creates a new freestyle project and build with a parameter value whose
      * type is unknown to rebuild plugin. Rebuild and verify that an no
      * exception occurs and page is displayed correctly.
-     * 
-     * {@link RebuildableParameterValue}.
      *
      * @throws Exception
      *             Exception
@@ -470,13 +477,12 @@ public class RebuildValidatorTest {
                 new UnsupportedUnknownParameterDefinition("param1",
                         "defaultValue")));
 
-        j.assertBuildStatusSuccess(project.scheduleBuild2(0,
+        FreeStyleBuild build = j.assertBuildStatusSuccess(project.scheduleBuild2(0,
                 new Cause.RemoteCause("host", "note"),
                 new ParametersAction(new UnsupportedUnknownParameterValue(
                         "param1", "value1"))));
-        FreeStyleBuild build = project.getLastBuild();
         // it is trying to fallback and use the
-        HtmlPage page = wc.getPage(build, "rebuild");
+        HtmlPage page = wc.getPage(build).getAnchorByText("Rebuild").click();
         // Check the hardcoded description is showing properly.
         assertTrue(page.asNormalizedText().contains(
                 "Configuration page for UnsupportedUnknownParameterValue"));
@@ -484,8 +490,7 @@ public class RebuildValidatorTest {
 
     /**
      * Creates a new freestyle project and build with a parameter value whose
-     * type is unknown to rebuild plugin. Verify that rebuild succeeds if that
-     * parameter value supports {@link RebuildableParameterValue}.
+     * type is unknown to rebuild plugin. Verify that rebuild succeeds.
      *
      * @throws Exception
      *             Exception
@@ -504,7 +509,7 @@ public class RebuildValidatorTest {
                                 new SupportedUnknownParameterValue("param1",
                                         "value1"))));
         FreeStyleBuild build = project.getLastBuild();
-        HtmlPage page = wc.getPage(build, "rebuild");
+        HtmlPage page = wc.getPage(build).getAnchorByText("Rebuild").click();
         assertTrue(page.asNormalizedText(),
                 page.asNormalizedText().contains("This is a mark for test"));
     }
@@ -516,12 +521,11 @@ public class RebuildValidatorTest {
                 new StringParameterDefinition("name", "defaultValue")));
 
         // Build (#1)
-        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
-                new ParametersAction(new StringParameterValue("name", "test")),
-                new RebuildDispatcherTestAction(true))
+        final FreeStyleBuild freeStyleBuild = project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+                        new ParametersAction(new StringParameterValue("name", "test")),
+                        new RebuildDispatcherTestAction(true))
                 .get();
-        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
-                "1/rebuild");
+        HtmlPage rebuildConfigPage = j.createWebClient().getPage(freeStyleBuild).getAnchorByText("Rebuild").click();
         // Rebuild (#2)
         j.submit(rebuildConfigPage.getFormByName("config"));
 
@@ -547,12 +551,11 @@ public class RebuildValidatorTest {
                 new StringParameterDefinition("name", "defaultValue")));
 
         // Build (#1)
-        project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
-                new ParametersAction(new StringParameterValue("name", "test")),
-                new RebuildDispatcherTestAction(false))
+        final FreeStyleBuild freeStyleBuild = project.scheduleBuild2(0, new Cause.RemoteCause("host", "note"),
+                        new ParametersAction(new StringParameterValue("name", "test")),
+                        new RebuildDispatcherTestAction(false))
                 .get();
-        HtmlPage rebuildConfigPage = j.createWebClient().getPage(project,
-                "1/rebuild");
+        HtmlPage rebuildConfigPage = j.createWebClient().getPage(freeStyleBuild).getAnchorByText("Rebuild").click();
         // Rebuild (#2)
         j.submit(rebuildConfigPage.getFormByName("config"));
 
