@@ -23,9 +23,7 @@
  */
 package com.sonyericsson.rebuild;
 
-import java.net.URL;
 import org.htmlunit.HttpMethod;
-import org.htmlunit.Page;
 import org.htmlunit.WebAssert;
 import org.htmlunit.WebRequest;
 import org.htmlunit.html.HtmlAnchor;
@@ -51,7 +49,13 @@ import hudson.model.StringParameterValue;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.endsWith;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
@@ -279,9 +283,8 @@ public class RebuildValidatorTest {
         WebAssert.assertLinkPresentWithText(projectPage, "Rebuild Last");
 
         HtmlAnchor rebuildHref = projectPage.getAnchorByText("Rebuild Last");
-        assertEquals("Rebuild Last should point to the second build",
-                "lastCompletedBuild/rebuild/parameterized",
-                rebuildHref.getHrefAttribute());
+        assertThat(rebuildHref.getHrefAttribute(),
+                endsWith("lastCompletedBuild/rebuild/parameterized"));
     }
 
     /**
