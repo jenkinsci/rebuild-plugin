@@ -81,6 +81,7 @@ public class RebuildAction implements Action {
     private transient String p = "parameter";
     private transient Run<?, ?> build;
     private transient ParametersDefinitionProperty pdp;
+    private transient boolean isTransient = false;
     private static final String PARAMETERIZED_URL = "parameterized";
     /**
      * Rebuild Descriptor.
@@ -91,6 +92,14 @@ public class RebuildAction implements Action {
      * RebuildAction constructor.
      */
     public RebuildAction() {
+    }
+
+    /**
+     * RebuildAction constructor.
+     * @param isTransient true to mark it as transient
+     */
+     RebuildAction(boolean isTransient) {
+        this.isTransient = isTransient;
     }
 
     /**
@@ -168,7 +177,7 @@ public class RebuildAction implements Action {
 
     @Override
     public String getIconFileName() {
-        if (isRebuildAvailable()) {
+        if (isTransient && isRebuildAvailable()) {
             return "clock.png";
         } else {
             return null;
@@ -177,7 +186,7 @@ public class RebuildAction implements Action {
 
     @Override
     public String getDisplayName() {
-		if (isRebuildAvailable()) {
+		if (isTransient && isRebuildAvailable()) {
             return "Rebuild";
         } else {
             return null;
@@ -186,7 +195,7 @@ public class RebuildAction implements Action {
 
     @Override
     public String getUrlName() {
-        if (isRebuildAvailable()) {
+        if (isTransient && isRebuildAvailable()) {
             return "rebuild";
         } else {
             return null;

@@ -31,6 +31,10 @@ import hudson.model.Job;
  */
 public class RebuildLastCompletedBuildAction extends RebuildAction {
 
+    public RebuildLastCompletedBuildAction(boolean isTransient) {
+        super(isTransient);
+    }
+
     @Override
     public String getUrlName() {
         Job project = getProject();
