@@ -28,7 +28,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import hudson.Extension;
 import hudson.ExtensionList;
-import hudson.model.Action;
+import hudson.matrix.MatrixRun;
+import hudson.model.*;
+import jenkins.model.Jenkins;
 
 import javax.servlet.ServletException;
 
@@ -38,23 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import hudson.matrix.MatrixRun;
-import hudson.model.BooleanParameterValue;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Item;
-import hudson.model.Job;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.Queue;
-import hudson.model.Run;
-import hudson.model.SimpleParameterDefinition;
-import hudson.model.ParameterDefinition;
-import hudson.model.PasswordParameterValue;
-import hudson.model.RunParameterValue;
-import hudson.model.StringParameterValue;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
@@ -206,7 +191,7 @@ public class RebuildAction implements Action {
         if (currentBuild != null) {
             ParametersAction paramAction = currentBuild.getAction(ParametersAction.class);
             if (paramAction != null) {
-                RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+                RebuildSettings settings = getRebuildSettings();
                 if (settings != null && settings.getAutoRebuild() ||
                         request.getParameter("autorebuild") != null) {
                     parameterizedRebuild(currentBuild, response);
@@ -218,6 +203,11 @@ public class RebuildAction implements Action {
             }
         }
     }
+
+    public RebuildSettings getRebuildSettings() {
+        return (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+    }
+
     /**
      * Handles the rebuild request with parameter.
      *
@@ -397,9 +387,10 @@ public class RebuildAction implements Action {
     }
 
     private boolean isRebuildDisabled() {
-        RebuildSettings settings = (RebuildSettings)getProject().getProperty(RebuildSettings.class);
+        RebuildSettings settings = getRebuildSettings();
         return settings != null && settings.getRebuildDisabled();
     }
+
 
 	/**
      * Method for getting the ParameterValue instance from ParameterDefinition
@@ -420,13 +411,23 @@ public class RebuildAction implements Action {
         if (paramDefProp != null) {
             paramDef = paramDefProp.getParameterDefinition(parameterName);
             if (paramDef != null) {
+
                 // The copy artifact plugin throws an exception when using createValue(req, jo)
                 // If the parameter comes from the copy artifact plugin, then use the single argument createValue
-                if (jo.toString().contains("BuildSelector") || jo.toString().contains("WorkspaceSelector")) {
-                    SimpleParameterDefinition parameterDefinition =
-                            (SimpleParameterDefinition)paramDefProp.getParameterDefinition(parameterName);
-                    return parameterDefinition.createValue(jo.getString("value"));
+
+                if (paramDef instanceof SimpleParameterDefinition) {
+                    SimpleParameterDefinition simpleParamDef = (SimpleParameterDefinition) paramDef;
+                    if (jo.toString().matches(".*(Build|Workspace)Selector.*"))
+                        return simpleParamDef.createValue(jo.getString("value"));
                 }
+
+                // set correct upstreamBuild number
+                if (parameterName.equals("upstreamBuild")) {
+                    String nr = "" + this.getBuild().getNumber();
+                    jo.put("value",nr);
+                    return paramDef.createValue(req, jo);
+                }
+
                 return paramDef.createValue(req, jo);
             }
         }
@@ -503,14 +504,17 @@ public class RebuildAction implements Action {
             }
         }
 
+        // No provider available, use an existing view provided by rebuild plugin.
+        String jellyFile = value.getClass().getSimpleName() + ".jelly";
+        String readonlyJellyFile = "Readonly"+jellyFile;
+        String jellyFolder = "/"+getClass().getCanonicalName().replace('.', '/')+"/";
         // Check if we have a branched Jelly in the plugin.
-        if (getClass().getResource(String.format("/%s/%s.jelly", getClass().getCanonicalName().replace('.', '/'), value.getClass().getSimpleName())) != null) {
-            // No provider available, use an existing view provided by rebuild plugin.
-            return new RebuildParameterPage(
-                    getClass(),
-                    String.format("%s.jelly", value.getClass().getSimpleName())
-                    );
-
+        if (getClass().getResource(jellyFolder+jellyFile) != null) {
+            // use an existing readonly version of jelly file iff configured in project
+            RebuildSettings settings = getRebuildSettings();
+            if (settings!=null && settings.isReadonlyParams() &&  getClass().getResource(jellyFolder+readonlyJellyFile)!=null)
+                jellyFile=readonlyJellyFile;
+            return new RebuildParameterPage(getClass(),jellyFile);
         }
         // Else we return that we haven't found anything.
         // So Jelly fallback could occur.
