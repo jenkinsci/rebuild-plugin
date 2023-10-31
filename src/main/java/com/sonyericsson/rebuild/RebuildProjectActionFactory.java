@@ -47,6 +47,6 @@ public class RebuildProjectActionFactory extends TransientProjectActionFactory {
         if (abstractProject instanceof MatrixConfiguration) {
             return emptyList();
         }
-        return singleton(new RebuildLastCompletedBuildAction());
+        return singleton(new RebuildLastCompletedBuildAction(abstractProject));
     }
 }

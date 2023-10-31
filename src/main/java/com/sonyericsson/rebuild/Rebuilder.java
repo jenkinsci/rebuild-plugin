@@ -29,7 +29,6 @@ import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
-import jenkins.model.Jenkins;
 
 /**
  * Runtime Listner class which allows the user to rebuild the parameterized build.
@@ -48,15 +47,8 @@ public class Rebuilder extends RunListener<Run> {
 
     @Override
     public void onCompleted(Run build, @NonNull TaskListener listener) {
-            for (RebuildValidator rebuildValidator : Jenkins.get().
-                    getExtensionList(RebuildValidator.class)) {
-                if (rebuildValidator.isApplicable(build)) {
-                    return;
-                }
-            }
-            RebuildAction rebuildAction = new RebuildAction();
-            // TODO what is the purpose of this? If eligible, RebuildActionFactory would already be adding it anyway (without saving anything to XML).
-            build.addAction(rebuildAction);
+        // This used to attach a RebuildAction to the build, but RebuildActionFactory takes care of this.
+        // Left for compatibility.
     }
 
 }

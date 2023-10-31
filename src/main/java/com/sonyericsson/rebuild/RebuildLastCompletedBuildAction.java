@@ -23,32 +23,72 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.model.Job;
+import hudson.model.AbstractProject;
+import hudson.model.Run;
 
 /**
  * Reschedules last completed build for the project if available.
  * Otherwise it behaves as if the user clicked on the build now button.
  */
-public class RebuildLastCompletedBuildAction extends RebuildAction {
+public class RebuildLastCompletedBuildAction extends AbstractRebuildAction {
+
+    private final AbstractProject<?, ?> project;
+
+    public RebuildLastCompletedBuildAction(AbstractProject<?, ?> project) {
+        this.project = project;
+    }
+
+    @Override
+    public AbstractProject<?, ?> getProject() {
+        return project;
+    }
+
+    @Override
+    protected Run<?, ?> getRun() {
+        return null;
+    }
 
     @Override
     public String getUrlName() {
-        Job project = getProject();
-        if (project == null) {
-            return null;
-        }
-
         boolean isBuildable = project.isBuildable();
-        boolean hasCompletedBuild = project.getLastCompletedBuild() != null;
         if (isBuildable) {
-            if (hasCompletedBuild) {
-                return "lastCompletedBuild/rebuild";
+            final Run<?, ?> lastCompletedBuild = project.getLastCompletedBuild();
+            if (lastCompletedBuild != null) {
+                final RebuildAction action = lastCompletedBuild.getAction(RebuildAction.class);
+                // TODO This will have unexpected results if the job configuration changed between link rendering
+                //  and when the user clicks. Seems preferable to rebuilding a "wrong" build (finished since link was
+                //  rendered though).
+                return "lastCompletedBuild/" + action.getTaskUrl();
             } else {
-                return "build?delay=0sec";
+                // This used to link to "Build Now" but that doesn't work for parameterized builds
+                return null;
             }
         } else {
             return null;
         }
+    }
+
+    @Override
+    public String getIconFileName() {
+        return super.getIconFileName();
+    }
+
+    @Override
+    public String getTaskUrl() {
+        return getUrlName();
+    }
+
+    @Override
+    public boolean isRequiresPOST() {
+        final Run<?, ?> lastCompletedBuild = project.getLastCompletedBuild();
+        if (lastCompletedBuild == null) {
+            return false;
+        }
+        final RebuildAction action = lastCompletedBuild.getAction(RebuildAction.class);
+        // TODO This will have unexpected results if the job configuration changed between link rendering
+        //  and when the user clicks. Seems preferable to rebuilding a "wrong" build (finished since link was
+        //  rendered though).
+        return action.isRequiresPOST();
     }
 
     @Override
