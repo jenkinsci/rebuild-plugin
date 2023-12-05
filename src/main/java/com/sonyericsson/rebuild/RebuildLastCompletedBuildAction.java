@@ -55,6 +55,9 @@ public class RebuildLastCompletedBuildAction extends AbstractRebuildAction {
             final Run<?, ?> lastCompletedBuild = project.getLastCompletedBuild();
             if (lastCompletedBuild != null) {
                 final RebuildAction action = lastCompletedBuild.getAction(RebuildAction.class);
+                if (action == null) {
+                    return null;
+                }
                 // TODO This will have unexpected results if the job configuration changed between link rendering
                 //  and when the user clicks. Seems preferable to rebuilding a "wrong" build (finished since link was
                 //  rendered though).
