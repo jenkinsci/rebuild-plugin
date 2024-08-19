@@ -414,18 +414,38 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
             }
         }
 
-        // Check if we have a branched Jelly in the plugin.
-        if (getClass().getResource(String.format("/%s/%s.jelly", getClass().getCanonicalName().replace('.', '/'), value.getClass().getSimpleName())) != null) {
-            // No provider available, use an existing view provided by rebuild plugin.
+        return findRebuildParameterPage(value.getClass());
+    }
+
+    /**
+     * Recursively searches for a corresponding Jelly resource file (e.g., *.jelly) in the current
+     * plugin for the specified class or its superclasses.
+     *
+     * @param valueClass the class of the parameter value for which to search a corresponding Jelly file.
+     *                   This can be the class itself or any of its superclasses.
+     * @return {@code null} if the Jelly resource for the parameter value class,
+     *  including all its superclasses, cannot be found, it will return null, which may trigger a Jelly fallback.
+     *  <pre>
+     *  fallback: {@link ParameterDefinition#copyWithDefaultValue(ParameterValue)}
+     *  </pre>
+     */
+    private RebuildParameterPage findRebuildParameterPage(Class<?> valueClass) {
+        if (valueClass == null) {
+            return null;
+        }
+
+        String resourcePath = String.format("/%s/%s.jelly",
+                getClass().getCanonicalName().replace('.', '/'),
+                valueClass.getSimpleName());
+
+        if (getClass().getResource(resourcePath) != null) {
             return new RebuildParameterPage(
                     getClass(),
-                    String.format("%s.jelly", value.getClass().getSimpleName())
-                    );
-
+                    String.format("%s.jelly", valueClass.getSimpleName())
+            );
         }
-        // Else we return that we haven't found anything.
-        // So Jelly fallback could occur.
-        return null;
+
+        return findRebuildParameterPage(valueClass.getSuperclass());
     }
 
     @Override

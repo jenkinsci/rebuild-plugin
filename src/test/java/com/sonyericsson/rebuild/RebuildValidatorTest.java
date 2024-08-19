@@ -23,6 +23,8 @@
  */
 package com.sonyericsson.rebuild;
 
+import hudson.model.SimpleParameterDefinition;
+import net.sf.json.JSONObject;
 import org.htmlunit.HttpMethod;
 import org.htmlunit.WebAssert;
 import org.htmlunit.WebRequest;
@@ -61,6 +63,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -77,7 +80,7 @@ public class RebuildValidatorTest {
      * Sleep delay value.
      */
     public static final int DELAY = 100;
-    
+
     @Rule
     public JenkinsRule j = new JenkinsRule();
 
@@ -582,16 +585,22 @@ public class RebuildValidatorTest {
      * A parameter value rebuild plugin does not know.
      */
     public static class UnsupportedUnknownParameterValue extends
-            StringParameterValue {
+            ParameterValue {
         private static final long serialVersionUID = 3182218854913929L;
+        private String value;
 
         public UnsupportedUnknownParameterValue(String name, String value) {
             super(name, value);
         }
+
+        @Override
+        public String getValue() {
+            return value;
+        }
     }
 
     public static class UnsupportedUnknownParameterDefinition extends
-            StringParameterDefinition {
+            SimpleParameterDefinition {
         private static final long serialVersionUID = 1014662680565914672L;
 
         @DataBoundConstructor
@@ -606,9 +615,9 @@ public class RebuildValidatorTest {
         }
 
         @Override
-        public StringParameterValue getDefaultParameterValue() {
+        public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
             return new UnsupportedUnknownParameterValue(this.getName(),
-                    this.getDefaultValue());
+                    jo.getString("value"));
         }
 
         @Extension
