@@ -44,15 +44,17 @@ public abstract class RebuildValidator implements Serializable, ExtensionPoint {
      * @return true if the plug-in provides its own rebuild functionality. E.g. disable the rebuild action.
      */
     public /*abstract*/ boolean isApplicable(Run build) {
-        if (Util.isOverridden(RebuildValidator.class, getClass(), "isApplicable", AbstractBuild.class) && build instanceof AbstractBuild) {
-            return isApplicable((AbstractBuild) build);
+        if (Util.isOverridden(RebuildValidator.class, getClass(), "isApplicable", AbstractBuild.class)
+                && build instanceof AbstractBuild) {
+            return isApplicable((AbstractBuild)build);
         } else {
-            throw new AbstractMethodError("you must override the new overload of isApplicable in " + getClass().getName());
+            throw new AbstractMethodError("you must override the new overload of isApplicable in "
+                    + getClass().getName());
         }
     }
 
     @Deprecated
     public boolean isApplicable(AbstractBuild build) {
-        return isApplicable((Run) build);
+        return isApplicable((Run)build);
     }
 }

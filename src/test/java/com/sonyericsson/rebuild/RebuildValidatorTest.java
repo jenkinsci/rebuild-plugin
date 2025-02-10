@@ -77,10 +77,12 @@ public class RebuildValidatorTest {
      * Sleep delay value.
      */
     public static final int DELAY = 100;
-    
+
+    /**
+     * Test harness.
+     */
     @Rule
     public JenkinsRule j = new JenkinsRule();
-
 
     /**
      * Tests with no extensions.
@@ -96,7 +98,7 @@ public class RebuildValidatorTest {
     public void testNoRebuildValidatorExtension() throws IOException,
             InterruptedException, ExecutionException {
         Project projectA = j.createFreeStyleProject("testFreeStyleA");
-        Build buildA = (Build) projectA.scheduleBuild2(
+        Build buildA = (Build)projectA.scheduleBuild2(
                 0,
                 new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
@@ -120,7 +122,7 @@ public class RebuildValidatorTest {
         j.getInstance().getExtensionList(RebuildValidator.class).add(0,
                 new ValidatorAlwaysApplicable());
         Project projectA = j.createFreeStyleProject("testFreeStyleB");
-        Build buildA = (Build) projectA.scheduleBuild2(
+        Build buildA = (Build)projectA.scheduleBuild2(
                 0,
                 new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
@@ -144,7 +146,7 @@ public class RebuildValidatorTest {
         j.getInstance().getExtensionList(RebuildValidator.class).add(0,
                 new ValidatorNeverApplicable());
         Project projectA = j.createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build) projectA.scheduleBuild2(
+        Build buildA = (Build)projectA.scheduleBuild2(
                 0,
                 new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
@@ -170,7 +172,7 @@ public class RebuildValidatorTest {
         j.getInstance().getExtensionList(RebuildValidator.class).add(0,
                 new ValidatorNeverApplicable());
         Project projectA = j.createFreeStyleProject("testFreeStyleC");
-        Build buildA = (Build) projectA.scheduleBuild2(
+        Build buildA = (Build)projectA.scheduleBuild2(
                 0,
                 new Cause.UserIdCause(),
                 new ParametersAction(new StringParameterValue("party",
@@ -320,8 +322,8 @@ public class RebuildValidatorTest {
         boolean hasRemoteCause = false;
         boolean hasUserIdCause = false;
         for (Action action : project.getLastCompletedBuild().getAllActions()) {
-            if (action instanceof CauseAction) {
-                for(Cause cause : ((CauseAction)action).getCauses()) {
+            if (action instanceof CauseAction causeAction) {
+                for (Cause cause : causeAction.getCauses()) {
                     if (cause.getClass().equals(RebuildCause.class)) {
                         hasRebuildCause = true;
                     }
@@ -381,14 +383,15 @@ public class RebuildValidatorTest {
             Thread.sleep(DELAY);
         }
 
-        int userIdCauseCount = 0, rebuildCauseCount = 0;
+        int userIdCauseCount = 0;
+        int rebuildCauseCount = 0;
 
         for (Action action : project.getLastCompletedBuild().getAllActions()) {
-            if (action instanceof CauseAction) {
-                for(Cause cause : ((CauseAction)action).getCauses()) {
+            if (action instanceof CauseAction causeAction) {
+                for (Cause cause : causeAction.getCauses()) {
                     if (cause instanceof Cause.UserIdCause) {
                         ++userIdCauseCount;
-                    } else if(cause instanceof RebuildCause) {
+                    } else if (cause instanceof RebuildCause) {
                         ++rebuildCauseCount;
                     }
                 }
@@ -684,7 +687,7 @@ public class RebuildValidatorTest {
     }
 
     public static class RebuildDispatcherTestAction implements Action {
-        public final boolean shouldBeCopied;
+        private final boolean shouldBeCopied;
 
         public RebuildDispatcherTestAction(boolean shouldBeCopied) {
             this.shouldBeCopied = shouldBeCopied;
@@ -711,9 +714,7 @@ public class RebuildValidatorTest {
             Set<Action> dispatcherActions = new HashSet<>();
 
             for (Action action : r.getAllActions()) {
-                if (action instanceof RebuildDispatcherTestAction) {
-                    RebuildDispatcherTestAction testAction = (RebuildDispatcherTestAction) action;
-
+                if (action instanceof RebuildDispatcherTestAction testAction) {
                     if (testAction.shouldBeCopied) {
                         dispatcherActions.add(action);
                     }

@@ -39,7 +39,8 @@ import static java.util.Collections.emptyList;
  * Rebuilds the last completed build.
  */
 @Extension
-// TODO when depending on 1.548+, switch to TransientActionFactory (also for RebuildActionFactory) and take Job not AbstractProject (again consider consolidating logic with isRebuildAvailable)
+// TODO when depending on 1.548+, switch to TransientActionFactory (also for RebuildActionFactory) and take Job not
+// AbstractProject (again consider consolidating logic with isRebuildAvailable)
 public class RebuildProjectActionFactory extends TransientProjectActionFactory {
 
     @Override
