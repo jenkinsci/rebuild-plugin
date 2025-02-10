@@ -49,7 +49,8 @@ public class RebuildActionFactory extends TransientActionFactory<Run> {
 
     @Override
     public Collection<? extends Action> createFor(Run build) {
-        // TODO should this not just use RebuildAction.isRebuildAvailable? Or conversely, is that method needed if we are already filtering here?
+        // TODO should this not just use RebuildAction.isRebuildAvailable? Or conversely, is that method needed if we
+        // are already filtering here?
         if (build.getParent() instanceof MatrixConfiguration) {
             return emptyList();
         }

@@ -13,12 +13,13 @@ import java.util.Collection;
 public abstract class RebuildActionDispatcher implements ExtensionPoint {
 
     /**
+     * @param r The run.
      * @return the actions to include in the rebuild.
      */
     public abstract Collection<Action> getPropagatingActions(Run r);
 
     /**
-     * All registered {@link RebuildActionDispatcher}s.
+     * @return All registered {@link RebuildActionDispatcher}s.
      */
     public static ExtensionList<RebuildActionDispatcher> all() {
         return ExtensionList.lookup(RebuildActionDispatcher.class);

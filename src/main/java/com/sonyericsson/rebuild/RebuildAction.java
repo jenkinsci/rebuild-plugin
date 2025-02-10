@@ -85,6 +85,8 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
     public static final RebuildDescriptor DESCRIPTOR = new RebuildDescriptor();
     /**
      * RebuildAction constructor.
+     *
+     * @param run The run.
      */
     public RebuildAction(Run<?, ?> run) {
         this.run = run;
@@ -101,7 +103,7 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
 
     @Override
     public String getDisplayName() {
-		if (isRebuildAvailable()) {
+        if (isRebuildAvailable()) {
             return "Rebuild";
         } else {
             return null;
@@ -164,8 +166,7 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
             ParametersAction paramAction = run.getAction(ParametersAction.class);
             if (paramAction != null) {
                 RebuildSettings settings = getProject().getProperty(RebuildSettings.class);
-                if (settings != null && settings.getAutoRebuild() ||
-                        request.getParameter("autorebuild") != null) {
+                if (settings != null && settings.getAutoRebuild() || request.getParameter("autorebuild") != null) {
                     parameterizedRebuild(run, response);
                 } else {
                     response.sendRedirect(PARAMETERIZED_URL);
@@ -189,7 +190,7 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
 
             List<Action> actions = constructRebuildActions(run, currentBuild.getAction(ParametersAction.class));
 
-            Jenkins.get().getQueue().schedule2((Queue.Task) run.getParent(), 0, actions);
+            Jenkins.get().getQueue().schedule2((Queue.Task)run.getParent(), 0, actions);
             response.sendRedirect("../../");
         }
     }
@@ -206,7 +207,7 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
         getProject().checkPermission(Item.BUILD);
 
         List<Action> actions = constructRebuildActions(run, null);
-        Jenkins.get().getQueue().schedule2((Queue.Task) currentBuild.getParent(), 0, actions);
+        Jenkins.get().getQueue().schedule2((Queue.Task)currentBuild.getParent(), 0, actions);
         response.sendRedirect("../../");
     }
 
@@ -260,7 +261,7 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
             }
 
             List<Action> actions = constructRebuildActions(run, new ParametersAction(values));
-            Jenkins.get().getQueue().schedule2((Queue.Task) run.getParent(), 0, actions);
+            Jenkins.get().getQueue().schedule2((Queue.Task)run.getParent(), 0, actions);
 
             rsp.sendRedirect("../../");
         }
@@ -280,8 +281,7 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
 
         List<Cause> newBuildCauses = new ArrayList<>();
         for (Cause buildCause : currentBuildCauses) {
-            if (!(buildCause instanceof Cause.UserIdCause) &&
-                !(buildCause instanceof RebuildCause)) {
+            if (!(buildCause instanceof Cause.UserIdCause) && !(buildCause instanceof RebuildCause)) {
                 newBuildCauses.add(buildCause);
             }
         }
@@ -312,7 +312,7 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
         actions.addAll(propagatingActions);
     }
 
-	/**
+    /**
      * Method for getting the ParameterValue instance from ParameterDefinition
      * or ParamterAction.
      *
@@ -415,7 +415,12 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
         }
 
         // Check if we have a branched Jelly in the plugin.
-        if (getClass().getResource(String.format("/%s/%s.jelly", getClass().getCanonicalName().replace('.', '/'), value.getClass().getSimpleName())) != null) {
+        if (getClass()
+                        .getResource(String.format(
+                                "/%s/%s.jelly",
+                                getClass().getCanonicalName().replace('.', '/'),
+                                value.getClass().getSimpleName()))
+                != null) {
             // No provider available, use an existing view provided by rebuild plugin.
             return new RebuildParameterPage(
                     getClass(),

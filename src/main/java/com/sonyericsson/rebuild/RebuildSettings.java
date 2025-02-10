@@ -63,7 +63,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
     public boolean getAutoRebuild() {
         return autoRebuild;
     }
-    
+
     /**
      * Method returns rebuildDisabled.
      *
@@ -72,7 +72,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
     public boolean getRebuildDisabled() {
         return rebuildDisabled;
     }
-    
+
    /**
     * DescriptorImpl class of JobPropertyDescriptor.
     */
