@@ -30,7 +30,7 @@ import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.Action;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,8 +59,8 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 /**
@@ -154,12 +154,12 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
      * Handles the rebuild request and redirects to parameterized
      * and non parameterized build when needed.
      *
-     * @param request  StaplerRequest the request.
-     * @param response StaplerResponse the response handler.
+     * @param request  StaplerRequest2 the request.
+     * @param response StaplerResponse2 the response handler.
      * @throws java.io.IOException          in case of Stapler issues
      */
     @RequirePOST
-    public void doIndex(StaplerRequest request, StaplerResponse response) throws IOException {
+    public void doIndex(StaplerRequest2 request, StaplerResponse2 response) throws IOException {
         if (run != null) {
             ParametersAction paramAction = run.getAction(ParametersAction.class);
             if (paramAction != null) {
@@ -179,10 +179,10 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
      * Handles the rebuild request with parameter.
      *
      * @param currentBuild the build.
-     * @param response StaplerResponse the response handler.
+     * @param response StaplerResponse2 the response handler.
      * @throws IOException          in case of Stapler issues
      */
-    public void parameterizedRebuild(Run currentBuild, StaplerResponse response) throws IOException {
+    public void parameterizedRebuild(Run currentBuild, StaplerResponse2 response) throws IOException {
         Job project = getProject();
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
@@ -201,7 +201,7 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
      * @param response     current response object.
      * @throws IOException          if something unfortunate happens.
      */
-    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse
+    public void nonParameterizedRebuild(Run currentBuild, StaplerResponse2
             response) throws IOException {
         getProject().checkPermission(Item.BUILD);
 
@@ -213,12 +213,12 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
     /**
      * Saves the form to the configuration and disk.
      *
-     * @param req StaplerRequest
-     * @param rsp StaplerResponse
+     * @param req StaplerRequest2
+     * @param rsp StaplerResponse2
      * @throws ServletException     if something unfortunate happens.
      * @throws IOException          if something unfortunate happens.
      */
-    public void doConfigSubmit(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException {
+    public void doConfigSubmit(StaplerRequest2 req, StaplerResponse2 rsp) throws ServletException, IOException {
         Job project = getProject();
         project.checkPermission(Item.BUILD);
         if (isRebuildAvailable()) {
@@ -319,13 +319,13 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
      * @param paramDefProp  ParametersDefinitionProperty
      * @param parameterName Name of the Parameter.
      * @param paramAction   ParametersAction
-     * @param req           StaplerRequest
+     * @param req           StaplerRequest2
      * @param jo            JSONObject
      * @return ParameterValue instance of subclass of ParameterValue
      */
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE") // see https://github.com/spotbugs/spotbugs/issues/651
     public ParameterValue getParameterValue(ParametersDefinitionProperty paramDefProp,
-            String parameterName, ParametersAction paramAction, StaplerRequest req, JSONObject jo) {
+            String parameterName, ParametersAction paramAction, StaplerRequest2 req, JSONObject jo) {
         ParameterDefinition paramDef;
         // this is normal case when user try to rebuild a parameterized job.
         if (paramDefProp != null) {

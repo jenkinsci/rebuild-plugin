@@ -34,7 +34,7 @@ THE SOFTWARE.
     <j:invoke var="paramDefPro" on="${currentThread.contextClassLoader}" method="loadClass">
         <j:arg value="hudson.model.ParametersDefinitionProperty"/>
     </j:invoke>
-    <j:set var="build" value="${request.findAncestorObject(buildClass)}"/>
+    <j:set var="build" value="${request2.findAncestorObject(buildClass)}"/>
     <j:set var="pdp" value="${build.getProject().getProperty(paramDefPro)}"/>
     <j:set var="pname" value="${it.name}"/>
     <j:set var="pd" value="${pdp.getParameterDefinition(pname)}"/>
