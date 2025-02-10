@@ -59,7 +59,7 @@ THE SOFTWARE.
             <j:set var="rememberPasswordEnabled"
                    value="${it.DESCRIPTOR.rebuildConfiguration.rememberPasswordEnabled}"
                    scope="parent"/>
-            <j:set var="build" value="${request.findAncestorObject(buildClass)}"/>
+            <j:set var="build" value="${request2.findAncestorObject(buildClass)}"/>
             <j:set var="paramAction" value="${build.getAction(parmactionClass)}"/>
             <j:set var="parametersProperty"
                    value="${build.parent.getProperty(parametersDefinitionPropertyClass)}"/>

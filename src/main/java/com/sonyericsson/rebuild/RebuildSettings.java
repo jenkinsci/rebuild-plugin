@@ -31,7 +31,7 @@ import hudson.model.JobPropertyDescriptor;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 /**
  *
@@ -91,7 +91,7 @@ public class RebuildSettings extends JobProperty<Job<?, ?>> {
         }
 
         @Override
-        public JobProperty<?> newInstance(@NonNull StaplerRequest req, JSONObject formdata) {
+        public JobProperty<?> newInstance(@NonNull StaplerRequest2 req, JSONObject formdata) {
             return req.bindJSON(RebuildSettings.class, formdata);
         }
     }
