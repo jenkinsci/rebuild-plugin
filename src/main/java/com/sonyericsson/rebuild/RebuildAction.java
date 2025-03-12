@@ -241,9 +241,14 @@ public class RebuildAction extends AbstractRebuildAction implements RunAction2 {
                     }
                     JSONObject jo = (JSONObject)o;
                     String name = jo.getString("name");
-                    ParameterValue parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
-                    if (parameterValue != null) {
-                        values.add(parameterValue);
+                    try{
+                        ParameterValue parameterValue = getParameterValue(paramDefProp, name, paramAction, req, jo);
+                        if (parameterValue != null) {
+                            values.add(parameterValue);
+                        }
+                    }catch(IllegalArgumentException e){
+                        rsp.sendRedirect(PARAMETERIZED_URL + "?invalidParam=" + name);
+                        return;
                     }
                 }
             }

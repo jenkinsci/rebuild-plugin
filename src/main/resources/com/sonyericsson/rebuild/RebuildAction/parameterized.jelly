@@ -64,6 +64,11 @@ THE SOFTWARE.
             <j:set var="parametersProperty"
                    value="${build.parent.getProperty(parametersDefinitionPropertyClass)}"/>
             <f:form method="post" action="configSubmit" name="config" tableClass="parameters">
+                <j:if test="${request.getParameter('invalidParam') != null}">
+                    <div class="error">
+                        <f:entry title='Invalid value for parameter "${request.getParameter("invalidParam")}"'/>
+                    </div>
+                </j:if>
                 <!-- Displaying the form based on current job parameter config with previous build values. -->
                 <j:set var="escapeEntryTitleAndDescription" value="true"/>
                 <j:forEach var="parameterDefinition"
