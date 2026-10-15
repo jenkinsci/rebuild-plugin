@@ -46,23 +46,25 @@ import hudson.model.Run;
 import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -72,17 +74,27 @@ import java.util.concurrent.ExecutionException;
  *
  * @author Gustaf Lundh &lt;gustaf.lundh@sonyericsson.com&gt;
  */
-public class RebuildValidatorTest {
+@WithJenkins
+class RebuildValidatorTest {
     /**
      * Sleep delay value.
      */
-    public static final int DELAY = 100;
+    private static final int DELAY = 100;
 
     /**
      * Test harness.
      */
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    private JenkinsRule j;
+
+    /**
+     * Test initialization.
+     *
+     * @param rule the test harness
+     */
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        this.j = rule;
+    }
 
     /**
      * Tests with no extensions.
@@ -95,7 +107,7 @@ public class RebuildValidatorTest {
      *             ExecutionException
      */
     @Test
-    public void testNoRebuildValidatorExtension() throws IOException,
+    void testNoRebuildValidatorExtension() throws IOException,
             InterruptedException, ExecutionException {
         Project projectA = j.createFreeStyleProject("testFreeStyleA");
         Build buildA = (Build)projectA.scheduleBuild2(
@@ -117,7 +129,7 @@ public class RebuildValidatorTest {
      *             ExecutionException
      */
     @Test
-    public void testRebuildValidatorExtensionIsApplicableTrue()
+    void testRebuildValidatorExtensionIsApplicableTrue()
             throws IOException, InterruptedException, ExecutionException {
         j.getInstance().getExtensionList(RebuildValidator.class).add(0,
                 new ValidatorAlwaysApplicable());
@@ -141,7 +153,7 @@ public class RebuildValidatorTest {
      *             ExecutionException
      */
     @Test
-    public void testRebuildValidatorExtensionIsApplicableFalse()
+    void testRebuildValidatorExtensionIsApplicableFalse()
             throws IOException, InterruptedException, ExecutionException {
         j.getInstance().getExtensionList(RebuildValidator.class).add(0,
                 new ValidatorNeverApplicable());
@@ -165,7 +177,7 @@ public class RebuildValidatorTest {
      *             ExecutionException
      */
     @Test
-    public void testRebuildValidatorExtensionIsApplicableTrueFalse()
+    void testRebuildValidatorExtensionIsApplicableTrueFalse()
             throws IOException, InterruptedException, ExecutionException {
         j.getInstance().getExtensionList(RebuildValidator.class).add(0,
                 new ValidatorAlwaysApplicable());
@@ -188,7 +200,7 @@ public class RebuildValidatorTest {
      *             Exception
      */
     @Test
-    public void testWhenProjectWithoutParamsThenRebuildProjectAvailable()
+    void testWhenProjectWithoutParamsThenRebuildProjectAvailable()
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
 
@@ -201,14 +213,14 @@ public class RebuildValidatorTest {
 
     /**
      * Creates a new freestyle project and builds the project with a string
-     * parameter. If the build is succesful, a rebuild of the last build is
+     * parameter. If the build is successful, a rebuild of the last build is
      * done. The rebuild on the project level should point to the last build
      *
      * @throws Exception
      *             Exception
      */
     @Test
-    public void testWhenProjectWithNoParamsDefinedThenRebuildofBuildWithParamsShouldShowParams()
+    void testWhenProjectWithNoParamsDefinedThenRebuildOfBuildWithParamsShouldShowParams()
             throws Exception {
         System.setProperty("hudson.model.ParametersAction.keepUndefinedParameters", "true");
         FreeStyleProject project = j.createFreeStyleProject();
@@ -234,7 +246,7 @@ public class RebuildValidatorTest {
      *             Exception
      */
     @Test
-    public void testAutoRebuildAsRequestParameter()
+    void testAutoRebuildAsRequestParameter()
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
@@ -259,14 +271,14 @@ public class RebuildValidatorTest {
 
     /**
      * Creates a new freestyle project and builds the project with a string
-     * parameter. If the build is succesful, a rebuild of the last build is
+     * parameter. If the build is successful, a rebuild of the last build is
      * done. The rebuild on the project level should point to the last build
      *
      * @throws Exception
      *             Exception
      */
     @Test
-    public void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
+    void testWhenProjectWithParamsThenRebuildProjectExecutesRebuildOfLastBuild()
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
@@ -297,7 +309,7 @@ public class RebuildValidatorTest {
      *             Exception
      */
     @Test
-    public void testWhenProjectWithCauseThenCauseIsCopiedAndUserIdCauseAdded()
+    void testWhenProjectWithCauseThenCauseIsCopiedAndUserIdCauseAdded()
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
@@ -337,8 +349,8 @@ public class RebuildValidatorTest {
 
             }
         }
-        assertTrue("Build should have user, remote and rebuild causes",
-                hasRebuildCause && hasRemoteCause && hasUserIdCause);
+        assertTrue(hasRebuildCause && hasRemoteCause && hasUserIdCause,
+                "Build should have user, remote and rebuild causes");
     }
 
     /**
@@ -349,7 +361,7 @@ public class RebuildValidatorTest {
      *             Exception
      */
     @Test
-    public void testWhenProjectWithChainedRebuildsThenSingleUserIdCauseAndReplayCause()
+    void testWhenProjectWithChainedRebuildsThenSingleUserIdCauseAndReplayCause()
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
@@ -398,10 +410,8 @@ public class RebuildValidatorTest {
             }
         }
 
-        assertEquals("Multiple chained rebuilds should contain a single UserIdCause",
-                    1, userIdCauseCount);
-        assertEquals("Multiple chained rebuilds should contain a single RebuildCause",
-                    1, rebuildCauseCount);
+        assertEquals(1, userIdCauseCount, "Multiple chained rebuilds should contain a single UserIdCause");
+        assertEquals(1, rebuildCauseCount, "Multiple chained rebuilds should contain a single RebuildCause");
     }
 
 
@@ -413,7 +423,7 @@ public class RebuildValidatorTest {
      *             Exception
      */
     @Test
-    public void testWhenProjectWithoutParamsThenRebuildProjectEnabled()
+    void testWhenProjectWithoutParamsThenRebuildProjectEnabled()
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.scheduleBuild2(0);
@@ -433,7 +443,7 @@ public class RebuildValidatorTest {
      *             Exception
      */
     @Test
-    public void testWhenProjectWithoutParamsThenRebuildProjectIsDisabled()
+    void testWhenProjectWithoutParamsThenRebuildProjectIsDisabled()
             throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.scheduleBuild2(0);
@@ -476,7 +486,7 @@ public class RebuildValidatorTest {
      *             Exception
      */
     @Test
-    public void testRebuildUnsupportedUnknownParameterValue() throws Exception {
+    void testRebuildUnsupportedUnknownParameterValue() throws Exception {
         WebClient wc = j.createWebClient();
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
@@ -502,7 +512,7 @@ public class RebuildValidatorTest {
      *             Exception
      */
     @Test
-    public void testRebuildSupportedUnknownParameterValue() throws Exception {
+    void testRebuildSupportedUnknownParameterValue() throws Exception {
         WebClient wc = j.createWebClient();
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
@@ -516,12 +526,12 @@ public class RebuildValidatorTest {
                                         "value1"))));
         FreeStyleBuild build = project.getLastBuild();
         HtmlPage page = wc.getPage(build).getAnchorByText("Rebuild").click();
-        assertTrue(page.asNormalizedText(),
-                page.asNormalizedText().contains("This is a mark for test"));
+        assertTrue(page.asNormalizedText().contains("This is a mark for test"),
+                page.asNormalizedText());
     }
 
     @Test
-    public void testRebuildDispatcherExtensionActionIsCopied() throws Exception {
+    void testRebuildDispatcherExtensionActionIsCopied() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
                 new StringParameterDefinition("name", "defaultValue")));
@@ -545,13 +555,14 @@ public class RebuildValidatorTest {
         for (Action action : project.getLastCompletedBuild().getAllActions()) {
             if (action instanceof RebuildDispatcherTestAction) {
                 hasRebuildDispatcherTestAction = true;
+                break;
             }
         }
-        assertTrue("Build should have rebuildDispatcherTestAction", hasRebuildDispatcherTestAction);
+        assertTrue(hasRebuildDispatcherTestAction, "Build should have rebuildDispatcherTestAction");
     }
 
     @Test
-    public void testRebuildDispatcherExtensionActionIsNotCopied() throws Exception {
+    void testRebuildDispatcherExtensionActionIsNotCopied() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
         project.addProperty(new ParametersDefinitionProperty(
                 new StringParameterDefinition("name", "defaultValue")));
@@ -576,9 +587,10 @@ public class RebuildValidatorTest {
         for (Action action : project.getLastCompletedBuild().getAllActions()) {
             if (action instanceof RebuildDispatcherTestAction) {
                 hasRebuildDispatcherTestAction = true;
+                break;
             }
         }
-        assertFalse("Build should not have rebuildDispatcherTestAction", hasRebuildDispatcherTestAction);
+        assertFalse(hasRebuildDispatcherTestAction, "Build should not have rebuildDispatcherTestAction");
     }
 
     /**
@@ -586,8 +598,10 @@ public class RebuildValidatorTest {
      */
     public static class UnsupportedUnknownParameterValue extends
             StringParameterValue {
+        @Serial
         private static final long serialVersionUID = 3182218854913929L;
 
+        // CS IGNORE RedundantModifier FOR NEXT 5 LINES. REASON: Must be public.
         public UnsupportedUnknownParameterValue(String name, String value) {
             super(name, value);
         }
@@ -595,8 +609,10 @@ public class RebuildValidatorTest {
 
     public static class UnsupportedUnknownParameterDefinition extends
             StringParameterDefinition {
+        @Serial
         private static final long serialVersionUID = 1014662680565914672L;
 
+        // CS IGNORE RedundantModifier FOR NEXT 5 LINES. REASON: Must be public.
         @DataBoundConstructor
         public UnsupportedUnknownParameterDefinition(String name,
                 String defaultValue) {
@@ -631,8 +647,10 @@ public class RebuildValidatorTest {
      */
     public static class SupportedUnknownParameterValue extends
             StringParameterValue {
+        @Serial
         private static final long serialVersionUID = 114922627975966439L;
 
+        // CS IGNORE RedundantModifier FOR NEXT 5 LINES. REASON: Must be public.
         public SupportedUnknownParameterValue(String name, String value) {
             super(name, value);
         }
@@ -640,8 +658,10 @@ public class RebuildValidatorTest {
 
     public static class SupportedUnknownParameterDefinition extends
             StringParameterDefinition {
+        @Serial
         private static final long serialVersionUID = 1014662680565914672L;
 
+        // CS IGNORE RedundantModifier FOR NEXT 5 LINES. REASON: Must be public.
         @DataBoundConstructor
         public SupportedUnknownParameterDefinition(String name,
                 String defaultValue) {
@@ -689,6 +709,7 @@ public class RebuildValidatorTest {
     public static class RebuildDispatcherTestAction implements Action {
         private final boolean shouldBeCopied;
 
+        // CS IGNORE RedundantModifier FOR NEXT 5 LINES. REASON: Must be public.
         public RebuildDispatcherTestAction(boolean shouldBeCopied) {
             this.shouldBeCopied = shouldBeCopied;
         }
