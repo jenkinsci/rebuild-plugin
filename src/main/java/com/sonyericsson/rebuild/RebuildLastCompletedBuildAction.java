@@ -23,7 +23,7 @@
  */
 package com.sonyericsson.rebuild;
 
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.model.Run;
 
 /**
@@ -32,15 +32,15 @@ import hudson.model.Run;
  */
 public class RebuildLastCompletedBuildAction extends AbstractRebuildAction {
 
-    private final AbstractProject<?, ?> project;
+    private final Job<?, ?> job;
 
-    public RebuildLastCompletedBuildAction(AbstractProject<?, ?> project) {
-        this.project = project;
+    public RebuildLastCompletedBuildAction(Job<?, ?> project) {
+        this.job = project;
     }
 
     @Override
-    public AbstractProject<?, ?> getProject() {
-        return project;
+    public Job<?, ?> getProject() {
+        return job;
     }
 
     @Override
@@ -50,9 +50,9 @@ public class RebuildLastCompletedBuildAction extends AbstractRebuildAction {
 
     @Override
     public String getUrlName() {
-        boolean isBuildable = project.isBuildable();
+        boolean isBuildable = job.isBuildable();
         if (isBuildable) {
-            final Run<?, ?> lastCompletedBuild = project.getLastCompletedBuild();
+            final Run<?, ?> lastCompletedBuild = job.getLastCompletedBuild();
             if (lastCompletedBuild != null) {
                 final RebuildAction action = lastCompletedBuild.getAction(RebuildAction.class);
                 if (action == null) {
@@ -83,7 +83,7 @@ public class RebuildLastCompletedBuildAction extends AbstractRebuildAction {
 
     @Override
     public boolean isRequiresPOST() {
-        final Run<?, ?> lastCompletedBuild = project.getLastCompletedBuild();
+        final Run<?, ?> lastCompletedBuild = job.getLastCompletedBuild();
         if (lastCompletedBuild == null) {
             return false;
         }

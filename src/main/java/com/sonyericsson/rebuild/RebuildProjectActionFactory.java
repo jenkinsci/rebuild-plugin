@@ -25,11 +25,11 @@ package com.sonyericsson.rebuild;
 
 import hudson.matrix.MatrixConfiguration;
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
-import hudson.model.TransientProjectActionFactory;
+import hudson.model.Job;
 
 import java.util.Collection;
+import jenkins.model.TransientActionFactory;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.emptyList;
@@ -41,13 +41,18 @@ import static java.util.Collections.emptyList;
 @Extension
 // TODO when depending on 1.548+, switch to TransientActionFactory (also for RebuildActionFactory) and take Job not
 // AbstractProject (again consider consolidating logic with isRebuildAvailable)
-public class RebuildProjectActionFactory extends TransientProjectActionFactory {
+public class RebuildProjectActionFactory extends TransientActionFactory<Job> {
 
     @Override
-    public Collection<? extends Action> createFor(AbstractProject abstractProject) {
-        if (abstractProject instanceof MatrixConfiguration) {
+    public Class<Job> type() {
+        return Job.class;
+    }
+
+    @Override
+    public Collection<? extends Action> createFor(Job job) {
+        if (job instanceof MatrixConfiguration) {
             return emptyList();
         }
-        return singleton(new RebuildLastCompletedBuildAction(abstractProject));
+        return singleton(new RebuildLastCompletedBuildAction(job));
     }
 }
