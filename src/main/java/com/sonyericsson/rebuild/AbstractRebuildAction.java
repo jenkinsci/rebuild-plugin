@@ -7,6 +7,8 @@ import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Queue;
 import hudson.model.Run;
+import jenkins.model.menu.event.Event;
+import jenkins.model.menu.event.LinkEvent;
 
 public abstract class AbstractRebuildAction implements Action {
 
@@ -45,6 +47,15 @@ public abstract class AbstractRebuildAction implements Action {
     private boolean isRebuildDisabled() {
         RebuildSettings settings = getProject().getProperty(RebuildSettings.class);
         return settings != null && settings.getRebuildDisabled();
+    }
+
+    @Override
+    public Event getEvent() {
+        LinkEvent.LinkEventType eventType = LinkEvent.LinkEventType.GET;
+        if (isRequiresPOST()) {
+            eventType = LinkEvent.LinkEventType.POST;
+        }
+        return LinkEvent.of(getTaskUrl(), eventType);
     }
 
     /**
